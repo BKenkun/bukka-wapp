@@ -1,0 +1,154 @@
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
+
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
+
+// GET - Obtener una solicitud de casting (admin only)
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    })
+
+    if (!adminUser?.isAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    const { id } = await params
+
+    const submission = await prisma.castingSubmission.findUnique({
+      where: { id },
+    })
+
+    if (!submission) {
+      return NextResponse.json(
+        { error: "Solicitud no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(submission)
+  } catch (error) {
+    console.error("Error fetching casting submission:", error)
+    return NextResponse.json(
+      { error: "Error al obtener solicitud" },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH - Actualizar estado de una solicitud (admin only)
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    })
+
+    if (!adminUser?.isAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    const { id } = await params
+    const body = await request.json()
+
+    const existingSubmission = await prisma.castingSubmission.findUnique({
+      where: { id },
+    })
+
+    if (!existingSubmission) {
+      return NextResponse.json(
+        { error: "Solicitud no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    const { status, notes } = body
+
+    // Validar status
+    const validStatuses = ["PENDING", "REVIEWING", "ACCEPTED", "REJECTED"]
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: "Estado no válido" },
+        { status: 400 }
+      )
+    }
+
+    const submission = await prisma.castingSubmission.update({
+      where: { id },
+      data: {
+        status: status || undefined,
+        notes: notes !== undefined ? notes : undefined,
+      },
+    })
+
+    return NextResponse.json(submission)
+  } catch (error) {
+    console.error("Error updating casting submission:", error)
+    return NextResponse.json(
+      { error: "Error al actualizar solicitud" },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE - Eliminar una solicitud (admin only)
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    })
+
+    if (!adminUser?.isAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    const { id } = await params
+
+    const existingSubmission = await prisma.castingSubmission.findUnique({
+      where: { id },
+    })
+
+    if (!existingSubmission) {
+      return NextResponse.json(
+        { error: "Solicitud no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    await prisma.castingSubmission.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting casting submission:", error)
+    return NextResponse.json(
+      { error: "Error al eliminar solicitud" },
+      { status: 500 }
+    )
+  }
+}

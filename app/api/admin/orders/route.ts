@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+
+export async function GET(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get("page") || "1")
+    const pageSize = parseInt(searchParams.get("pageSize") || "20")
+    const status = searchParams.get("status")
+    const paymentStatus = searchParams.get("paymentStatus")
+    const search = searchParams.get("search")
+    const skip = (page - 1) * pageSize
+
+    const where = {
+      ...(status && { status: status as "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" }),
+      ...(paymentStatus && { paymentStatus: paymentStatus as "PENDING" | "PAID" | "FAILED" | "REFUNDED" }),
+      ...(search && {
+        OR: [
+          { orderNumber: { contains: search, mode: "insensitive" as const } },
+          { user: { email: { contains: search, mode: "insensitive" as const } } },
+          { user: { name: { contains: search, mode: "insensitive" as const } } },
+        ],
+      }),
+    }
+
+    const [orders, totalCount] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+          items: {
+            include: {
+              product: {
+                select: { id: true, name: true, slug: true },
+              },
+            },
+          },
+        },
+      }),
+      prisma.order.count({ where }),
+    ])
+
+    const totalPages = Math.ceil(totalCount / pageSize)
+
+    return NextResponse.json({
+      orders,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching orders:", error)
+    return NextResponse.json({ error: "Error al obtener pedidos" }, { status: 500 })
+  }
+}
