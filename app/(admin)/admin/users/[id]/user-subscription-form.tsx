@@ -21,7 +21,6 @@ interface SubscriptionPlan {
   id: string
   slug: string
   name: string
-  color: string | null
 }
 
 interface User {
@@ -95,23 +94,15 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Plan de Suscripción</Label>
-          <Select value={planId} onValueChange={setPlanId}>
+          <Select value={planId || "__none__"} onValueChange={(v) => setPlanId(v === "__none__" ? "" : v)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar plan" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin plan</SelectItem>
+              <SelectItem value="__none__">Sin plan</SelectItem>
               {plans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  <div className="flex items-center gap-2">
-                    {plan.color && (
-                      <div
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: plan.color }}
-                      />
-                    )}
-                    {plan.name}
-                  </div>
+                  {plan.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -162,9 +153,9 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
 
         <div className="flex items-center justify-between">
           <div>
-            <Label htmlFor="isPerformer">Performer</Label>
+            <Label htmlFor="isPerformer">Actriz</Label>
             <p className="text-xs text-muted-foreground">
-              Cuenta vinculada a un perfil de performer
+              Cuenta vinculada a un perfil de actriz
             </p>
           </div>
           <Switch

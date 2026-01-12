@@ -5,14 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,10 +16,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { IconPlus, IconEdit, IconTrash, IconLoader2 } from "@tabler/icons-react"
+import { IconPlus, IconLoader2 } from "@tabler/icons-react"
+import { CategoriesDataTable } from "./categories-data-table"
 
 interface VideoCategory {
   id: string
@@ -38,7 +30,7 @@ interface VideoCategory {
   parentId: string | null
   parent?: { id: string; name: string } | null
   children?: { id: string; name: string; slug: string }[]
-  _count?: { videos: number }
+  _count?: { VideoCategory: number }
 }
 
 export default function VideoCategoriesPage() {
@@ -134,19 +126,6 @@ export default function VideoCategoriesPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar esta categoría? Los videos se quedarán sin esta categoría.")) return
-
-    try {
-      const res = await fetch(`/api/admin/video-categories/${id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("Error al eliminar")
-      toast.success("Categoría eliminada")
-      fetchCategories()
-    } catch (error) {
-      toast.error("Error al eliminar categoría")
-    }
-  }
-
   // Filter parent categories (exclude current and its children)
   const parentOptions = categories.filter((c) => {
     if (!editingCategory) return true
@@ -155,158 +134,113 @@ export default function VideoCategoriesPage() {
     return true
   })
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6 px-4 lg:px-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Categorías de Video</h1>
-          <p className="text-muted-foreground">Gestiona las categorías para organizar videos</p>
+          <p className="text-muted-foreground">
+            {categories.length} categorías en total
+          </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
-              <IconPlus className="mr-2 size-4" />
-              Nueva Categoría
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="text-foreground">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCategory ? "Editar Categoría" : "Nueva Categoría"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Nombre *</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Nombre de la categoría"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Slug</label>
-                <Input
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  placeholder="Se genera automáticamente"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Descripción</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descripción opcional"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Categoría Padre</label>
-                <Select
-                  value={formData.parentId}
-                  onValueChange={(v) => setFormData({ ...formData, parentId: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Ninguna (categoría raíz)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Ninguna (categoría raíz)</SelectItem>
-                    {parentOptions.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Orden</label>
-                <Input
-                  type="number"
-                  value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                  placeholder="0"
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-                  {editingCategory ? "Guardar" : "Crear"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreateDialog}>
+          <IconPlus className="mr-2 size-4" />
+          Nueva Categoría
+        </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Orden</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Padre</TableHead>
-              <TableHead>Videos</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  <IconLoader2 className="size-6 animate-spin mx-auto" />
-                </TableCell>
-              </TableRow>
-            ) : categories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No hay categorías. Crea la primera.
-                </TableCell>
-              </TableRow>
-            ) : (
-              categories.map((cat) => (
-                <TableRow key={cat.id}>
-                  <TableCell>{cat.order}</TableCell>
-                  <TableCell className="font-medium">{cat.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {cat.parent?.name || "-"}
-                  </TableCell>
-                  <TableCell>{cat._count?.videos || 0}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(cat)}
-                      >
-                        <IconEdit className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(cat.id)}
-                      >
-                        <IconTrash className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <CategoriesDataTable
+        categories={categories}
+        onEdit={openEditDialog}
+      />
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="text-foreground">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? "Editar Categoría" : "Nueva Categoría"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nombre *</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Nombre de la categoría"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Slug</label>
+              <Input
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="Se genera automáticamente"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Descripción</label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descripción opcional"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Categoría Padre</label>
+              <Select
+                value={formData.parentId || "__none__"}
+                onValueChange={(v) => setFormData({ ...formData, parentId: v === "__none__" ? "" : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Ninguna (categoría raíz)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Ninguna (categoría raíz)</SelectItem>
+                  {parentOptions.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Orden</label>
+              <Input
+                type="number"
+                value={formData.order}
+                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving && <IconLoader2 className="mr-2 size-4 animate-spin" />}
+                {editingCategory ? "Guardar" : "Crear"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

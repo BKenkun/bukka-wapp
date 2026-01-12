@@ -146,12 +146,12 @@ export default function AdminOrdersPage() {
           </Button>
         </form>
 
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+        <Select value={statusFilter || "__all__"} onValueChange={(v) => { setStatusFilter(v === "__all__" ? "" : v); setPage(1); }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="__all__">Todos</SelectItem>
             <SelectItem value="PENDING">Pendiente</SelectItem>
             <SelectItem value="PROCESSING">Procesando</SelectItem>
             <SelectItem value="SHIPPED">Enviado</SelectItem>
@@ -160,12 +160,12 @@ export default function AdminOrdersPage() {
           </SelectContent>
         </Select>
 
-        <Select value={paymentFilter} onValueChange={(v) => { setPaymentFilter(v); setPage(1); }}>
+        <Select value={paymentFilter || "__all__"} onValueChange={(v) => { setPaymentFilter(v === "__all__" ? "" : v); setPage(1); }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Pago" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="__all__">Todos</SelectItem>
             <SelectItem value="PENDING">Pendiente</SelectItem>
             <SelectItem value="PAID">Pagado</SelectItem>
             <SelectItem value="FAILED">Fallido</SelectItem>

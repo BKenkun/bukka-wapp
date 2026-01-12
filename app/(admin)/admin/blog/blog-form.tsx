@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -24,16 +25,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { toast } from "sonner"
-import { IconLoader2 } from "@tabler/icons-react"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
+import {
+  IconLoader2,
+  IconDeviceFloppy,
+  IconPhoto,
+  IconX,
+  IconUpload,
+} from "@tabler/icons-react"
+import { useUploadThing } from "@/lib/uploadthing-client"
 
 const blogFormSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   slug: z.string().min(3, "El slug debe tener al menos 3 caracteres"),
   excerpt: z.string().optional(),
   content: z.string().min(10, "El contenido debe tener al menos 10 caracteres"),
-  featuredImage: z.string().url().optional().or(z.literal("")),
-  categoryId: z.string().optional(),
+  featuredImage: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
   type: z.enum(["ARTICLE", "ANNOUNCEMENT", "NEWS"]),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
 })
@@ -65,6 +81,24 @@ interface BlogFormProps {
 export function BlogForm({ post, categories }: BlogFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState(false)
+  const [featuredImage, setFeaturedImage] = React.useState(post?.featuredImage || "")
+  const [isUploading, setIsUploading] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const { startUpload } = useUploadThing("blogImages", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        setFeaturedImage(res[0].ufsUrl)
+        form.setValue("featuredImage", res[0].ufsUrl)
+        toast.success("Imagen subida correctamente")
+      }
+      setIsUploading(false)
+    },
+    onUploadError: (error) => {
+      toast.error(`Error: ${error.message}`)
+      setIsUploading(false)
+    },
+  })
 
   const form = useForm<BlogFormValues>({
     resolver: zodResolver(blogFormSchema),
@@ -74,7 +108,7 @@ export function BlogForm({ post, categories }: BlogFormProps) {
       excerpt: post?.excerpt || "",
       content: post?.content || "",
       featuredImage: post?.featuredImage || "",
-      categoryId: post?.categoryId || "",
+      categoryId: post?.categoryId || null,
       type: post?.type || "ARTICLE",
       status: post?.status || "DRAFT",
     },
@@ -82,6 +116,7 @@ export function BlogForm({ post, categories }: BlogFormProps) {
 
   // Auto-generate slug from title
   const watchTitle = form.watch("title")
+
   React.useEffect(() => {
     if (!post && watchTitle) {
       const slug = watchTitle
@@ -94,6 +129,31 @@ export function BlogForm({ post, categories }: BlogFormProps) {
     }
   }, [watchTitle, post, form])
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setIsUploading(true)
+    await startUpload(Array.from(files))
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+    setIsUploading(true)
+    await startUpload(Array.from(files))
+  }
+
+  const preventDefault = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const removeImage = () => {
+    setFeaturedImage("")
+    form.setValue("featuredImage", "")
+  }
+
   async function onSubmit(data: BlogFormValues) {
     setIsLoading(true)
 
@@ -101,10 +161,16 @@ export function BlogForm({ post, categories }: BlogFormProps) {
       const url = post ? `/api/blog/${post.id}` : "/api/blog"
       const method = post ? "PATCH" : "POST"
 
+      const payload = {
+        ...data,
+        categoryId: data.categoryId || null,
+        featuredImage: featuredImage || null,
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -125,173 +191,275 @@ export function BlogForm({ post, categories }: BlogFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Título</FormLabel>
-                <FormControl>
-                  <Input placeholder="Título del artículo" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slug</FormLabel>
-                <FormControl>
-                  <Input placeholder="url-del-articulo" {...field} />
-                </FormControl>
-                <FormDescription>URL amigable (se genera automáticamente)</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="excerpt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Extracto</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Breve descripción del artículo..."
-                  rows={2}
-                  {...field}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main content - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Información del artículo</CardTitle>
+                <CardDescription>
+                  Título, subtítulo y contenido principal
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Título del artículo"
+                          className="text-lg font-medium"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contenido</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Contenido del artículo..."
-                  rows={12}
-                  {...field}
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <FormControl>
+                        <Input placeholder="url-del-articulo" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        URL amigable (se genera automáticamente)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="featuredImage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Imagen Destacada</FormLabel>
-              <FormControl>
-                <Input placeholder="https://..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormField
+                  control={form.control}
+                  name="excerpt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subtítulo / Extracto</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Breve descripción o subtítulo del artículo..."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Se muestra en las previsualizaciones y tarjetas
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoría</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona categoría" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">Sin categoría</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Content Editor Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contenido</CardTitle>
+                <CardDescription>
+                  Editor con soporte para texto enriquecido, imágenes y HTML
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RichTextEditor
+                          content={field.value}
+                          onChange={field.onChange}
+                          placeholder="Escribe el contenido del artículo..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </div>
 
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="ARTICLE">Artículo</SelectItem>
-                    <SelectItem value="ANNOUNCEMENT">Anuncio</SelectItem>
-                    <SelectItem value="NEWS">Noticia</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Sidebar - 1 column */}
+          <div className="space-y-6">
+            {/* Featured Image Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IconPhoto className="size-5" />
+                  Imagen destacada
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
 
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estado</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="DRAFT">Borrador</SelectItem>
-                    <SelectItem value="PUBLISHED">Publicado</SelectItem>
-                    <SelectItem value="ARCHIVED">Archivado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                {featuredImage ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden border">
+                    <Image
+                      src={featuredImage}
+                      alt="Imagen destacada"
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={removeImage}
+                    >
+                      <IconX className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={preventDefault}
+                    onDragEnter={preventDefault}
+                    className="aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                  >
+                    {isUploading ? (
+                      <>
+                        <IconLoader2 className="size-8 animate-spin" />
+                        <span className="text-sm">Subiendo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <IconUpload className="size-8" />
+                        <span className="text-sm text-center px-4">
+                          Arrastra una imagen o haz clic para seleccionar
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-            {post ? "Guardar Cambios" : "Crear Artículo"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/admin/blog")}
-          >
-            Cancelar
-          </Button>
+            {/* Settings Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoría</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(val === "__none__" ? null : val)}
+                        value={field.value || "__none__"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona categoría" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sin categoría</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ARTICLE">Artículo</SelectItem>
+                          <SelectItem value="ANNOUNCEMENT">Anuncio</SelectItem>
+                          <SelectItem value="NEWS">Noticia</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="DRAFT">Borrador</SelectItem>
+                          <SelectItem value="PUBLISHED">Publicado</SelectItem>
+                          <SelectItem value="ARCHIVED">Archivado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Actions Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col gap-3">
+                  <Button type="submit" disabled={isLoading} className="w-full">
+                    {isLoading ? (
+                      <IconLoader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <IconDeviceFloppy className="mr-2 size-4" />
+                    )}
+                    {post ? "Guardar Cambios" : "Crear Artículo"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push("/admin/blog")}
+                    className="w-full"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </form>
     </Form>

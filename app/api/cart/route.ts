@@ -70,11 +70,11 @@ export async function GET() {
     // Get user's subscription plan for discount
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { subscriptionPlan: true },
+      include: { SubscriptionPlan: true },
     })
 
     // Get subscription plan discount
-    const discountPercent = user?.subscriptionPlan?.shopDiscount || 0
+    const discountPercent = user?.SubscriptionPlan?.shopDiscount || 0
     const discount = (subtotal * discountPercent) / 100
     const total = subtotal - discount
 

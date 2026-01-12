@@ -2,7 +2,18 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { IconGripVertical, IconPencil, IconToggleLeft, IconToggleRight } from "@tabler/icons-react"
+import {
+  IconGripVertical,
+  IconPencil,
+  IconToggleLeft,
+  IconToggleRight,
+  IconPhoto,
+  IconVideo,
+  IconUsers,
+  IconBrandCampaignmonitor,
+  IconClock,
+  IconLayoutGrid,
+} from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { HomeSectionType } from "@prisma/client"
@@ -23,12 +34,21 @@ interface TypeConfig {
   color: string
 }
 
-interface HomeSectionListProps {
-  sections: HomeSection[]
-  typeConfig: Record<string, TypeConfig>
+const sectionTypeConfig: Record<string, TypeConfig> = {
+  HERO: { label: "Hero", icon: IconPhoto, color: "text-purple-500" },
+  VIDEO_GRID: { label: "Grid de Videos", icon: IconVideo, color: "text-blue-500" },
+  ACTRESS_GRID: { label: "Grid de Modelos", icon: IconUsers, color: "text-pink-500" },
+  CTA_BANNER: { label: "Banner CTA", icon: IconBrandCampaignmonitor, color: "text-orange-500" },
+  COUNTDOWN: { label: "Cuenta Atrás", icon: IconClock, color: "text-green-500" },
+  CATEGORY_FEATURED: { label: "Categoría Destacada", icon: IconLayoutGrid, color: "text-yellow-500" },
 }
 
-export function HomeSectionList({ sections, typeConfig }: HomeSectionListProps) {
+interface HomeSectionListProps {
+  sections: HomeSection[]
+}
+
+export function HomeSectionList({ sections }: HomeSectionListProps) {
+  const typeConfig = sectionTypeConfig
   const router = useRouter()
   const [editingSection, setEditingSection] = useState<HomeSection | null>(null)
   const [isReordering, setIsReordering] = useState(false)

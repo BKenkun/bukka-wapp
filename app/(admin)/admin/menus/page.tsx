@@ -8,6 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // Menús predefinidos del sistema
 const SYSTEM_MENUS = [
   {
+    slug: "topbar",
+    name: "Top Bar",
+    description: "Enlaces con iconos en la barra superior (BUKAKERY, GANGLORY, etc.)",
+    location: "Top Bar",
+  },
+  {
     slug: "header-main",
     name: "Menú Principal (Header)",
     description: "Enlaces principales de navegación en el header",
@@ -66,6 +72,46 @@ export default async function AdminMenusPage() {
           <p className="text-sm text-muted-foreground">
             Gestiona los menús del header y footer
           </p>
+        </div>
+      </div>
+
+      {/* Top Bar Menu */}
+      <div className="mb-8">
+        <h3 className="text-md font-medium mb-4 flex items-center gap-2">
+          <IconMenu2 className="size-5" />
+          Top Bar
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SYSTEM_MENUS.filter((m) => m.location === "Top Bar").map((menuDef) => {
+            const existingMenu = existingMenusMap.get(menuDef.slug)
+            return (
+              <Card key={menuDef.slug}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-base">{menuDef.name}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {menuDef.description}
+                      </CardDescription>
+                    </div>
+                    {existingMenu && (
+                      <Badge variant="secondary">
+                        {existingMenu._count.items} items
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant={existingMenu ? "outline" : "default"} className="w-full">
+                    <Link href={`/admin/menus/${menuDef.slug}`}>
+                      <IconSettings className="mr-2 size-4" />
+                      {existingMenu ? "Editar menú" : "Configurar menú"}
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       </div>
 
@@ -155,6 +201,9 @@ export default async function AdminMenusPage() {
           <CardTitle className="text-base">Instrucciones</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
+          <p>
+            <strong>Top Bar:</strong> Enlaces con iconos personalizados (SVG) que aparecen en la barra superior. Ideal para marcas asociadas como BUKAKERY, GANGLORY, etc.
+          </p>
           <p>
             <strong>Menú Principal:</strong> Los enlaces que aparecen en la barra de navegación principal.
           </p>

@@ -34,8 +34,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const post = await prisma.blogPost.findUnique({
     where: { slug, status: "PUBLISHED" },
     include: {
-      author: { select: { id: true, name: true, image: true } },
-      category: { select: { id: true, slug: true, name: true } },
+      user: { select: { id: true, name: true, image: true } },
+      BlogCategory: { select: { id: true, slug: true, name: true } },
     },
   })
 
@@ -55,15 +55,15 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       status: "PUBLISHED",
       id: { not: post.id },
       OR: [
-        { categoryId: post.categoryId },
-        { authorId: post.authorId },
+        { categoryId: post.BlogCategoryId },
+        { authorId: post.userId },
       ],
     },
     orderBy: { publishedAt: "desc" },
     take: 3,
     include: {
-      author: { select: { name: true, image: true } },
-      category: { select: { name: true, slug: true } },
+      user: { select: { name: true, image: true } },
+      BlogCategory: { select: { name: true, slug: true } },
     },
   })
 
@@ -103,12 +103,12 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           {/* Header */}
           <header className="mb-8">
             {/* Category */}
-            {post.category && (
+            {post.BlogCategory && (
               <Link
-                href={`/blog?categoria=${post.category.slug}`}
+                href={`/blog?categoria=${post.BlogCategory.slug}`}
                 className="inline-block bg-[#DCFCE7] text-[#16A34A] px-3 py-1 text-sm font-medium font-['Montserrat'] mb-4 hover:bg-[#BBF7D0] transition-colors"
               >
-                {post.category.name}
+                {post.BlogCategory.name}
               </Link>
             )}
 
@@ -121,10 +121,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden relative bg-gray-600">
-                  {post.author.image && (
+                  {post.user.image && (
                     <Image
-                      src={post.author.image}
-                      alt={post.author.name || ""}
+                      src={post.user.image}
+                      alt={post.user.name || ""}
                       fill
                       className="object-cover"
                     />
@@ -132,7 +132,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 </div>
                 <div>
                   <div className="text-white font-medium font-['Montserrat']">
-                    {post.author.name}
+                    {post.user.name}
                   </div>
                   <div className="text-white/60 text-sm font-['Montserrat']">
                     {post.publishedAt && formatDate(post.publishedAt)}
@@ -231,16 +231,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                       />
                     </div>
                     <div className="p-4">
-                      {relatedPost.category && (
+                      {relatedPost.BlogCategory && (
                         <span className="text-[#06B6D4] text-xs font-medium font-['Montserrat'] mb-2 block">
-                          {relatedPost.category.name}
+                          {relatedPost.BlogCategory.name}
                         </span>
                       )}
                       <h3 className="text-white font-['Montserrat'] font-semibold line-clamp-2 group-hover:text-[#06B6D4] transition-colors">
                         {relatedPost.title}
                       </h3>
                       <div className="flex items-center gap-2 mt-3 text-white/60 text-sm font-['Montserrat']">
-                        <span>{relatedPost.author.name}</span>
+                        <span>{relatedPost.user.name}</span>
                         <span>•</span>
                         <span>{relatedPost.publishedAt && formatDate(relatedPost.publishedAt)}</span>
                       </div>

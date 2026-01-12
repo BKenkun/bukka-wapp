@@ -12,6 +12,7 @@ interface Subtitle {
 
 interface MuxVideoPlayerProps {
   videoId: string
+  videoSlug: string
   playbackId: string
   title: string
   thumbnailUrl?: string
@@ -27,6 +28,7 @@ interface MuxVideoPlayerProps {
   locked?: boolean
   lockedMessage?: string
   requiredTier?: string
+  viewerId?: string
 }
 
 interface PlaybackTokenResponse {
@@ -36,6 +38,7 @@ interface PlaybackTokenResponse {
 
 export function MuxVideoPlayer({
   videoId,
+  videoSlug,
   playbackId,
   title,
   thumbnailUrl,
@@ -51,6 +54,7 @@ export function MuxVideoPlayer({
   locked = false,
   lockedMessage = "Este contenido requiere una suscripción",
   requiredTier,
+  viewerId,
 }: MuxVideoPlayerProps) {
   const [playbackToken, setPlaybackToken] = useState<string>()
   const [thumbnailToken, setThumbnailToken] = useState<string>()
@@ -64,7 +68,7 @@ export function MuxVideoPlayer({
         setLoading(true)
         setError(undefined)
 
-        const response = await fetch(`/api/videos/${videoId}/stream`)
+        const response = await fetch(`/api/videos/${videoSlug}/stream`)
         const data: PlaybackTokenResponse = await response.json()
 
         if (!response.ok || data.error) {
@@ -74,7 +78,7 @@ export function MuxVideoPlayer({
         setPlaybackToken(data.token)
 
         // Fetch thumbnail token
-        const thumbResponse = await fetch(`/api/videos/${videoId}/thumbnail-token`)
+        const thumbResponse = await fetch(`/api/videos/${videoSlug}/thumbnail-token`)
         if (thumbResponse.ok) {
           const thumbData = await thumbResponse.json()
           setThumbnailToken(thumbData.token)
@@ -91,7 +95,7 @@ export function MuxVideoPlayer({
     } else {
       setLoading(false)
     }
-  }, [videoId, playbackId, locked])
+  }, [videoSlug, playbackId, locked])
 
   // Handle time update for progress tracking
   const handleTimeUpdate = useCallback(
@@ -180,9 +184,11 @@ export function MuxVideoPlayer({
       <MuxPlayer
         playbackId={playbackId}
         tokens={{ playback: playbackToken, thumbnail: thumbnailToken }}
+        envKey={process.env.NEXT_PUBLIC_MUX_DATA_ENV_KEY}
         metadata={{
           video_id: videoId,
           video_title: title,
+          viewer_user_id: viewerId,
         }}
         poster={thumbnailUrl}
         primaryColor="#FA4860"

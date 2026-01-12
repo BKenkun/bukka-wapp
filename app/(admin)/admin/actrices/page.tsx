@@ -6,6 +6,7 @@ import Link from "next/link"
 
 interface SearchParams {
   page?: string
+  pageSize?: string
   search?: string
 }
 
@@ -16,7 +17,7 @@ export default async function AdminPerformersPage({
 }) {
   const params = await searchParams
   const page = Number(params.page) || 1
-  const pageSize = 20
+  const pageSize = Number(params.pageSize) || 20
   const skip = (page - 1) * pageSize
 
   const where = {
@@ -37,12 +38,12 @@ export default async function AdminPerformersPage({
       include: {
         _count: {
           select: {
-            videos: true,
+            VideoPerformer: true,
             favorites: true,
-            products: true,
+            Product: true,
           },
         },
-        user: {
+        User: {
           select: { id: true, name: true, email: true },
         },
       },
@@ -62,7 +63,7 @@ export default async function AdminPerformersPage({
           </p>
         </div>
         <Button asChild>
-          <Link href="/admin/performers/new">
+          <Link href="/admin/actrices/new">
             <IconPlus className="mr-2 size-4" />
             Nueva Actriz
           </Link>
@@ -74,6 +75,7 @@ export default async function AdminPerformersPage({
         currentPage={page}
         totalPages={totalPages}
         totalCount={totalCount}
+        pageSize={pageSize}
       />
     </div>
   )

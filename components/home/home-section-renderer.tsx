@@ -57,11 +57,15 @@ interface CountdownConfig {
 
 interface VideoData {
   id: string
+  slug: string
   title: string
   subtitle: string
   views: string
   likes: string
   imageUrl: string
+  previewUrl?: string
+  previewStartTime?: number
+  previewEndTime?: number
   isVerified: boolean
 }
 
@@ -71,12 +75,35 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
   try {
     let videos: Array<{
       id: string
+      slug: string
       title: string
       thumbnailUrl: string
+      previewUrl: string | null
+      previewStartTime: number
+      previewEndTime: number
+      muxPlaybackId: string | null
       viewCount: number
       likeCount: number
       performers: Array<{ performer: { name: string } }>
     }>
+
+    const videoSelect = {
+      id: true,
+      slug: true,
+      title: true,
+      thumbnailUrl: true,
+      previewUrl: true,
+      previewStartTime: true,
+      previewEndTime: true,
+      muxPlaybackId: true,
+      viewCount: true,
+      likeCount: true,
+      performers: { include: { performer: { select: { name: true } } } },
+    }
+
+    // Calculate date for weekly filtering
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
 
     switch (config.source) {
       case "popular":
@@ -84,10 +111,70 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
           where: { status: "PUBLISHED" },
           orderBy: { viewCount: "desc" },
           take: limit,
-          include: {
-            performers: { include: { performer: { select: { name: true } } } },
-          },
+          select: videoSelect,
         })
+        break
+
+      case "popular_weekly":
+        // Most viewed in the last 7 days
+        videos = await prisma.video.findMany({
+          where: {
+            status: "PUBLISHED",
+            OR: [
+              { publishedAt: { gte: oneWeekAgo } },
+              { releaseDate: { gte: oneWeekAgo } },
+            ],
+          },
+          orderBy: { viewCount: "desc" },
+          take: limit,
+          select: videoSelect,
+        })
+        // If not enough recent videos, fill with all-time popular
+        if (videos.length < limit) {
+          const additionalVideos = await prisma.video.findMany({
+            where: {
+              status: "PUBLISHED",
+              id: { notIn: videos.map((v) => v.id) },
+            },
+            orderBy: { viewCount: "desc" },
+            take: limit - videos.length,
+            select: videoSelect,
+          })
+          videos = [...videos, ...additionalVideos]
+        }
+        break
+
+      case "trending":
+        // Trending: Recently published with good engagement
+        // Prioritize newer videos with higher view counts
+        videos = await prisma.video.findMany({
+          where: {
+            status: "PUBLISHED",
+            publishedAt: { gte: oneWeekAgo },
+          },
+          orderBy: [
+            { viewCount: "desc" },
+            { likeCount: "desc" },
+          ],
+          take: limit,
+          select: videoSelect,
+        })
+        // If not enough trending, fill with recent popular
+        if (videos.length < limit) {
+          const additionalVideos = await prisma.video.findMany({
+            where: {
+              status: "PUBLISHED",
+              id: { notIn: videos.map((v) => v.id) },
+            },
+            orderBy: [
+              { publishedAt: "desc" },
+              { viewCount: "desc" },
+            ],
+            take: limit - videos.length,
+            select: videoSelect,
+          })
+          videos = [...videos, ...additionalVideos]
+        }
         break
 
       case "category":
@@ -103,9 +190,7 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
             },
             orderBy: { publishedAt: "desc" },
             take: limit,
-            include: {
-              performers: { include: { performer: { select: { name: true } } } },
-            },
+            select: videoSelect,
           })
         } else {
           videos = []
@@ -119,9 +204,7 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
               id: { in: config.videoIds },
               status: "PUBLISHED",
             },
-            include: {
-              performers: { include: { performer: { select: { name: true } } } },
-            },
+            select: videoSelect,
           })
         } else {
           videos = []
@@ -134,23 +217,33 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
           where: { status: "PUBLISHED" },
           orderBy: { publishedAt: "desc" },
           take: limit,
-          include: {
-            performers: { include: { performer: { select: { name: true } } } },
-          },
+          select: videoSelect,
         })
         break
     }
 
     // Transform to VideoGrid format
-    return videos.map((video) => ({
-      id: video.id,
-      title: video.title,
-      subtitle: video.performers.map((p) => p.performer.name).join(", ") || "",
-      views: formatViews(video.viewCount),
-      likes: calculateLikePercentage(video.likeCount, video.viewCount),
-      imageUrl: video.thumbnailUrl || "/images/placeholder-video.jpg",
-      isVerified: true,
-    }))
+    return videos.map((video) => {
+      // Use custom previewUrl if available, otherwise use Mux MP4
+      let videoPreviewUrl = video.previewUrl || undefined
+      if (!videoPreviewUrl && video.muxPlaybackId) {
+        videoPreviewUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
+      }
+
+      return {
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        subtitle: video.performers.map((p) => p.performer.name).join(", ") || "",
+        views: formatViews(video.viewCount),
+        likes: calculateLikePercentage(video.likeCount, video.viewCount),
+        imageUrl: video.thumbnailUrl || "/images/placeholder-video.jpg",
+        previewUrl: videoPreviewUrl,
+        previewStartTime: video.previewStartTime,
+        previewEndTime: video.previewEndTime,
+        isVerified: true,
+      }
+    })
   } catch (error) {
     console.error("Error fetching videos for section:", error)
     return []

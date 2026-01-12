@@ -118,7 +118,7 @@ export function AgeVerificationModal({
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <button
             onClick={handleConfirm}
-            className="px-8 py-3 border-2 border-[#FA4860] bg-[#FA4860] text-white font-bold transition-all hover:bg-[#FA4860]/90"
+            className="px-8 py-3 border-2 border-[#FA4860] bg-[#FA4860] text-white font-bold transition-all hover:bg-[#FA4860]/90 cursor-pointer"
             style={{
               fontFamily: "Montserrat",
               fontSize: "16px",
@@ -130,7 +130,7 @@ export function AgeVerificationModal({
           </button>
           <button
             onClick={handleReject}
-            className="px-8 py-3 border-2 border-[#FA4860] bg-transparent text-white font-bold transition-all hover:bg-[#FA4860]/10"
+            className="px-8 py-3 border-2 border-[#FA4860] bg-transparent text-white font-bold transition-all hover:bg-[#FA4860]/10 cursor-pointer"
             style={{
               fontFamily: "Montserrat",
               fontSize: "16px",

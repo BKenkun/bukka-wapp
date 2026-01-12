@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -20,18 +19,12 @@ interface ProductSidebarProps {
 }
 
 export function ProductSidebar({ products }: ProductSidebarProps) {
-  const { data: session } = useSession()
   const router = useRouter()
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
     e.preventDefault()
     e.stopPropagation()
-
-    if (!session?.user) {
-      router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
-      return
-    }
 
     setLoadingId(productId)
 
@@ -41,6 +34,12 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, quantity: 1 }),
       })
+
+      if (res.status === 401) {
+        // Not authenticated, redirect to login
+        router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
+        return
+      }
 
       if (res.ok) {
         toast.success("Producto añadido al carrito")

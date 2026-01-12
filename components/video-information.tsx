@@ -6,16 +6,31 @@ interface Performer {
   name: string
 }
 
+interface Category {
+  id: string
+  slug: string
+  name: string
+}
+
 interface VideoInformationProps {
   description?: string | null
   performers: Performer[]
   tags: string[]
   director?: string
+  releaseDate?: Date | null
+  duration?: number | null
+  categories?: Category[]
 }
 
-export function VideoInformation({ description, performers, tags, director }: VideoInformationProps) {
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
+export function VideoInformation({ description, performers, tags, director, releaseDate, duration, categories }: VideoInformationProps) {
   // Si no hay información, no mostrar nada
-  if (!description && performers.length === 0 && tags.length === 0 && !director) {
+  if (!description && performers.length === 0 && tags.length === 0 && !director && !releaseDate && !duration && (!categories || categories.length === 0)) {
     return null
   }
 
@@ -47,6 +62,47 @@ export function VideoInformation({ description, performers, tags, director }: Vi
           <div>
             <span className="font-bold text-base leading-6">Dirigido por: </span>
             <span className="font-normal text-base leading-6">{director}</span>
+          </div>
+        )}
+
+        {releaseDate && (
+          <div>
+            <span className="font-bold text-base leading-6">Fecha de lanzamiento: </span>
+            <span className="font-normal text-base leading-6">
+              {new Date(releaseDate).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        )}
+
+        {duration && duration > 0 && (
+          <div>
+            <span className="font-bold text-base leading-6">Duración: </span>
+            <span className="font-normal text-base leading-6">{formatDuration(duration)}</span>
+          </div>
+        )}
+
+        {categories && categories.length > 0 && (
+          <div>
+            <span className="font-bold text-base leading-6">
+              {categories.length > 1 ? "Categorías: " : "Categoría: "}
+            </span>
+            <span className="font-normal text-base leading-6">
+              {categories.map((category, index) => (
+                <span key={category.id}>
+                  <Link
+                    href={`/categorias/${category.slug}`}
+                    className="hover:text-[#FA4860] transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                  {index < categories.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </span>
           </div>
         )}
 

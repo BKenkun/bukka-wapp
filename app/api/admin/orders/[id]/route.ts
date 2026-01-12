@@ -34,7 +34,6 @@ export async function GET(
               select: {
                 slug: true,
                 name: true,
-                color: true,
               },
             },
           },

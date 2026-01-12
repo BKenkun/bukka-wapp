@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { Eye, ThumbsUp, CheckCircle, MoreHorizontal } from "lucide-react"
+import { useState, useRef } from "react"
 
 interface VideoCardProps {
   title: string
@@ -7,6 +10,9 @@ interface VideoCardProps {
   views: string
   likes: string
   imageUrl: string
+  previewUrl?: string
+  previewStartTime?: number
+  previewEndTime?: number
   isVerified?: boolean
   variant?: "overlay" | "below"
   slug?: string
@@ -18,21 +24,80 @@ export function VideoCard({
   views,
   likes,
   imageUrl,
+  previewUrl,
+  previewStartTime = 0,
+  previewEndTime,
   isVerified = true,
   variant = "overlay",
   slug = "video-ejemplo",
 }: VideoCardProps) {
+  const [isHovering, setIsHovering] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = () => {
+    // Small delay before starting preview to avoid accidental triggers
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovering(true)
+      if (videoRef.current && previewUrl) {
+        videoRef.current.currentTime = previewStartTime
+        videoRef.current.play().catch(() => {
+          // Autoplay might be blocked, ignore error
+        })
+      }
+    }, 300)
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    setIsHovering(false)
+    if (videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = previewStartTime
+    }
+  }
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current && previewEndTime && videoRef.current.currentTime >= previewEndTime) {
+      videoRef.current.currentTime = previewStartTime
+    }
+  }
+
   const CardContent = () => {
     if (variant === "below") {
       return (
-        <div className="group cursor-pointer">
-          {/* Video thumbnail */}
-          <div className="relative w-full aspect-[476/309] overflow-hidden rounded-sm mb-3">
+        <div
+          className="group cursor-pointer"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* Video thumbnail / preview */}
+          <div className="relative w-full aspect-[476/309] overflow-hidden rounded-sm mb-3 bg-black">
+            {/* Thumbnail image */}
             <img
               src={imageUrl || "/placeholder.svg"}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
+                isHovering && previewUrl ? "opacity-0" : "opacity-100 group-hover:scale-105"
+              }`}
             />
+
+            {/* Preview video */}
+            {previewUrl && (
+              <video
+                ref={videoRef}
+                src={previewUrl}
+                muted
+                playsInline
+                loop={!previewEndTime}
+                onTimeUpdate={previewEndTime ? handleTimeUpdate : undefined}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                  isHovering ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            )}
           </div>
 
           {/* Content below */}
@@ -70,10 +135,36 @@ export function VideoCard({
     }
 
     return (
-      <div className="relative group cursor-pointer overflow-hidden">
-        {/* Video thumbnail */}
-        <div className="relative w-full aspect-[476/309]">
-          <img src={imageUrl || "/placeholder.svg"} alt={title} className="w-full h-full object-cover" />
+      <div
+        className="relative group cursor-pointer overflow-hidden"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Video thumbnail / preview */}
+        <div className="relative w-full aspect-[476/309] bg-black">
+          {/* Thumbnail image */}
+          <img
+            src={imageUrl || "/placeholder.svg"}
+            alt={title}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+              isHovering && previewUrl ? "opacity-0" : "opacity-100"
+            }`}
+          />
+
+          {/* Preview video */}
+          {previewUrl && (
+            <video
+              ref={videoRef}
+              src={previewUrl}
+              muted
+              playsInline
+              loop={!previewEndTime}
+              onTimeUpdate={previewEndTime ? handleTimeUpdate : undefined}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                isHovering ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          )}
 
           {/* Dark gradient overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

@@ -22,6 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             url: true,
             pageId: true,
             icon: true,
+            customIcon: true,
             order: true,
             openInNewTab: true,
             highlight: true,

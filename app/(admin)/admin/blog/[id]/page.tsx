@@ -1,20 +1,34 @@
-import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { BlogForm } from "../blog-form"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { IconArrowLeft } from "@tabler/icons-react"
+import { Button } from "@/components/ui/button"
 
-interface EditBlogPostPageProps {
+interface Props {
   params: Promise<{ id: string }>
 }
 
-export default async function EditBlogPostPage({ params }: EditBlogPostPageProps) {
+export default async function EditBlogPostPage({ params }: Props) {
   const { id } = await params
 
   const [post, categories] = await Promise.all([
     prisma.blogPost.findUnique({
       where: { id },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        content: true,
+        featuredImage: true,
+        categoryId: true,
+        type: true,
+        status: true,
+      },
     }),
     prisma.blogCategory.findMany({
-      orderBy: { order: "asc" },
+      orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
   ])
@@ -24,15 +38,21 @@ export default async function EditBlogPostPage({ params }: EditBlogPostPageProps
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Editar Artículo</h1>
-        <p className="text-muted-foreground">{post.title}</p>
+    <div className="px-4 lg:px-6">
+      <div className="mb-6">
+        <Button variant="ghost" size="sm" asChild className="mb-4">
+          <Link href="/admin/blog">
+            <IconArrowLeft className="mr-2 size-4" />
+            Volver al Blog
+          </Link>
+        </Button>
+        <h2 className="text-2xl font-bold">Editar Artículo</h2>
+        <p className="text-muted-foreground">
+          Modifica el artículo: {post.title}
+        </p>
       </div>
 
-      <div className="max-w-4xl">
-        <BlogForm post={post} categories={categories} />
-      </div>
+      <BlogForm post={post} categories={categories} />
     </div>
   )
 }

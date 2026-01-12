@@ -34,14 +34,18 @@ export async function POST(request: NextRequest) {
       isLimitedEdition,
       limitedAccessUntil,
       releaseDate,
-      has720p,
-      has1080p,
-      has4k,
-      allowDownload,
+      // Preview customization
+      previewStartTime,
+      previewEndTime,
       metaTitle,
       metaDescription,
       performerIds,
       categoryIds,
+      productIds,
+      // Mux video IDs
+      muxUploadId,
+      muxAssetId,
+      muxPlaybackId,
     } = body
 
     // Verificar slug único
@@ -69,12 +73,15 @@ export async function POST(request: NextRequest) {
         isLimitedEdition: isLimitedEdition || false,
         limitedAccessUntil: limitedAccessUntil ? new Date(limitedAccessUntil) : null,
         releaseDate: releaseDate ? new Date(releaseDate) : new Date(),
-        has720p: has720p ?? true,
-        has1080p: has1080p ?? true,
-        has4k: has4k ?? false,
-        allowDownload: allowDownload ?? false,
+        // Preview customization
+        previewStartTime: previewStartTime ?? 0,
+        previewEndTime: previewEndTime ?? 5,
         metaTitle,
         metaDescription,
+        // Mux video IDs
+        muxUploadId: muxUploadId || null,
+        muxAssetId: muxAssetId || null,
+        muxPlaybackId: muxPlaybackId || null,
         performers: performerIds?.length
           ? {
               create: performerIds.map((performerId: string) => ({
@@ -89,10 +96,18 @@ export async function POST(request: NextRequest) {
               })),
             }
           : undefined,
+        relatedProducts: productIds?.length
+          ? {
+              create: productIds.map((productId: string) => ({
+                product: { connect: { id: productId } },
+              })),
+            }
+          : undefined,
       },
       include: {
         performers: { include: { performer: true } },
         categories: { include: { category: true } },
+        relatedProducts: { include: { product: true } },
       },
     })
 
@@ -130,9 +145,9 @@ export async function GET(request: NextRequest) {
     if (session?.user?.id) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        include: { subscriptionPlan: true },
+        include: { SubscriptionPlan: true },
       })
-      userPlan = user?.subscriptionPlan || null
+      userPlan = user?.SubscriptionPlan || null
     }
 
     // Si no hay plan, usar el plan por defecto
@@ -281,28 +296,37 @@ export async function GET(request: NextRequest) {
       prisma.video.count({ where }),
     ])
 
-    // Transformar respuesta
-    const transformedVideos = videos.map((video) => ({
-      id: video.id,
-      slug: video.slug,
-      title: video.title,
-      description: video.description,
-      thumbnailUrl: video.thumbnailUrl,
-      previewUrl: video.previewUrl,
-      duration: video.duration,
-      releaseDate: video.releaseDate,
-      viewCount: video.viewCount,
-      likeCount: video.likeCount,
-      minTierPlan: video.minTierPlan,
-      isLimitedEdition: video.isLimitedEdition,
-      isDiamondExclusive: video.isDiamondExclusive,
-      has720p: video.has720p,
-      has1080p: video.has1080p,
-      has4k: video.has4k,
-      performers: video.performers.map((vp) => vp.performer),
-      categories: video.categories.map((vc) => vc.category),
-      tags: video.tags.map((vt) => vt.tag),
-    }))
+    // Transformar respuesta con preview URL de video MP4
+    const transformedVideos = videos.map((video) => {
+      // Generar URL del preview MP4 video
+      let previewVideoUrl = video.previewUrl
+      if (video.muxPlaybackId) {
+        // Usar MP4 medium quality (960x540) para preview
+        previewVideoUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
+      }
+
+      return {
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        description: video.description,
+        thumbnailUrl: video.thumbnailUrl,
+        previewUrl: previewVideoUrl,
+        // Preview time settings for frontend
+        previewStartTime: video.previewStartTime,
+        previewEndTime: video.previewEndTime,
+        duration: video.duration,
+        releaseDate: video.releaseDate,
+        viewCount: video.viewCount,
+        likeCount: video.likeCount,
+        minTierPlan: video.minTierPlan,
+        isLimitedEdition: video.isLimitedEdition,
+        isDiamondExclusive: video.isDiamondExclusive,
+        performers: video.performers.map((vp) => vp.performer),
+        categories: video.categories.map((vc) => vc.category),
+        tags: video.tags.map((vt) => vt.tag),
+      }
+    })
 
     return NextResponse.json({
       videos: transformedVideos,

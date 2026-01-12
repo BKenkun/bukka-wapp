@@ -14,7 +14,7 @@ interface Props {
 export default async function EditVideoPage({ params }: Props) {
   const { id } = await params
 
-  const [video, performers, categories, subscriptionPlans] = await Promise.all([
+  const [video, performers, categories, products, subscriptionPlans] = await Promise.all([
     prisma.video.findUnique({
       where: { id },
       include: {
@@ -29,6 +29,13 @@ export default async function EditVideoPage({ params }: Props) {
           include: {
             category: {
               select: { id: true, name: true, slug: true },
+            },
+          },
+        },
+        relatedProducts: {
+          include: {
+            product: {
+              select: { id: true, name: true, slug: true, price: true, images: true },
             },
           },
         },
@@ -49,10 +56,15 @@ export default async function EditVideoPage({ params }: Props) {
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
     }),
+    prisma.product.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, slug: true, price: true, images: true },
+    }),
     prisma.subscriptionPlan.findMany({
       where: { isActive: true },
       orderBy: { level: "asc" },
-      select: { id: true, name: true, slug: true, level: true, color: true },
+      select: { id: true, name: true, slug: true, level: true },
     }),
   ])
 
@@ -133,7 +145,13 @@ export default async function EditVideoPage({ params }: Props) {
         </Card>
       </div>
 
-      <VideoForm video={video} performers={performers} categories={categories} subscriptionPlans={subscriptionPlans} />
+      <VideoForm
+        video={video}
+        performers={performers}
+        categories={categories}
+        products={products.map(p => ({ ...p, price: Number(p.price) }))}
+        subscriptionPlans={subscriptionPlans}
+      />
     </div>
   )
 }

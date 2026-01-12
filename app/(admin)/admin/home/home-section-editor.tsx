@@ -127,11 +127,17 @@ export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEdito
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="latest">Últimos videos</SelectItem>
-                    <SelectItem value="popular">Más populares</SelectItem>
+                    <SelectItem value="popular">Más populares (todos)</SelectItem>
+                    <SelectItem value="popular_weekly">Más vistos de la semana</SelectItem>
+                    <SelectItem value="trending">Tendencias</SelectItem>
                     <SelectItem value="category">Por categoría</SelectItem>
                     <SelectItem value="manual">Selección manual</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  {config.source === "popular_weekly" && "Videos más vistos en los últimos 7 días"}
+                  {config.source === "trending" && "Videos con mayor crecimiento de vistas reciente"}
+                </p>
               </div>
 
               {config.source === "category" && (

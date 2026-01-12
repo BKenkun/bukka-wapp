@@ -216,14 +216,14 @@ export default function ShopCategoriesPage() {
               <div>
                 <label className="text-sm font-medium">Categoría Padre</label>
                 <Select
-                  value={formData.parentId}
-                  onValueChange={(v) => setFormData({ ...formData, parentId: v })}
+                  value={formData.parentId || "__none__"}
+                  onValueChange={(v) => setFormData({ ...formData, parentId: v === "__none__" ? "" : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Ninguna (categoría raíz)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ninguna (categoría raíz)</SelectItem>
+                    <SelectItem value="__none__">Ninguna (categoría raíz)</SelectItem>
                     {parentOptions.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}

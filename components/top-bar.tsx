@@ -1,4 +1,8 @@
-const BagIcon = () => (
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
+
+// Icono por defecto (bolsa)
+const DefaultIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="21" viewBox="0 0 18 21" fill="none">
     <path
       d="M16.5 6.75H6V4.5C6 3.70435 6.31607 2.94129 6.87868 2.37868C7.44129 1.81607 8.20435 1.5 9 1.5C10.4409 1.5 11.7375 2.53125 12.015 3.89906C12.0562 4.09234 12.172 4.26155 12.3373 4.36991C12.5026 4.47827 12.7039 4.51702 12.8976 4.47774C13.0913 4.43846 13.2616 4.32433 13.3716 4.16014C13.4816 3.99596 13.5224 3.795 13.485 3.60094C13.0612 1.51406 11.175 0 9 0C7.80691 0.00124087 6.66303 0.475745 5.81939 1.31939C4.97575 2.16303 4.50124 3.30691 4.5 4.5V6.75H1.5C1.10218 6.75 0.720644 6.90804 0.43934 7.18934C0.158035 7.47064 0 7.85218 0 8.25V18.75C0 19.1478 0.158035 19.5294 0.43934 19.8107C0.720644 20.092 1.10218 20.25 1.5 20.25H16.5C16.8978 20.25 17.2794 20.092 17.5607 19.8107C17.842 19.5294 18 19.1478 18 18.75V8.25C18 7.85218 17.842 7.47064 17.5607 7.18934C17.2794 6.90804 16.8978 6.75 16.5 6.75ZM16.5 18.75H1.5V8.25H16.5V18.75Z"
@@ -7,26 +11,93 @@ const BagIcon = () => (
   </svg>
 )
 
-export function TopBar() {
+interface TopBarItem {
+  id: string
+  label: string
+  url: string | null
+  icon: string | null
+  customIcon: string | null
+  openInNewTab: boolean
+}
+
+async function getTopBarItems(): Promise<TopBarItem[]> {
+  try {
+    const menu = await prisma.menu.findUnique({
+      where: { slug: "topbar" },
+      include: {
+        items: {
+          where: { isVisible: true },
+          orderBy: { order: "asc" },
+          select: {
+            id: true,
+            label: true,
+            url: true,
+            icon: true,
+            customIcon: true,
+            openInNewTab: true,
+          },
+        },
+      },
+    })
+
+    return menu?.items || []
+  } catch {
+    return []
+  }
+}
+
+function TopBarItemIcon({ customIcon }: { customIcon: string | null }) {
+  if (customIcon) {
+    return (
+      <span
+        className="[&>svg]:w-[18px] [&>svg]:h-[21px] [&>svg]:fill-white"
+        dangerouslySetInnerHTML={{ __html: customIcon }}
+      />
+    )
+  }
+  return <DefaultIcon />
+}
+
+export async function TopBar() {
+  const items = await getTopBarItems()
+
+  // Si no hay items configurados, no mostrar nada
+  if (items.length === 0) {
+    return null
+  }
+
   return (
     <div className="w-full h-[36px] bg-[#353535] flex justify-end items-center px-8 z-50 relative">
       <div className="flex items-center gap-8">
-        <div className="flex items-center gap-2">
-          <BagIcon />
-          <span className="text-white text-base font-bold font-['Montserrat'] leading-6">BUKAKERY</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <BagIcon />
-          <span className="text-white text-base font-bold font-['Montserrat'] leading-6">GANGLORY</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <BagIcon />
-          <span className="text-white text-base font-bold font-['Montserrat'] leading-6">GANGLORY</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <BagIcon />
-          <span className="text-white text-base font-bold font-['Montserrat'] leading-6">GANGLORY</span>
-        </div>
+        {items.map((item) => {
+          const content = (
+            <>
+              <TopBarItemIcon customIcon={item.customIcon} />
+              <span className="text-white text-base font-bold font-['Montserrat'] leading-6">
+                {item.label}
+              </span>
+            </>
+          )
+
+          if (item.url) {
+            return (
+              <Link
+                key={item.id}
+                href={item.url}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              >
+                {content}
+              </Link>
+            )
+          }
+
+          return (
+            <div key={item.id} className="flex items-center gap-2">
+              {content}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

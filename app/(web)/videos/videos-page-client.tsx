@@ -15,6 +15,9 @@ interface Video {
   views: string
   likes: string
   imageUrl: string
+  previewUrl?: string
+  previewStartTime?: number
+  previewEndTime?: number
   isVerified?: boolean
 }
 
@@ -230,6 +233,9 @@ export function VideosPageClient({
                     views={video.views}
                     likes={video.likes}
                     imageUrl={video.imageUrl}
+                    previewUrl={video.previewUrl}
+                    previewStartTime={video.previewStartTime}
+                    previewEndTime={video.previewEndTime}
                     isVerified={video.isVerified}
                     slug={video.slug}
                     variant="below"

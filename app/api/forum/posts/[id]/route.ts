@@ -14,12 +14,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const post = await prisma.forumPost.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, image: true, tier: true } },
-        category: { select: { id: true, slug: true, name: true } },
-        replies: {
+        user: { select: { id: true, name: true, image: true, subscriptionPlanId: true } },
+        ForumCategory: { select: { id: true, slug: true, name: true } },
+        ForumReply: {
           orderBy: { createdAt: "asc" },
           include: {
-            author: { select: { id: true, name: true, image: true, tier: true } },
+            user: { select: { id: true, name: true, image: true, subscriptionPlanId: true } },
           },
         },
       },
@@ -57,7 +57,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const existingPost = await prisma.forumPost.findUnique({
       where: { id },
-      include: { author: { select: { id: true } } },
+      include: { user: { select: { id: true } } },
     })
 
     if (!existingPost) {
@@ -100,8 +100,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { id },
       data: updateData,
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        ForumCategory: { select: { id: true, slug: true, name: true } },
       },
     })
 

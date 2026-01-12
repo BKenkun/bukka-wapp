@@ -43,23 +43,23 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
     prisma.forumPost.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, image: true, tier: true } },
-        category: { select: { id: true, slug: true, name: true } },
-        replies: {
+        user: { select: { id: true, name: true, image: true, subscriptionPlanId: true } },
+        ForumCategory: { select: { id: true, slug: true, name: true } },
+        ForumReply: {
           orderBy: { createdAt: "asc" },
           include: {
-            author: { select: { id: true, name: true, image: true, tier: true } },
+            user: { select: { id: true, name: true, image: true, subscriptionPlanId: true } },
           },
         },
       },
     }),
     prisma.forumCategory.findMany({
       orderBy: { order: "asc" },
-      include: { _count: { select: { posts: true } } },
+      include: { _count: { select: { ForumPost: true } } },
     }),
     Promise.all([
       prisma.forumPost.count(),
-      prisma.user.count({ where: { forumPosts: { some: {} } } }),
+      prisma.user.count({ where: { ForumPost: { some: {} } } }),
       prisma.forumPost.count({
         where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
       }),
@@ -122,7 +122,7 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
                   key={category.id}
                   href={`/foro?categoria=${category.slug}`}
                   className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
-                    post.categoryId === category.id ? "bg-[rgba(250,72,96,0.27)]" : "hover:bg-white/5"
+                    post.ForumCategoryId === category.id ? "bg-[rgba(250,72,96,0.27)]" : "hover:bg-white/5"
                   }`}
                 >
                   <span className="font-montserrat text-white text-[16px] font-medium leading-[24px]">
@@ -132,7 +132,7 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
                     className="font-montserrat text-[#111827] text-[12px] font-normal bg-white px-2 py-1 flex items-center justify-end"
                     style={{ padding: "4px 8px" }}
                   >
-                    {category._count.posts}
+                    {category._count.ForumPost}
                   </span>
                 </Link>
               ))}
@@ -186,31 +186,31 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
                 </span>
               )}
               <span className="font-montserrat text-[#1E40AF] text-[12px] font-medium bg-[#DBEAFE] px-3 py-1">
-                {post.category.name}
+                {post.ForumCategory.name}
               </span>
             </div>
 
             {/* Author Info */}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-600">
-                {post.author.image ? (
+                {post.user.image ? (
                   <Image
-                    src={post.author.image}
-                    alt={post.author.name || ""}
+                    src={post.user.image}
+                    alt={post.user.name || ""}
                     fill
                     className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                    {(post.author.name || "U").charAt(0).toUpperCase()}
+                    {(post.user.name || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
               <Link
-                href={`/foro/perfil/${post.author.id}`}
+                href={`/foro/perfil/${post.user.id}`}
                 className="font-montserrat text-white text-[14px] font-normal leading-[20px] hover:text-[#00B1DE] transition-colors"
               >
-                Por {post.author.name || "Usuario"}
+                Por {post.user.name || "Usuario"}
               </Link>
               <span className="font-montserrat text-white text-[14px] font-normal leading-[20px]">•</span>
               <span className="font-montserrat text-white text-[14px] font-normal leading-[20px]">
@@ -366,11 +366,11 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
 
           {/* Replies Section */}
           <ForumReplies
-            replies={post.replies.map((reply) => ({
+            replies={post.ForumReply.map((reply) => ({
               id: reply.id,
-              author: reply.author.name || "Usuario",
-              authorImage: reply.author.image,
-              tier: reply.author.tier,
+              author: reply.user.name || "Usuario",
+              authorImage: reply.user.image,
+              tier: reply.user.subscriptionPlanId,
               timeAgo: formatTimeAgo(reply.createdAt),
               content: reply.content,
             }))}

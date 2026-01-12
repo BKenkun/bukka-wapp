@@ -1,34 +1,52 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { IconPlus, IconFile, IconFileText, IconEye, IconPencil, IconCheck, IconClock, IconArchive } from "@tabler/icons-react"
+import { IconPlus, IconClock, IconCheck, IconArchive } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { PagesDataTable } from "./pages-data-table"
 
-const statusConfig = {
-  DRAFT: { label: "Borrador", icon: IconClock, color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
-  PUBLISHED: { label: "Publicada", icon: IconCheck, color: "bg-green-500/20 text-green-400 border-green-500/30" },
-  ARCHIVED: { label: "Archivada", icon: IconArchive, color: "bg-gray-500/20 text-gray-400 border-gray-500/30" },
+interface SearchParams {
+  page?: string
+  pageSize?: string
+  status?: string
+  search?: string
 }
 
-export default async function AdminPagesPage() {
-  const [pages, stats] = await Promise.all([
+export default async function AdminPagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  const params = await searchParams
+  const page = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || 20
+  const skip = (page - 1) * pageSize
+
+  const where = {
+    ...(params.status && { status: params.status as "DRAFT" | "PUBLISHED" | "ARCHIVED" }),
+    ...(params.search && {
+      OR: [
+        { title: { contains: params.search, mode: "insensitive" as const } },
+        { slug: { contains: params.search, mode: "insensitive" as const } },
+      ],
+    }),
+  }
+
+  const [pages, totalCount, stats] = await Promise.all([
     prisma.page.findMany({
+      where,
+      skip,
+      take: pageSize,
       orderBy: { updatedAt: "desc" },
     }),
+    prisma.page.count({ where }),
     prisma.page.groupBy({
       by: ["status"],
       _count: true,
     }),
   ])
+
+  const totalPages = Math.ceil(totalCount / pageSize)
 
   const statusStats = {
     draft: stats.find((s) => s.status === "DRAFT")?._count || 0,
@@ -90,104 +108,14 @@ export default async function AdminPagesPage() {
         </Card>
       </div>
 
-      {/* Pages Table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Footer</TableHead>
-                <TableHead>Actualizada</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pages.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    <IconFileText className="size-12 mx-auto mb-4 opacity-20" />
-                    <p>No hay páginas creadas</p>
-                    <Button asChild variant="link" className="mt-2">
-                      <Link href="/admin/pages/new">Crear primera página</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                pages.map((page) => {
-                  const status = statusConfig[page.status]
-                  const StatusIcon = status.icon
-                  return (
-                    <TableRow key={page.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="size-10 rounded bg-muted flex items-center justify-center">
-                            <IconFile className="size-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{page.title}</p>
-                            {page.metaTitle && (
-                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                {page.metaTitle}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          /{page.slug}
-                        </code>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={status.color}>
-                          <StatusIcon className="size-3 mr-1" />
-                          {status.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {page.showInFooter ? (
-                          <Badge variant="secondary">
-                            Columna {page.footerColumn || 1}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {new Date(page.updatedAt).toLocaleDateString("es-ES", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {page.status === "PUBLISHED" && (
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/p/${page.slug}`} target="_blank">
-                                <IconEye className="size-4" />
-                              </Link>
-                            </Button>
-                          )}
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/admin/pages/${page.id}`}>
-                              <IconPencil className="mr-2 size-4" />
-                              Editar
-                            </Link>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Data Table */}
+      <PagesDataTable
+        pages={pages}
+        currentPage={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={pageSize}
+      />
     </div>
   )
 }

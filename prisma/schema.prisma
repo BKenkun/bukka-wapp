@@ -1,399 +1,411 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
 }
 
-// ==================== USUARIOS ====================
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String?
-  username      String?   @unique
-  image         String?
-  emailVerified DateTime?
-
-  // Suscripcion
-  subscriptionPlanId String?
-  subscriptionPlan   SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
-  subscriptionStart  DateTime?
-  subscriptionEnd    DateTime?
-
-  // IDs de pasarelas de pago
-  ccbillSubscriptionId String?
-  epochMemberId        String?
-
-  // Perfil comunidad
-  bio                String?
-  forumSignature     String?
-  relationshipStatus RelationshipStatus?
-  relationshipRole   RelationshipRole?
-
-  // Roles
-  isAdmin     Boolean @default(false)
-  isPerformer Boolean @default(false)
-  isVerified  Boolean @default(false)
-  isModerator Boolean @default(false)
-
-  // Preferencias de notificación
-  notifyEmail          Boolean @default(true)
-  notifyNewContent     Boolean @default(true)
-  notifySubscription   Boolean @default(false)
-  notifyMarketing      Boolean @default(false)
-
-  // Fechas especiales (para badges)
-  joinedAt  DateTime @default(now())
-  isFounder Boolean  @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
-  sessions            Session[]
-  performer           Performer?
-  orders              Order[]
-  comments            Comment[]
-  forumPosts          ForumPost[]
-  forumReplies        ForumReply[]
-  favorites           Favorite[]
-  watchHistory        WatchHistory[]
-  badges              UserBadge[]
-  sentMessages        DirectMessage[]       @relation("sender")
-  receivedMessages    DirectMessage[]       @relation("receiver")
-  subscriptionHistory SubscriptionHistory[]
-  blogPosts           BlogPost[]
-  cart                Cart?
-  affiliate           Affiliate?
+datasource db {
+  provider = "postgresql"
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Affiliate {
+  id                  String  @id @default(cuid())
+  userId              String                @unique
+  code                String                @unique
+  commissionRate      Decimal               @db.Decimal(5, 2)
+  totalClicks         Int                   @default(0)
+  totalSignups        Int                   @default(0)
+  totalEarnings       Decimal               @default(0) @db.Decimal(10, 2)
+  createdAt           DateTime              @default(now())
+  user                User                  @relation(fields: [userId], references: [id])
+  AffiliateConversion AffiliateConversion[]
+}
+
+model AffiliateConversion {
+  id          String  @id @default(cuid())
+  affiliateId String
+  userId      String
+  type        ConversionType
+  amount      Decimal        @db.Decimal(10, 2)
+  commission  Decimal        @db.Decimal(10, 2)
+  createdAt   DateTime       @default(now())
+  affiliate   Affiliate      @relation(fields: [affiliateId], references: [id])
+
+  @@index([affiliateId])
+}
+
+model Badge {
+  id          String  @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String?
+  imageUrl    String?
+  color       String?
+  type        BadgeType
+  autoAward   Boolean     @default(false)
+  criteria    Json?
+  UserBadge   UserBadge[]
+}
+
+model Banner {
+  id           String  @id @default(cuid())
+  title        String
+  subtitle     String?
+  imageUrl     String
+  linkUrl      String?
+  placement    BannerPlacement
+  startDate    DateTime?
+  endDate      DateTime?
+  hasCountdown Boolean         @default(false)
+  isActive     Boolean         @default(true)
+  order        Int             @default(0)
+  createdAt    DateTime        @default(now())
+}
+
+model BlogCategory {
+  id          String  @id @default(cuid())
+  slug        String     @unique
+  name        String
+  description String?
+  order       Int        @default(0)
+  BlogPost    BlogPost[]
+}
+
+model BlogPost {
+  id            String  @id @default(cuid())
+  slug          String        @unique
+  title         String
+  excerpt       String?
+  content       String
+  featuredImage String?
+  authorId      String
+  categoryId    String?
+  type          BlogPostType  @default(ARTICLE)
+  status        BlogStatus    @default(DRAFT)
+  publishedAt   DateTime?
+  viewCount     Int           @default(0)
+  likeCount     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt DateTime @updatedAt
+  user          User          @relation(fields: [authorId], references: [id])
+  BlogCategory  BlogCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([authorId])
+  @@index([categoryId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int     @default(1)
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+}
+
+model CastingSubmission {
+  id             String  @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  birthDate      DateTime
+  city           String?
+  country        String?
+  gender         String?
+  height         Int?
+  weight         String?
+  bust           String?
+  waist          String?
+  hips           String?
+  hairColor      String?
+  eyeColor       String?
+  skinTone       String?
+  tattoos        String?
+  experience     String?
+  additionalInfo String?
+  instagram      String?
+  twitter        String?
+  dniPhotoUrl    String?
+  generalPhotos  String[]
+  videoUrl       String?
+  status         CastingStatus @default(PENDING)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id            String  @id @default(cuid())
+  content       String
+  authorId      String
+  videoId       String
+  parentId      String?
+  likeCount     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+  user          User      @relation(fields: [authorId], references: [id])
+  Comment       Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  other_Comment Comment[] @relation("CommentToComment")
+  video         Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([videoId])
+}
+
+model DirectMessage {
+  id                                  String  @id @default(cuid())
+  content                             String
+  senderId                            String
+  receiverId                          String
+  isRead                              Boolean  @default(false)
+  createdAt                           DateTime @default(now())
+  User_DirectMessage_receiverIdToUser User     @relation("DirectMessage_receiverIdToUser", fields: [receiverId], references: [id])
+  User_DirectMessage_senderIdToUser   User     @relation("DirectMessage_senderIdToUser", fields: [senderId], references: [id])
+
+  @@index([receiverId])
+  @@index([senderId])
+}
+
+model Favorite {
+  id          String  @id @default(cuid())
+  userId      String
+  videoId     String?
+  performerId String?
+  productId   String?
+  createdAt   DateTime   @default(now())
+  Performer   Performer? @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  Product     Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Video       Video?     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, performerId])
+  @@unique([userId, productId])
+  @@unique([userId, videoId])
+}
+
+model ForumCategory {
+  id               String  @id @default(cuid())
+  slug             String            @unique
+  name             String
+  description      String?
+  order            Int               @default(0)
+  minTierPlanId    String?
+  SubscriptionPlan SubscriptionPlan? @relation(fields: [minTierPlanId], references: [id])
+  ForumPost        ForumPost[]
+}
+
+model ForumPost {
+  id            String  @id @default(cuid())
+  title         String
+  content       String
+  authorId      String
+  categoryId    String
+  isPinned      Boolean       @default(false)
+  isLocked      Boolean       @default(false)
+  viewCount     Int           @default(0)
+  likeCount     Int           @default(0)
+  replyCount    Int           @default(0)
+  lastReplyAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt DateTime @updatedAt
+  user          User          @relation(fields: [authorId], references: [id])
+  ForumCategory ForumCategory @relation(fields: [categoryId], references: [id])
+  ForumReply    ForumReply[]
+
+  @@index([authorId])
+  @@index([categoryId])
+}
+
+model ForumReply {
+  id               String  @id @default(cuid())
+  content          String
+  authorId         String
+  postId           String
+  parentId         String?
+  createdAt        DateTime     @default(now())
+  updatedAt DateTime @updatedAt
+  user             User         @relation(fields: [authorId], references: [id])
+  ForumReply       ForumReply?  @relation("ForumReplyToForumReply", fields: [parentId], references: [id])
+  other_ForumReply ForumReply[] @relation("ForumReplyToForumReply")
+  ForumPost        ForumPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([postId])
+}
+
+model HomeSection {
+  id        String  @id @default(cuid())
+  type      HomeSectionType
+  title     String?
+  enabled   Boolean         @default(true)
+  order     Int             @default(0)
+  config    Json?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Menu {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt DateTime @updatedAt
+  items       MenuItem[]
+}
+
+model MenuItem {
+  id             String  @id @default(cuid())
+  menuId         String
+  label          String
+  url            String?
+  pageId         String?
+  icon           String?
+  customIcon     String?
+  parentId       String?
+  order          Int        @default(0)
+  openInNewTab   Boolean    @default(false)
+  isVisible      Boolean    @default(true)
+  highlight      Boolean    @default(false)
+  highlightColor String?
+  createdAt      DateTime   @default(now())
+  updatedAt DateTime @updatedAt
+  menu           Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent         MenuItem?  @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: Cascade)
+  children       MenuItem[] @relation("MenuItemToMenuItem")
+
+  @@index([menuId])
+  @@index([parentId])
+}
+
+model Order {
+  id                  String  @id @default(cuid())
+  orderNumber         String           @unique
+  userId              String
+  subtotal            Decimal          @db.Decimal(10, 2)
+  discount            Decimal          @default(0) @db.Decimal(10, 2)
+  tax                 Decimal          @default(0) @db.Decimal(10, 2)
+  shipping            Decimal          @default(0) @db.Decimal(10, 2)
+  total               Decimal          @db.Decimal(10, 2)
+  tierDiscountPercent Int              @default(0)
+  status              OrderStatus      @default(PENDING)
+  paymentStatus       PaymentStatus    @default(PENDING)
+  shippingAddress     Json?
+  billingAddress      Json?
+  trackingNumber      String?
+  paymentGateway      String?
+  transactionId       String?
+  riskLevel           ProductRiskLevel @default(LOW_RISK)
+  createdAt           DateTime         @default(now())
+  updatedAt DateTime @updatedAt
+  user                User             @relation(fields: [userId], references: [id])
+  OrderItem           OrderItem[]
 
   @@index([userId])
 }
 
-// SubscriptionTier enum removed - now using dynamic SubscriptionPlan model
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
-enum RelationshipStatus {
-  SINGLE
-  MARRIED
-  IN_RELATIONSHIP
+  @@index([orderId])
 }
 
-enum RelationshipRole {
-  BULL
-  VOYEUR
-  CUCKOLD
-  STAG
-  HOTWIFE
-  OTHER
-}
-
-// ==================== CONTENIDO ====================
-
-model Video {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  title       String
-  description String?
-
-  // Mux Video
-  muxAssetId    String? @unique
-  muxPlaybackId String?
-  muxUploadId   String?
-
-  // URLs de archivos
-  thumbnailUrl String
-  previewUrl   String?
-
-  // Metadata
-  duration    Int       @default(0)
-  releaseDate DateTime  @default(now())
-  publishedAt DateTime?
-
-  // Edicion Limitada (Platinum+ 15 dias antes)
-  isLimitedEdition   Boolean   @default(false)
-  limitedAccessUntil DateTime?
-
-  // Exclusivo Diamond
-  isDiamondExclusive Boolean @default(false)
-
-  // Restricciones de tier minimo
-  minTierPlanId String?
-  minTierPlan   SubscriptionPlan? @relation("VideoMinTier", fields: [minTierPlanId], references: [id])
-
-  // Calidades disponibles
-  has720p       Boolean @default(true)
-  has1080p      Boolean @default(true)
-  has4k         Boolean @default(false)
-  allowDownload Boolean @default(false)
-
-  // Stats
-  viewCount Int @default(0)
-  likeCount Int @default(0)
-
-  // SEO
+model Page {
+  id              String  @id @default(cuid())
+  slug            String     @unique
+  title           String
+  content         String
+  excerpt         String?
   metaTitle       String?
   metaDescription String?
-
-  // Estado
-  status VideoStatus @default(DRAFT)
-
-  createdAt DateTime @default(now())
+  showInFooter    Boolean    @default(false)
+  footerColumn    Int?
+  footerOrder     Int        @default(0)
+  status          PageStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relaciones
-  subtitles       VideoSubtitle[]
-  performers      VideoPerformer[]
-  categories      VideoToCategory[]
-  tags            VideoTag[]
-  comments        Comment[]
-  favorites       Favorite[]
-  watchHistory    WatchHistory[]
-  gallery         VideoGalleryImage[]
-  relatedProducts VideoProduct[]
 }
-
-model VideoSubtitle {
-  id       String @id @default(cuid())
-  videoId  String
-  video    Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  language String
-  label    String
-  srtUrl   String
-
-  @@unique([videoId, language])
-}
-
-model VideoGalleryImage {
-  id      String @id @default(cuid())
-  videoId String
-  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  url     String
-  order   Int    @default(0)
-
-  @@index([videoId])
-}
-
-enum VideoStatus {
-  DRAFT
-  SCHEDULED
-  PUBLISHED
-  ARCHIVED
-}
-
-// ==================== PERFORMERS ====================
 
 model Performer {
-  id   String  @id @default(cuid())
-  slug String  @unique
-  name String
-  bio  String?
-
-  // Imagenes
-  profileImage  String?
-  coverImage    String?
-  galleryImages String[]
-
-  // Datos fisicos (para filtrado)
-  nationality  String?
-  birthDate    DateTime?
-  height       Int?
-  measurements String?
-  hairColor    String?
-  eyeColor     String?
-  skinTone     String?
-
-  // Social
-  instagram String?
-  twitter   String?
-  onlyfans  String?
-
-  // Stats
-  videoCount Int @default(0)
-
-  // Usuario vinculado (Verified Performer)
-  userId String? @unique
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
+  id             String  @id @default(cuid())
+  slug           String           @unique
+  name           String
+  bio            String?
+  profileImage   String?
+  coverImage     String?
+  galleryImages  String[]
+  nationality    String?
+  birthDate      DateTime?
+  height         Int?
+  measurements   String?
+  hairColor      String?
+  eyeColor       String?
+  skinTone       String?
+  instagram      String?
+  twitter        String?
+  onlyfans       String?
+  videoCount     Int              @default(0)
+  userId         String?          @unique
+  createdAt      DateTime         @default(now())
   updatedAt DateTime @updatedAt
-
-  videos    VideoPerformer[]
-  favorites Favorite[]
-  products  Product[]
-  photos    PerformerPhoto[]
-}
-
-model VideoPerformer {
-  videoId     String
-  performerId String
-  video       Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
-
-  @@id([videoId, performerId])
+  favorites       Favorite[]
+  User           User?            @relation(fields: [userId], references: [id])
+  PerformerPhoto PerformerPhoto[]
+  Product        Product[]
+  VideoPerformer VideoPerformer[]
 }
 
 model PerformerPhoto {
-  id          String    @id @default(cuid())
+  id          String  @id @default(cuid())
   performerId String
-  performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
   imageUrl    String
   caption     String?
   order       Int       @default(0)
   createdAt   DateTime  @default(now())
+  performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
 
   @@index([performerId])
 }
 
-// ==================== CATEGORIAS DE VIDEOS ====================
-
-model VideoCategory {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-  imageUrl    String?
-  order       Int     @default(0)
-
-  // Jerarquía de categorías
-  parentId String?
-  parent   VideoCategory?  @relation("VideoCategoryHierarchy", fields: [parentId], references: [id])
-  children VideoCategory[] @relation("VideoCategoryHierarchy")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  videos VideoToCategory[]
-}
-
-model VideoToCategory {
-  videoId    String
-  categoryId String
-  video      Video         @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  category   VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([videoId, categoryId])
-}
-
-// ==================== CATEGORIAS DE PRODUCTOS ====================
-
-model ShopCategory {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-  imageUrl    String?
-  order       Int     @default(0)
-
-  // Jerarquía de categorías
-  parentId String?
-  parent   ShopCategory?  @relation("ShopCategoryHierarchy", fields: [parentId], references: [id])
-  children ShopCategory[] @relation("ShopCategoryHierarchy")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  products ProductToCategory[]
-}
-
-model ProductToCategory {
-  productId  String
-  categoryId String
-  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category   ShopCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([productId, categoryId])
-}
-
-// ==================== TAGS ====================
-
-model Tag {
-  id   String @id @default(cuid())
-  slug String @unique
-  name String
-
-  videos   VideoTag[]
-  products ProductTag[]
-}
-
-model VideoTag {
-  videoId String
-  tagId   String
-  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([videoId, tagId])
-}
-
-// ==================== E-COMMERCE ====================
-
 model Product {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-
-  // Precios
-  price          Decimal  @db.Decimal(10, 2)
-  compareAtPrice Decimal? @db.Decimal(10, 2)
-
-  // Inventario
-  sku            String? @unique
-  stock          Int     @default(0)
-  trackInventory Boolean @default(true)
-
-  // Imagenes
-  images String[]
-
-  // CRITICO: Separacion de riesgo para pasarelas
-  riskLevel ProductRiskLevel @default(LOW_RISK)
-
-  // Estado
-  status ProductStatus @default(DRAFT)
-
-  // Performer asociado (coleccionables)
-  performerId String?
-  performer   Performer? @relation(fields: [performerId], references: [id])
-
-  createdAt DateTime @default(now())
+  id                String  @id @default(cuid())
+  slug              String              @unique
+  name              String
+  description       String?
+  price             Decimal             @db.Decimal(10, 2)
+  compareAtPrice    Decimal?            @db.Decimal(10, 2)
+  sku               String?             @unique
+  stock             Int                 @default(0)
+  trackInventory    Boolean             @default(true)
+  images            String[]
+  riskLevel         ProductRiskLevel    @default(LOW_RISK)
+  status            ProductStatus       @default(DRAFT)
+  performerId       String?
+  createdAt         DateTime            @default(now())
   updatedAt DateTime @updatedAt
-
-  videos     VideoProduct[]
-  categories ProductToCategory[]
-  tags       ProductTag[]
-  orderItems OrderItem[]
-  favorites  Favorite[]
-  cartItems  CartItem[]
-}
-
-enum ProductRiskLevel {
-  LOW_RISK
-  HIGH_RISK
-}
-
-enum ProductStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-}
-
-model VideoProduct {
-  videoId   String
-  productId String
-  video     Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@id([videoId, productId])
+  CartItem          CartItem[]
+  favorites          Favorite[]
+  OrderItem         OrderItem[]
+  Performer         Performer?          @relation(fields: [performerId], references: [id])
+  ProductTag        ProductTag[]
+  ProductToCategory ProductToCategory[]
+  VideoProduct      VideoProduct[]
 }
 
 model ProductTag {
@@ -405,194 +417,299 @@ model ProductTag {
   @@id([productId, tagId])
 }
 
-// ==================== CARRITO Y ORDENES ====================
+model ProductToCategory {
+  productId    String
+  categoryId   String
+  ShopCategory ShopCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-model Cart {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
-  updatedAt DateTime   @updatedAt
+  @@id([productId, categoryId])
 }
 
-model CartItem {
-  id        String  @id @default(cuid())
-  cartId    String
-  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int     @default(1)
-
-  @@unique([cartId, productId])
+model PromoCode {
+  id             String  @id @default(cuid())
+  code           String            @unique
+  discountType   DiscountType
+  discountValue  Decimal           @db.Decimal(10, 2)
+  applicableTo   PromoApplicableTo
+  maxUses        Int?
+  usedCount      Int               @default(0)
+  maxUsesPerUser Int?
+  startDate      DateTime?
+  endDate        DateTime?
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
 }
 
-model Order {
-  id          String @id @default(cuid())
-  orderNumber String @unique
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  // Totales
-  subtotal Decimal @db.Decimal(10, 2)
-  discount Decimal @default(0) @db.Decimal(10, 2)
-  tax      Decimal @default(0) @db.Decimal(10, 2)
-  shipping Decimal @default(0) @db.Decimal(10, 2)
-  total    Decimal @db.Decimal(10, 2)
-
-  // Descuento aplicado
-  tierDiscountPercent Int @default(0)
-
-  // Estado
-  status        OrderStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
-
-  // Envio
-  shippingAddress Json?
-  billingAddress  Json?
-  trackingNumber  String?
-
-  // Pago
-  paymentGateway String?
-  transactionId  String?
-
-  // Riesgo del pedido
-  riskLevel ProductRiskLevel @default(LOW_RISK)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  items OrderItem[]
+model Session {
+  id           String  @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-model OrderItem {
+model ShopCategory {
+  id                 String  @id @default(cuid())
+  slug               String              @unique
+  name               String
+  description        String?
+  imageUrl           String?
+  order              Int                 @default(0)
+  parentId           String?
+  createdAt          DateTime            @default(now())
+  updatedAt DateTime @updatedAt
+  ProductToCategory  ProductToCategory[]
+  ShopCategory       ShopCategory?       @relation("ShopCategoryToShopCategory", fields: [parentId], references: [id])
+  other_ShopCategory ShopCategory[]      @relation("ShopCategoryToShopCategory")
+}
+
+model SiteSettings {
   id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
-
-  @@index([orderId])
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-  CHARGEBACK
-}
-
-// ==================== SUSCRIPCIONES ====================
-
-model SubscriptionPlan {
-  id          String  @id @default(cuid())
-  slug        String  @unique // URL-friendly: "free", "silver", "gold"
-  name        String  // Display: "Gratis", "Silver", "Gold Premium"
-  description String?
-
-  // Jerarquía (mayor nivel = mejor suscripción)
-  level Int @default(0)
-
-  // UI
-  color String? // Color hex para badges/UI
-  icon  String? // Nombre del icono
-
-  // Precios
-  monthlyPrice Decimal  @db.Decimal(10, 2) @default(0)
-  dailyPrice   Decimal  @db.Decimal(10, 2) @default(0)
-  yearlyPrice  Decimal? @db.Decimal(10, 2)
-
-  // Features JSON (lista de características para mostrar)
-  features Json @default("[]")
-
-  // Calidad maxima de video
-  maxVideoQuality String @default("720p")
-
-  // Permisos
-  canComment              Boolean @default(false)
-  canAccessForum          Boolean @default(false)
-  canDownload             Boolean @default(false)
-  canAccessLimitedEdition Boolean @default(false)
-  canAccessExclusive      Boolean @default(false)
-
-  // Descuento en tienda (%)
-  shopDiscount Int @default(0)
-
-  // Extras
-  includesVIPPack Boolean @default(false)
-
-  // Estado
-  isDefault Boolean @default(false) // Plan por defecto para nuevos usuarios
-  isActive  Boolean @default(true)
-  isFree    Boolean @default(false) // Es un plan gratuito?
-
+  key       String   @unique
+  value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relaciones
-  users               User[]
-  subscriptionHistory SubscriptionHistory[]
-  videosWithMinTier   Video[]               @relation("VideoMinTier")
-  forumCategories     ForumCategory[]       @relation("ForumMinTier")
 }
 
 model SubscriptionHistory {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  id               String  @id @default(cuid())
+  userId           String
+  planId           String
+  startDate        DateTime
+  endDate          DateTime?
+  amount           Decimal          @db.Decimal(10, 2)
+  currency         String           @default("EUR")
+  paymentGateway   String
+  transactionId    String?
+  invoiceUrl       String?
+  createdAt        DateTime         @default(now())
+  SubscriptionPlan SubscriptionPlan @relation(fields: [planId], references: [id])
+  user             User             @relation(fields: [userId], references: [id])
 
-  planId String
-  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
-
-  startDate DateTime
-  endDate   DateTime?
-
-  // Pago
-  amount         Decimal @db.Decimal(10, 2)
-  currency       String  @default("EUR")
-  paymentGateway String
-  transactionId  String?
-
-  // Facturacion
-  invoiceUrl String?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
   @@index([planId])
+  @@index([userId])
 }
 
-// ==================== COMUNIDAD ====================
+model SubscriptionPlan {
+  id                      String  @id @default(cuid())
+  slug                    String                @unique
+  name                    String
+  description             String?
+  level                   Int                   @default(0)
+  icon                    String?
+  monthlyPrice            Decimal               @default(0) @db.Decimal(10, 2)
+  yearlyPrice             Decimal?              @db.Decimal(10, 2)
+  features                Json                  @default("[]")
+  maxVideoQuality         String                @default("720p")
+  canComment              Boolean               @default(false)
+  canAccessForum          Boolean               @default(false)
+  canDownload             Boolean               @default(false)
+  canAccessLimitedEdition Boolean               @default(false)
+  canAccessExclusive      Boolean               @default(false)
+  shopDiscount            Int                   @default(0)
+  includesVIPPack         Boolean               @default(false)
+  isDefault               Boolean               @default(false)
+  isActive                Boolean               @default(true)
+  isFree                  Boolean               @default(false)
+  createdAt               DateTime              @default(now())
+  updatedAt DateTime @updatedAt
+  ForumCategory           ForumCategory[]
+  SubscriptionHistory     SubscriptionHistory[]
+  User                    User[]
+  Video                   Video[]
+}
 
-model Badge {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-  imageUrl    String?
-  color       String?
+model Tag {
+  id         String  @id @default(cuid())
+  slug       String       @unique
+  name       String
+  ProductTag ProductTag[]
+  VideoTag   VideoTag[]
+}
 
-  type BadgeType
+model User {
+  id                                           String  @id @default(cuid())
+  email                                        String                @unique
+  password                                     String
+  name                                         String?
+  username                                     String?               @unique
+  image                                        String?
+  emailVerified                                DateTime?
+  subscriptionPlanId                           String?
+  subscriptionStart                            DateTime?
+  subscriptionEnd                              DateTime?
+  ccbillSubscriptionId                         String?
+  epochMemberId                                String?
+  bio                                          String?
+  forumSignature                               String?
+  relationshipStatus                           RelationshipStatus?
+  relationshipRole                             RelationshipRole?
+  isAdmin                                      Boolean               @default(false)
+  isPerformer                                  Boolean               @default(false)
+  isVerified                                   Boolean               @default(false)
+  isModerator                                  Boolean               @default(false)
+  notifyEmail                                  Boolean               @default(true)
+  notifyNewContent                             Boolean               @default(true)
+  notifySubscription                           Boolean               @default(false)
+  notifyMarketing                              Boolean               @default(false)
+  joinedAt                                     DateTime              @default(now())
+  isFounder                                    Boolean               @default(false)
+  createdAt                                    DateTime              @default(now())
+  updatedAt DateTime @updatedAt
+  Affiliate                                    Affiliate?
+  BlogPost                                     BlogPost[]
+  Cart                                         Cart?
+  Comment                                      Comment[]
+  DirectMessage_DirectMessage_receiverIdToUser DirectMessage[]       @relation("DirectMessage_receiverIdToUser")
+  DirectMessage_DirectMessage_senderIdToUser   DirectMessage[]       @relation("DirectMessage_senderIdToUser")
+  favorites                                     Favorite[]
+  ForumPost                                    ForumPost[]
+  ForumReply                                   ForumReply[]
+  Order                                        Order[]
+  Performer                                    Performer?
+  Session                                      Session[]
+  SubscriptionHistory                          SubscriptionHistory[]
+  SubscriptionPlan                             SubscriptionPlan?     @relation(fields: [subscriptionPlanId], references: [id])
+  UserBadge                                    UserBadge[]
+  WatchHistory                                 WatchHistory[]
+}
 
-  // Auto-asignacion
-  autoAward Boolean @default(false)
-  criteria  Json?
+model UserBadge {
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+  Badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  users UserBadge[]
+  @@id([userId, badgeId])
+}
+
+model Video {
+  id                 String  @id @default(cuid())
+  slug               String              @unique
+  title              String
+  description        String?
+  muxAssetId         String?             @unique
+  muxPlaybackId      String?
+  muxUploadId        String?
+  thumbnailUrl       String
+  previewUrl         String?
+  duration           Int                 @default(0)
+  releaseDate        DateTime            @default(now())
+  publishedAt        DateTime?
+  isLimitedEdition   Boolean             @default(false)
+  limitedAccessUntil DateTime?
+  isDiamondExclusive Boolean             @default(false)
+  minTierPlanId      String?
+  viewCount          Int                 @default(0)
+  likeCount          Int                 @default(0)
+  metaTitle          String?
+  metaDescription    String?
+  status             VideoStatus         @default(DRAFT)
+  createdAt          DateTime            @default(now())
+  updatedAt DateTime @updatedAt
+  previewEndTime     Float               @default(5)
+  previewFps         Int                 @default(15)
+  previewStartTime   Float               @default(0)
+  previewWidth       Int                 @default(640)
+  comments           Comment[]
+  favorites          Favorite[]
+  minTierPlan        SubscriptionPlan?   @relation(fields: [minTierPlanId], references: [id])
+  gallery            VideoGalleryImage[]
+  performers         VideoPerformer[]
+  relatedProducts    VideoProduct[]
+  subtitles          VideoSubtitle[]
+  tags               VideoTag[]
+  categories         VideoToCategory[]
+  watchHistory       WatchHistory[]
+}
+
+model VideoCategory {
+  id                  String  @id @default(cuid())
+  slug                String            @unique
+  name                String
+  description         String?
+  imageUrl            String?
+  order               Int               @default(0)
+  parentId            String?
+  createdAt           DateTime          @default(now())
+  updatedAt DateTime @updatedAt
+  VideoCategory       VideoCategory?    @relation("VideoCategoryToVideoCategory", fields: [parentId], references: [id])
+  other_VideoCategory VideoCategory[]   @relation("VideoCategoryToVideoCategory")
+  VideoToCategory     VideoToCategory[]
+}
+
+model VideoGalleryImage {
+  id      String  @id @default(cuid())
+  videoId String
+  url     String
+  order   Int    @default(0)
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+}
+
+model VideoPerformer {
+  videoId     String
+  performerId String
+  performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  video       Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, performerId])
+}
+
+model VideoProduct {
+  videoId   String
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  video     Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, productId])
+}
+
+model VideoSubtitle {
+  id       String  @id @default(cuid())
+  videoId  String
+  language String
+  label    String
+  srtUrl   String
+  video    Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, language])
+}
+
+model VideoTag {
+  videoId String
+  tagId   String
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, tagId])
+}
+
+model VideoToCategory {
+  videoId       String
+  categoryId    String
+  category      VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  video         Video         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, categoryId])
+}
+
+model WatchHistory {
+  id             String  @id @default(cuid())
+  userId         String
+  videoId        String
+  watchedSeconds Int      @default(0)
+  completed      Boolean  @default(false)
+  lastWatchedAt  DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video          Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
 }
 
 enum BadgeType {
@@ -603,200 +720,12 @@ enum BadgeType {
   COMMUNITY
 }
 
-model UserBadge {
-  userId  String
-  badgeId String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge   Badge  @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  awardedAt DateTime @default(now())
-
-  @@id([userId, badgeId])
-}
-
-model ForumCategory {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-  order       Int     @default(0)
-
-  // Restriccion de acceso
-  minTierPlanId String?
-  minTierPlan   SubscriptionPlan? @relation("ForumMinTier", fields: [minTierPlanId], references: [id])
-
-  posts ForumPost[]
-}
-
-model ForumPost {
-  id      String @id @default(cuid())
-  title   String
-  content String
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  categoryId String
-  category   ForumCategory @relation(fields: [categoryId], references: [id])
-
-  isPinned Boolean @default(false)
-  isLocked Boolean @default(false)
-
-  viewCount   Int       @default(0)
-  likeCount   Int       @default(0)
-  replyCount  Int       @default(0)
-  lastReplyAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  replies ForumReply[]
-
-  @@index([categoryId])
-  @@index([authorId])
-}
-
-model ForumReply {
-  id      String @id @default(cuid())
-  content String
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  postId String
-  post   ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  parentId String?
-  parent   ForumReply?  @relation("ReplyToReply", fields: [parentId], references: [id])
-  children ForumReply[] @relation("ReplyToReply")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([postId])
-  @@index([authorId])
-}
-
-model Comment {
-  id      String @id @default(cuid())
-  content String
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  videoId String
-  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-
-  parentId String?
-  parent   Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
-  children Comment[] @relation("CommentToComment")
-
-  likeCount Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([videoId])
-  @@index([authorId])
-}
-
-model DirectMessage {
-  id      String @id @default(cuid())
-  content String
-
-  senderId String
-  sender   User   @relation("sender", fields: [senderId], references: [id])
-
-  receiverId String
-  receiver   User   @relation("receiver", fields: [receiverId], references: [id])
-
-  isRead Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@index([senderId])
-  @@index([receiverId])
-}
-
-// ==================== INTERACCIONES ====================
-
-model Favorite {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  videoId String?
-  video   Video?  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-
-  performerId String?
-  performer   Performer? @relation(fields: [performerId], references: [id], onDelete: Cascade)
-
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, videoId])
-  @@unique([userId, performerId])
-  @@unique([userId, productId])
-}
-
-model WatchHistory {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  videoId String
-  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-
-  watchedSeconds Int     @default(0)
-  completed      Boolean @default(false)
-
-  lastWatchedAt DateTime @default(now())
-
-  @@unique([userId, videoId])
-}
-
-// ==================== BLOG ====================
-
-model BlogCategory {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String?
-  order       Int     @default(0)
-
-  posts BlogPost[]
-}
-
-model BlogPost {
-  id      String  @id @default(cuid())
-  slug    String  @unique
-  title   String
-  excerpt String?
-  content String
-
-  featuredImage String?
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  categoryId String?
-  category   BlogCategory? @relation(fields: [categoryId], references: [id])
-
-  type BlogPostType @default(ARTICLE)
-
-  status      BlogStatus @default(DRAFT)
-  publishedAt DateTime?
-
-  viewCount Int @default(0)
-  likeCount Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([authorId])
-  @@index([categoryId])
+enum BannerPlacement {
+  HOME_HERO
+  HOME_PROMO
+  NAVBAR_TOP
+  VIDEO_DETAIL
+  SUBSCRIPTION_PAGE
 }
 
 enum BlogPostType {
@@ -811,54 +740,6 @@ enum BlogStatus {
   ARCHIVED
 }
 
-// ==================== CASTING ====================
-
-model CastingSubmission {
-  id String @id @default(cuid())
-
-  // Datos personales
-  name      String
-  email     String
-  phone     String?
-  birthDate DateTime
-
-  // Ubicacion
-  city    String?
-  country String?
-
-  // Datos fisicos
-  gender    String?
-  height    Int?
-  weight    String?
-  bust      String?
-  waist     String?
-  hips      String?
-  hairColor String?
-  eyeColor  String?
-  skinTone  String?
-  tattoos   String?
-
-  // Experiencia
-  experience     String?
-  additionalInfo String?
-
-  // Social
-  instagram String?
-  twitter   String?
-
-  // Archivos (UploadThing)
-  dniPhotoUrl   String?
-  generalPhotos String[]
-  videoUrl      String?
-
-  // Estado
-  status CastingStatus @default(PENDING)
-  notes  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 enum CastingStatus {
   PENDING
   REVIEWING
@@ -866,57 +747,9 @@ enum CastingStatus {
   REJECTED
 }
 
-// ==================== BANNERS ====================
-
-model Banner {
-  id       String  @id @default(cuid())
-  title    String
-  subtitle String?
-  imageUrl String
-  linkUrl  String?
-
-  placement BannerPlacement
-
-  startDate DateTime?
-  endDate   DateTime?
-
-  hasCountdown Boolean @default(false)
-
-  isActive Boolean @default(true)
-  order    Int     @default(0)
-
-  createdAt DateTime @default(now())
-}
-
-enum BannerPlacement {
-  HOME_HERO
-  HOME_PROMO
-  NAVBAR_TOP
-  VIDEO_DETAIL
-  SUBSCRIPTION_PAGE
-}
-
-// ==================== PROMOCIONES ====================
-
-model PromoCode {
-  id   String @id @default(cuid())
-  code String @unique
-
-  discountType  DiscountType
-  discountValue Decimal      @db.Decimal(10, 2)
-
-  applicableTo PromoApplicableTo
-
-  maxUses        Int?
-  usedCount      Int  @default(0)
-  maxUsesPerUser Int?
-
-  startDate DateTime?
-  endDate   DateTime?
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
+enum ConversionType {
+  SUBSCRIPTION
+  SHOP_PURCHASE
 }
 
 enum DiscountType {
@@ -925,87 +758,22 @@ enum DiscountType {
   FREE_TRIAL_DAYS
 }
 
-enum PromoApplicableTo {
-  SUBSCRIPTION
-  SHOP
-  ALL
+enum HomeSectionType {
+  HERO
+  VIDEO_GRID
+  ACTRESS_GRID
+  CTA_BANNER
+  COUNTDOWN
+  CATEGORY_FEATURED
 }
 
-// ==================== AFILIADOS ====================
-
-model Affiliate {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  code String @unique
-
-  commissionRate Decimal @db.Decimal(5, 2)
-
-  totalClicks   Int     @default(0)
-  totalSignups  Int     @default(0)
-  totalEarnings Decimal @default(0) @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
-
-  conversions AffiliateConversion[]
-}
-
-model AffiliateConversion {
-  id          String    @id @default(cuid())
-  affiliateId String
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-
-  userId String
-
-  type       ConversionType
-  amount     Decimal        @db.Decimal(10, 2)
-  commission Decimal        @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
-
-  @@index([affiliateId])
-}
-
-enum ConversionType {
-  SUBSCRIPTION
-  SHOP_PURCHASE
-}
-
-// ==================== CONFIGURACIÓN ====================
-
-model SiteSettings {
-  id    String @id @default(cuid())
-  key   String @unique
-  value Json
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ==================== CMS - PÁGINAS ====================
-
-model Page {
-  id          String     @id @default(cuid())
-  slug        String     @unique
-  title       String
-  content     String     @db.Text
-  excerpt     String?
-
-  // SEO
-  metaTitle       String?
-  metaDescription String?
-
-  // Configuración
-  showInFooter    Boolean @default(false)
-  footerColumn    Int?    // 1, 2, 3 para columnas del footer
-  footerOrder     Int     @default(0)
-
-  status      PageStatus @default(DRAFT)
-  publishedAt DateTime?
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
 }
 
 enum PageStatus {
@@ -1014,79 +782,49 @@ enum PageStatus {
   ARCHIVED
 }
 
-// ==================== CMS - MENÚS ====================
-
-model Menu {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique // "header", "footer-col-1", "footer-col-2", etc.
-  description String?
-
-  items       MenuItem[]
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CHARGEBACK
 }
 
-model MenuItem {
-  id          String     @id @default(cuid())
-  menuId      String
-  menu        Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
-  label       String
-  url         String?    // URL externa o interna
-  pageId      String?    // Referencia a una página interna
-
-  // Icono (nombre del icono de tabler-icons)
-  icon        String?
-  customIcon  String?    @db.Text // SVG personalizado
-
-  // Jerarquía
-  parentId    String?
-  parent      MenuItem?  @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: Cascade)
-  children    MenuItem[] @relation("MenuItemToMenuItem")
-
-  // Configuración
-  order       Int        @default(0)
-  openInNewTab Boolean   @default(false)
-  isVisible   Boolean    @default(true)
-
-  // Estilo (para destacar items)
-  highlight   Boolean    @default(false)
-  highlightColor String?
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([menuId])
-  @@index([parentId])
+enum ProductRiskLevel {
+  LOW_RISK
+  HIGH_RISK
 }
 
-// ==================== CMS - HOME SECTIONS ====================
-
-model HomeSection {
-  id          String           @id @default(cuid())
-
-  // Tipo de sección
-  type        HomeSectionType
-
-  // Configuración común
-  title       String?          // Título de la sección
-  enabled     Boolean          @default(true)
-  order       Int              @default(0)
-
-  // Configuración específica por tipo (JSON flexible)
-  config      Json?
-
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
 }
 
-enum HomeSectionType {
-  HERO                    // Hero principal
-  VIDEO_GRID              // Grid de videos
-  ACTRESS_GRID            // Grid de actrices
-  CTA_BANNER              // Banner promocional
-  COUNTDOWN               // Cuenta atrás
-  CATEGORY_FEATURED       // Categoría destacada
+enum PromoApplicableTo {
+  SUBSCRIPTION
+  SHOP
+  ALL
+}
+
+enum RelationshipRole {
+  BULL
+  VOYEUR
+  CUCKOLD
+  STAG
+  HOTWIFE
+  OTHER
+}
+
+enum RelationshipStatus {
+  SINGLE
+  MARRIED
+  IN_RELATIONSHIP
+}
+
+enum VideoStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
 }

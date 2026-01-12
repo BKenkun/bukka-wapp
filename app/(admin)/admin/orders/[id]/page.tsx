@@ -60,7 +60,6 @@ interface Order {
     subscriptionPlan?: {
       name: string
       slug: string
-      color: string | null
     } | null
   }
   items: OrderItem[]
@@ -338,13 +337,7 @@ export default function OrderDetailPage() {
                 <p className="font-medium">{order.user.name || "Sin nombre"}</p>
                 <p className="text-sm text-muted-foreground">{order.user.email}</p>
                 {order.user.subscriptionPlan && (
-                  <Badge
-                    variant="outline"
-                    style={{
-                      borderColor: order.user.subscriptionPlan.color || undefined,
-                      color: order.user.subscriptionPlan.color || undefined,
-                    }}
-                  >
+                  <Badge variant="outline">
                     {order.user.subscriptionPlan.name}
                   </Badge>
                 )}

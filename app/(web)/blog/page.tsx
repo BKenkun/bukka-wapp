@@ -20,7 +20,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   }
 
   if (categorySlug) {
-    whereClause.category = { slug: categorySlug }
+    whereClause.BlogCategory = { slug: categorySlug }
   }
 
   // Fetch data in parallel
@@ -31,15 +31,15 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        BlogCategory: { select: { id: true, slug: true, name: true } },
       },
     }),
     prisma.blogPost.count({ where: whereClause }),
     prisma.blogCategory.findMany({
       orderBy: { order: "asc" },
       include: {
-        _count: { select: { posts: { where: { status: "PUBLISHED" } } } },
+        _count: { select: { BlogPost: { where: { status: "PUBLISHED" } } } },
       },
     }),
     // Get featured post (most recent with highest view count)
@@ -47,8 +47,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       where: { status: "PUBLISHED" },
       orderBy: [{ viewCount: "desc" }, { publishedAt: "desc" }],
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        BlogCategory: { select: { id: true, slug: true, name: true } },
       },
     }),
     // Popular posts (for sidebar)
@@ -109,7 +109,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-white text-sm mb-3 font-['Montserrat']">
-                      {featuredPost.category && <span>{featuredPost.category.name}</span>}
+                      {featuredPost.BlogCategory && <span>{featuredPost.BlogCategory.name}</span>}
                       <span>•</span>
                       <span>{getReadingTime(featuredPost.content)}</span>
                     </div>
@@ -124,10 +124,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gray-400 rounded-full overflow-hidden relative">
-                          {featuredPost.author.image && (
+                          {featuredPost.user.image && (
                             <Image
-                              src={featuredPost.author.image}
-                              alt={featuredPost.author.name || ""}
+                              src={featuredPost.user.image}
+                              alt={featuredPost.user.name || ""}
                               fill
                               className="object-cover"
                             />
@@ -135,7 +135,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                         </div>
                         <div>
                           <div className="text-white text-sm font-medium font-['Montserrat']">
-                            {featuredPost.author.name}
+                            {featuredPost.user.name}
                           </div>
                           <div className="text-white text-xs font-['Montserrat']">
                             {featuredPost.publishedAt && formatDate(featuredPost.publishedAt)}
@@ -189,9 +189,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                         <div>
                           {/* Category and Date */}
                           <div className="flex items-center gap-4 mb-3">
-                            {post.category && (
+                            {post.BlogCategory && (
                               <span className="bg-[#DCFCE7] text-[#16A34A] px-3 py-1 text-sm font-medium font-['Montserrat']">
-                                {post.category.name}
+                                {post.BlogCategory.name}
                               </span>
                             )}
                             <span className="text-[#9CA3AF] text-sm font-['Montserrat']">
@@ -216,17 +216,17 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 overflow-hidden relative rounded-full bg-gray-600">
-                              {post.author.image && (
+                              {post.user.image && (
                                 <Image
-                                  src={post.author.image}
-                                  alt={post.author.name || ""}
+                                  src={post.user.image}
+                                  alt={post.user.name || ""}
                                   fill
                                   className="object-cover"
                                 />
                               )}
                             </div>
                             <span className="text-white text-sm font-medium font-['Montserrat']">
-                              {post.author.name}
+                              {post.user.name}
                             </span>
                           </div>
 
@@ -353,7 +353,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                     className="flex justify-between items-center hover:text-[#06B6D4] transition-colors"
                   >
                     <span className="text-white text-base leading-6">{cat.name}</span>
-                    <span className="text-white font-['Inter'] text-sm leading-5">{cat._count.posts}</span>
+                    <span className="text-white font-['Inter'] text-sm leading-5">{cat._count.BlogPost}</span>
                   </Link>
                 ))}
                 {categories.length === 0 && <p className="text-[#6B7280] text-sm">No hay categorías.</p>}

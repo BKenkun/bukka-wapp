@@ -6,6 +6,7 @@ import Link from "next/link"
 
 interface SearchParams {
   page?: string
+  pageSize?: string
   status?: string
   category?: string
   search?: string
@@ -18,7 +19,7 @@ export default async function AdminVideosPage({
 }) {
   const params = await searchParams
   const page = Number(params.page) || 1
-  const pageSize = 20
+  const pageSize = Number(params.pageSize) || 20
   const skip = (page - 1) * pageSize
 
   const where = {
@@ -91,6 +92,7 @@ export default async function AdminVideosPage({
         currentPage={page}
         totalPages={totalPages}
         totalCount={totalCount}
+        pageSize={pageSize}
       />
     </div>
   )

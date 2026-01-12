@@ -30,7 +30,7 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
   const whereClause: Record<string, unknown> = {}
 
   if (categorySlug) {
-    whereClause.category = { slug: categorySlug }
+    whereClause.ForumCategory = { slug: categorySlug }
   }
 
   // Determine sort order
@@ -54,20 +54,20 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        ForumCategory: { select: { id: true, slug: true, name: true } },
       },
     }),
     prisma.forumPost.count({ where: whereClause }),
     prisma.forumCategory.findMany({
       orderBy: { order: "asc" },
       include: {
-        _count: { select: { posts: true } },
+        _count: { select: { ForumPost: true } },
       },
     }),
     Promise.all([
       prisma.forumPost.count(),
-      prisma.user.count({ where: { forumPosts: { some: {} } } }),
+      prisma.user.count({ where: { ForumPost: { some: {} } } }),
       prisma.forumPost.count({
         where: {
           createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
@@ -140,7 +140,7 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
                     className="font-montserrat text-[#111827] text-[12px] font-normal bg-white px-2 py-1 flex items-center justify-end"
                     style={{ padding: "4px 8px" }}
                   >
-                    {category._count.posts}
+                    {category._count.ForumPost}
                   </span>
                 </Link>
               ))}
@@ -207,13 +207,13 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
                 <ForumTopicCard
                   key={post.id}
                   id={post.id}
-                  avatar={post.author.image}
+                  avatar={post.user.image}
                   tags={[
-                    { label: post.category.name, variant: "orange" as const },
+                    { label: post.ForumCategory.name, variant: "orange" as const },
                   ]}
                   title={post.title}
                   description={post.content.length > 200 ? post.content.substring(0, 200) + "..." : post.content}
-                  author={post.author.name || "Usuario"}
+                  author={post.user.name || "Usuario"}
                   timeAgo={formatTimeAgo(post.createdAt)}
                   views={post.viewCount.toLocaleString()}
                   comments={post.replyCount}

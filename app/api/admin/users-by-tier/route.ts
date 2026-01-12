@@ -11,14 +11,12 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const planId = searchParams.get("planId")
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "20")
-    const search = searchParams.get("search") || ""
-
-    const skip = (page - 1) * limit
+    const cursor = searchParams.get("cursor")
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50)
+    const search = searchParams.get("search")?.trim() || ""
 
     const where = {
-      subscriptionPlanId: planId || null,
+      subscriptionPlanId: planId || undefined,
       ...(search && {
         OR: [
           { name: { contains: search, mode: "insensitive" as const } },
@@ -28,50 +26,50 @@ export async function GET(request: NextRequest) {
       }),
     }
 
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          username: true,
-          image: true,
-          subscriptionPlanId: true,
-          subscriptionPlan: {
-            select: {
-              name: true,
-              slug: true,
-              color: true,
-            },
-          },
-          subscriptionStart: true,
-          subscriptionEnd: true,
-          createdAt: true,
-          isVerified: true,
-          _count: {
-            select: {
-              orders: true,
-              watchHistory: true,
-              comments: true,
-            },
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        image: true,
+        subscriptionPlanId: true,
+        subscriptionPlan: {
+          select: {
+            name: true,
+            slug: true,
           },
         },
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
+        subscriptionStart: true,
+        subscriptionEnd: true,
+        createdAt: true,
+        isVerified: true,
+        _count: {
+          select: {
+            orders: true,
+            watchHistory: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit + 1,
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
       }),
-      prisma.user.count({ where }),
-    ])
+    })
+
+    let nextCursor: string | null = null
+    if (users.length > limit) {
+      const nextItem = users.pop()
+      nextCursor = nextItem?.id || null
+    }
 
     return NextResponse.json({
       users,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     })
   } catch (error) {
     console.error("Error fetching users by plan:", error)

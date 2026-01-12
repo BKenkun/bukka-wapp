@@ -80,7 +80,17 @@ export default async function VideosPage({
       skip,
       take: pageSize,
       orderBy,
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnailUrl: true,
+        previewUrl: true,
+        previewStartTime: true,
+        previewEndTime: true,
+        muxPlaybackId: true,
+        viewCount: true,
+        likeCount: true,
         performers: {
           include: {
             performer: {
@@ -115,16 +125,27 @@ export default async function VideosPage({
   const totalPages = Math.ceil(totalCount / pageSize)
 
   // Transform videos for the grid
-  const transformedVideos = videos.map((video) => ({
-    id: video.id,
-    slug: video.slug,
-    title: video.title,
-    subtitle: video.performers.map((p) => p.performer.name).join(", ") || "Bukkake",
-    views: formatViews(video.viewCount),
-    likes: `${Math.min(99, Math.max(70, Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100 + 70)))}%`,
-    imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
-    isVerified: true,
-  }))
+  const transformedVideos = videos.map((video) => {
+    // Use custom previewUrl if available, otherwise use Mux MP4
+    let videoPreviewUrl = video.previewUrl || undefined
+    if (!videoPreviewUrl && video.muxPlaybackId) {
+      videoPreviewUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
+    }
+
+    return {
+      id: video.id,
+      slug: video.slug,
+      title: video.title,
+      subtitle: video.performers.map((p) => p.performer.name).join(", ") || "Bukkake",
+      views: formatViews(video.viewCount),
+      likes: `${Math.min(99, Math.max(70, Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100 + 70)))}%`,
+      imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
+      previewUrl: videoPreviewUrl,
+      previewStartTime: video.previewStartTime,
+      previewEndTime: video.previewEndTime,
+      isVerified: true,
+    }
+  })
 
   // Get active filter names for display
   const activeFilters = {

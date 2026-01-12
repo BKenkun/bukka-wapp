@@ -5,11 +5,15 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import Image from "next/image"
 import {
   IconLoader2,
   IconBrandInstagram,
   IconBrandTwitter,
   IconBrandOnlyfans,
+  IconUpload,
+  IconX,
+  IconPhoto,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,13 +34,14 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { toast } from "sonner"
+import { useUploadThing } from "@/lib/uploadthing-client"
 
 const performerSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   slug: z.string().min(1, "El slug es requerido").regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
   bio: z.string().optional(),
-  profileImage: z.string().url("URL inválida").or(z.literal("")),
-  coverImage: z.string().url("URL inválida").optional().or(z.literal("")),
+  profileImage: z.string().optional(),
+  coverImage: z.string().optional(),
   nationality: z.string().optional(),
   birthDate: z.string().optional(),
   height: z.string().optional(),
@@ -87,6 +92,43 @@ const skinTones = [
 export function PerformerForm({ performer }: PerformerFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [profileImage, setProfileImage] = React.useState<string>(performer?.profileImage || "")
+  const [coverImage, setCoverImage] = React.useState<string>(performer?.coverImage || "")
+  const [isUploadingProfile, setIsUploadingProfile] = React.useState(false)
+  const [isUploadingCover, setIsUploadingCover] = React.useState(false)
+
+  const profileInputRef = React.useRef<HTMLInputElement>(null)
+  const coverInputRef = React.useRef<HTMLInputElement>(null)
+
+  const { startUpload: startProfileUpload } = useUploadThing("performerImages", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        setProfileImage(res[0].ufsUrl)
+        setValue("profileImage", res[0].ufsUrl)
+        toast.success("Foto de perfil subida")
+      }
+      setIsUploadingProfile(false)
+    },
+    onUploadError: (error) => {
+      toast.error(`Error: ${error.message}`)
+      setIsUploadingProfile(false)
+    },
+  })
+
+  const { startUpload: startCoverUpload } = useUploadThing("performerImages", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        setCoverImage(res[0].ufsUrl)
+        setValue("coverImage", res[0].ufsUrl)
+        toast.success("Imagen de portada subida")
+      }
+      setIsUploadingCover(false)
+    },
+    onUploadError: (error) => {
+      toast.error(`Error: ${error.message}`)
+      setIsUploadingCover(false)
+    },
+  })
 
   const {
     register,
@@ -132,12 +174,60 @@ export function PerformerForm({ performer }: PerformerFormProps) {
     }
   }, [watchName, setValue, performer])
 
+  const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setIsUploadingProfile(true)
+    await startProfileUpload(Array.from(files))
+    if (profileInputRef.current) profileInputRef.current.value = ""
+  }
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setIsUploadingCover(true)
+    await startCoverUpload(Array.from(files))
+    if (coverInputRef.current) coverInputRef.current.value = ""
+  }
+
+  const handleProfileDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+    setIsUploadingProfile(true)
+    await startProfileUpload(Array.from(files))
+  }
+
+  const handleCoverDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+    setIsUploadingCover(true)
+    await startCoverUpload(Array.from(files))
+  }
+
+  const preventDefault = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const removeProfileImage = () => {
+    setProfileImage("")
+    setValue("profileImage", "")
+  }
+
+  const removeCoverImage = () => {
+    setCoverImage("")
+    setValue("coverImage", "")
+  }
+
   const onSubmit = async (data: PerformerFormData) => {
     setIsSubmitting(true)
 
     try {
       const payload = {
         ...data,
+        profileImage: profileImage || null,
+        coverImage: coverImage || null,
         height: data.height ? parseInt(data.height) : null,
         birthDate: data.birthDate || null,
       }
@@ -157,11 +247,11 @@ export function PerformerForm({ performer }: PerformerFormProps) {
         throw new Error(error.error || "Error al guardar")
       }
 
-      toast.success(performer ? "Performer actualizada" : "Performer creada")
-      router.push("/admin/performers")
+      toast.success(performer ? "Actriz actualizada" : "Actriz creada")
+      router.push("/admin/actrices")
       router.refresh()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al guardar la performer")
+      toast.error(error instanceof Error ? error.message : "Error al guardar la actriz")
     } finally {
       setIsSubmitting(false)
     }
@@ -176,7 +266,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
           <Card>
             <CardHeader>
               <CardTitle>Información Básica</CardTitle>
-              <CardDescription>Nombre y perfil de la performer</CardDescription>
+              <CardDescription>Nombre y perfil de la actriz</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -199,7 +289,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                     <Input
                       id="slug"
                       {...register("slug")}
-                      placeholder="nombre-performer"
+                      placeholder="nombre-actriz"
                       className="flex-1"
                     />
                   </div>
@@ -214,7 +304,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                 <Textarea
                   id="bio"
                   {...register("bio")}
-                  placeholder="Descripción de la performer..."
+                  placeholder="Descripción de la actriz..."
                   rows={4}
                 />
               </div>
@@ -378,32 +468,121 @@ export function PerformerForm({ performer }: PerformerFormProps) {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Images */}
+          {/* Profile Image */}
           <Card>
             <CardHeader>
-              <CardTitle>Imágenes</CardTitle>
+              <CardTitle>Foto de Perfil</CardTitle>
+              <CardDescription>Imagen principal de la actriz</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="profileImage">Foto de perfil</Label>
-                <Input
-                  id="profileImage"
-                  {...register("profileImage")}
-                  placeholder="https://..."
-                />
-                {errors.profileImage && (
-                  <p className="text-sm text-destructive">{errors.profileImage.message}</p>
-                )}
-              </div>
+            <CardContent>
+              <input
+                ref={profileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleProfileUpload}
+                className="hidden"
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="coverImage">Imagen de portada</Label>
-                <Input
-                  id="coverImage"
-                  {...register("coverImage")}
-                  placeholder="https://..."
-                />
-              </div>
+              {profileImage ? (
+                <div className="relative aspect-square rounded-lg overflow-hidden border">
+                  <Image
+                    src={profileImage}
+                    alt="Foto de perfil"
+                    fill
+                    className="object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={removeProfileImage}
+                  >
+                    <IconX className="size-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => profileInputRef.current?.click()}
+                  onDrop={handleProfileDrop}
+                  onDragOver={preventDefault}
+                  onDragEnter={preventDefault}
+                  className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                >
+                  {isUploadingProfile ? (
+                    <>
+                      <IconLoader2 className="size-8 animate-spin" />
+                      <span className="text-sm">Subiendo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <IconPhoto className="size-8" />
+                      <span className="text-sm text-center px-4">
+                        Arrastra una imagen o haz clic para seleccionar
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Cover Image */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Imagen de Portada</CardTitle>
+              <CardDescription>Imagen de fondo del perfil</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+
+              {coverImage ? (
+                <div className="relative aspect-video rounded-lg overflow-hidden border">
+                  <Image
+                    src={coverImage}
+                    alt="Imagen de portada"
+                    fill
+                    className="object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={removeCoverImage}
+                  >
+                    <IconX className="size-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => coverInputRef.current?.click()}
+                  onDrop={handleCoverDrop}
+                  onDragOver={preventDefault}
+                  onDragEnter={preventDefault}
+                  className="aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                >
+                  {isUploadingCover ? (
+                    <>
+                      <IconLoader2 className="size-8 animate-spin" />
+                      <span className="text-sm">Subiendo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <IconUpload className="size-8" />
+                      <span className="text-sm text-center px-4">
+                        Arrastra una imagen o haz clic para seleccionar
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -411,7 +590,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
           <div className="flex flex-col gap-2">
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-              {performer ? "Guardar Cambios" : "Crear Performer"}
+              {performer ? "Guardar Cambios" : "Crear Actriz"}
             </Button>
             <Button
               type="button"

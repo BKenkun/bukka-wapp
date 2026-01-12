@@ -10,10 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -33,6 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 const pageSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -42,9 +41,6 @@ const pageSchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  showInFooter: z.boolean(),
-  footerColumn: z.number().nullable(),
-  footerOrder: z.number(),
 })
 
 type PageFormValues = z.infer<typeof pageSchema>
@@ -58,9 +54,6 @@ interface Page {
   metaTitle: string | null
   metaDescription: string | null
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
-  showInFooter: boolean
-  footerColumn: number | null
-  footerOrder: number
 }
 
 interface PageFormProps {
@@ -71,6 +64,7 @@ export function PageForm({ page }: PageFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [content, setContent] = React.useState(page?.content || "")
   const isEditing = !!page
 
   const form = useForm<PageFormValues>({
@@ -83,13 +77,8 @@ export function PageForm({ page }: PageFormProps) {
       metaTitle: page?.metaTitle || "",
       metaDescription: page?.metaDescription || "",
       status: page?.status || "DRAFT",
-      showInFooter: page?.showInFooter || false,
-      footerColumn: page?.footerColumn || null,
-      footerOrder: page?.footerOrder || 0,
     },
   })
-
-  const showInFooter = form.watch("showInFooter")
 
   const generateSlug = (title: string) => {
     return title
@@ -108,6 +97,11 @@ export function PageForm({ page }: PageFormProps) {
     }
   }
 
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent)
+    form.setValue("content", newContent)
+  }
+
   const onSubmit = async (data: PageFormValues) => {
     setIsSubmitting(true)
 
@@ -120,6 +114,7 @@ export function PageForm({ page }: PageFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          content,
           publishedAt: data.status === "PUBLISHED" ? new Date() : null,
         }),
       })
@@ -192,7 +187,7 @@ export function PageForm({ page }: PageFormProps) {
               <div className="space-y-2">
                 <Label htmlFor="slug">Slug *</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">/p/</span>
+                  <span className="text-muted-foreground">/</span>
                   <Input
                     id="slug"
                     {...form.register("slug")}
@@ -217,31 +212,12 @@ export function PageForm({ page }: PageFormProps) {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="content">Contenido *</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Puedes usar HTML para dar formato al contenido
-                </p>
-                <Tabs defaultValue="edit" className="w-full">
-                  <TabsList className="mb-2">
-                    <TabsTrigger value="edit">Editar</TabsTrigger>
-                    <TabsTrigger value="preview">Vista previa</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="edit">
-                    <Textarea
-                      id="content"
-                      {...form.register("content")}
-                      placeholder="<h2>Título de sección</h2>&#10;<p>Contenido del párrafo...</p>"
-                      rows={20}
-                      className="font-mono text-sm"
-                    />
-                  </TabsContent>
-                  <TabsContent value="preview">
-                    <div
-                      className="min-h-[400px] p-4 border rounded-lg bg-background prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: form.watch("content") || "<p class='text-muted-foreground'>Sin contenido</p>" }}
-                    />
-                  </TabsContent>
-                </Tabs>
+                <Label>Contenido *</Label>
+                <RichTextEditor
+                  content={content}
+                  onChange={handleContentChange}
+                  placeholder="Escribe el contenido de la página..."
+                />
                 {form.formState.errors.content && (
                   <p className="text-sm text-red-500">{form.formState.errors.content.message}</p>
                 )}
@@ -324,64 +300,13 @@ export function PageForm({ page }: PageFormProps) {
 
                 {isEditing && form.watch("status") === "PUBLISHED" && (
                   <Button type="button" variant="outline" asChild>
-                    <a href={`/p/${page.slug}`} target="_blank">
+                    <a href={`/${page.slug}`} target="_blank">
                       <IconEye className="mr-2 size-4" />
                       Ver página
                     </a>
                   </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Footer Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuración Footer</CardTitle>
-              <CardDescription>
-                Mostrar esta página en el footer
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="showInFooter">Mostrar en Footer</Label>
-                <Switch
-                  id="showInFooter"
-                  checked={showInFooter}
-                  onCheckedChange={(checked) => form.setValue("showInFooter", checked)}
-                />
-              </div>
-
-              {showInFooter && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Columna del Footer</Label>
-                    <Select
-                      value={form.watch("footerColumn")?.toString() || "1"}
-                      onValueChange={(value) => form.setValue("footerColumn", parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Columna 1 - Legal</SelectItem>
-                        <SelectItem value="2">Columna 2 - Soporte</SelectItem>
-                        <SelectItem value="3">Columna 3 - Información</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="footerOrder">Orden</Label>
-                    <Input
-                      id="footerOrder"
-                      type="number"
-                      {...form.register("footerOrder", { valueAsNumber: true })}
-                      min={0}
-                    />
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
 

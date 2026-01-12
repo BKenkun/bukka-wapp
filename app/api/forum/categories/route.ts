@@ -8,7 +8,7 @@ export async function GET() {
     const categories = await prisma.forumCategory.findMany({
       orderBy: { order: "asc" },
       include: {
-        _count: { select: { posts: true } },
+        _count: { select: { ForumPost: true } },
       },
     })
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, minTier } = body
+    const { name, slug, description, minTierPlanId } = body
 
     // Check slug uniqueness
     const existing = await prisma.forumCategory.findUnique({ where: { slug } })
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         description: description || null,
-        minTier: minTier || "FREE",
+        minTierPlanId: minTierPlanId || null,
         order: (lastCategory?.order || 0) + 1,
       },
     })

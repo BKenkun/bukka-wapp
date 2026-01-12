@@ -33,7 +33,7 @@ export default async function SuscripcionPage() {
     prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        subscriptionPlan: true,
+        SubscriptionPlan: true,
       },
     }),
     prisma.subscriptionPlan.findMany({
@@ -43,7 +43,7 @@ export default async function SuscripcionPage() {
     prisma.subscriptionHistory.findMany({
       where: { userId: session.user.id },
       include: {
-        plan: {
+        SubscriptionPlan: {
           select: { id: true, slug: true, name: true },
         },
       },
@@ -57,7 +57,7 @@ export default async function SuscripcionPage() {
   }
 
   const isActive = user.subscriptionEnd && new Date(user.subscriptionEnd) > new Date()
-  const currentPlan = user.subscriptionPlan
+  const currentPlan = user.SubscriptionPlan
   const currentPlanName = currentPlan?.name || "Visitante"
   const isFreeOrNoPlan = !currentPlan || currentPlan.isFree
 
@@ -103,7 +103,7 @@ export default async function SuscripcionPage() {
 
   // Transform billing history
   const transformedHistory = billingHistory.map((item) => ({
-    plan: `${item.plan?.name || "Desconocido"} Plan - ${formatMonthYear(item.startDate)}`,
+    plan: `${item.SubscriptionPlan?.name || "Desconocido"} Plan - ${formatMonthYear(item.startDate)}`,
     paidDate: `Pagado el ${item.createdAt.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}`,
     amount: `${Number(item.amount).toFixed(2)} €`,
     invoiceUrl: item.invoiceUrl,

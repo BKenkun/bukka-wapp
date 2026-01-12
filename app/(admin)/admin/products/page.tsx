@@ -33,26 +33,26 @@ export default async function AdminProductsPage({
     }),
   }
 
-  const [products, totalCount, categories] = await Promise.all([
+  const [productsRaw, totalCount, categories] = await Promise.all([
     prisma.product.findMany({
       where,
       skip,
       take: pageSize,
       orderBy: { createdAt: "desc" },
       include: {
-        performer: {
+        Performer: {
           select: { id: true, name: true, slug: true },
         },
-        categories: {
+        ProductToCategory: {
           include: {
-            category: {
+            ShopCategory: {
               select: { id: true, name: true, slug: true },
             },
           },
         },
         _count: {
           select: {
-            orderItems: true,
+            OrderItem: true,
             favorites: true,
           },
         },
@@ -63,6 +63,19 @@ export default async function AdminProductsPage({
       orderBy: { name: "asc" },
     }),
   ])
+
+  // Transformar para compatibilidad con el componente
+  const products = productsRaw.map((p) => ({
+    ...p,
+    performer: p.Performer,
+    categories: p.ProductToCategory.map((ptc) => ({
+      category: ptc.ShopCategory,
+    })),
+    _count: {
+      orderItems: p._count.OrderItem,
+      favorites: p._count.favorites,
+    },
+  }))
 
   const totalPages = Math.ceil(totalCount / pageSize)
 

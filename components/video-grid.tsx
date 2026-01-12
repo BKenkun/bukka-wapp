@@ -2,11 +2,15 @@ import { VideoCard } from "./video-card"
 
 interface Video {
   id: string
+  slug?: string
   title: string
   subtitle: string
   views: string
   likes: string
   imageUrl: string
+  previewUrl?: string
+  previewStartTime?: number
+  previewEndTime?: number
   isVerified?: boolean
 }
 
@@ -85,11 +89,15 @@ export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns
         {videos.map((video) => (
           <VideoCard
             key={video.id}
+            slug={video.slug || video.id}
             title={video.title}
             subtitle={video.subtitle}
             views={video.views}
             likes={video.likes}
             imageUrl={video.imageUrl}
+            previewUrl={video.previewUrl}
+            previewStartTime={video.previewStartTime}
+            previewEndTime={video.previewEndTime}
             isVerified={video.isVerified}
             variant={variant}
           />

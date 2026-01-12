@@ -25,6 +25,7 @@ import {
   IconDiamond,
   IconClock,
   IconFilter,
+  IconArrowsSort,
 } from "@tabler/icons-react"
 import {
   Table,
@@ -112,6 +113,7 @@ interface VideosDataTableProps {
   currentPage: number
   totalPages: number
   totalCount: number
+  pageSize: number
 }
 
 const statusLabels: Record<string, string> = {
@@ -140,6 +142,7 @@ export function VideosDataTable({
   currentPage,
   totalPages,
   totalCount,
+  pageSize,
 }: VideosDataTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -176,7 +179,16 @@ export function VideosDataTable({
     },
     {
       accessorKey: "title",
-      header: "Video",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Video
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const video = row.original
         return (
@@ -211,7 +223,7 @@ export function VideosDataTable({
     },
     {
       accessorKey: "performers",
-      header: "Performers",
+      header: "Actrices",
       cell: ({ row }) => {
         const performers = row.original.performers
         if (performers.length === 0) return <span className="text-muted-foreground">-</span>
@@ -233,7 +245,16 @@ export function VideosDataTable({
     },
     {
       accessorKey: "status",
-      header: "Estado",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Estado
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const status = row.original.status
         return (
@@ -265,7 +286,16 @@ export function VideosDataTable({
     },
     {
       accessorKey: "viewCount",
-      header: "Stats",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Stats
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const video = row.original
         return (
@@ -283,7 +313,16 @@ export function VideosDataTable({
     },
     {
       accessorKey: "releaseDate",
-      header: "Fecha",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Fecha
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const date = new Date(row.original.releaseDate)
         return (
@@ -535,10 +574,34 @@ export function VideosDataTable({
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Mostrando {(currentPage - 1) * 20 + 1} -{" "}
-          {Math.min(currentPage * 20, totalCount)} de {totalCount}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {(currentPage - 1) * pageSize + 1} -{" "}
+            {Math.min(currentPage * pageSize, totalCount)} de {totalCount}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Por página:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                const params = new URLSearchParams(searchParams.toString())
+                params.set("pageSize", value)
+                params.delete("page")
+                router.push(`/admin/videos?${params.toString()}`)
+              }}
+            >
+              <SelectTrigger className="w-[70px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -582,7 +645,6 @@ export function VideosDataTable({
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>

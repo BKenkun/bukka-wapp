@@ -21,15 +21,15 @@ export default async function EditPerformerPage({ params }: Props) {
     include: {
       _count: {
         select: {
-          videos: true,
+          VideoPerformer: true,
           favorites: true,
-          products: true,
+          Product: true,
         },
       },
-      user: {
+      User: {
         select: { id: true, name: true, email: true },
       },
-      videos: {
+      VideoPerformer: {
         take: 5,
         orderBy: { video: { releaseDate: "desc" } },
         include: {
@@ -44,7 +44,7 @@ export default async function EditPerformerPage({ params }: Props) {
           },
         },
       },
-      photos: {
+      PerformerPhoto: {
         orderBy: { order: "asc" },
       },
     },
@@ -59,7 +59,7 @@ export default async function EditPerformerPage({ params }: Props) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/performers">
+            <Link href="/admin/actrices">
               <IconArrowLeft className="mr-2 size-4" />
               Volver a Actrices
             </Link>
@@ -102,7 +102,7 @@ export default async function EditPerformerPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{performer._count.videos}</p>
+            <p className="text-2xl font-bold">{performer._count.VideoPerformer}</p>
           </CardContent>
         </Card>
         <Card>
@@ -122,7 +122,7 @@ export default async function EditPerformerPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{performer._count.products}</p>
+            <p className="text-2xl font-bold">{performer._count.Product}</p>
           </CardContent>
         </Card>
         <Card>
@@ -132,7 +132,7 @@ export default async function EditPerformerPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {performer.user ? (
+            {performer.User ? (
               <Badge variant="secondary">Verified</Badge>
             ) : (
               <Badge variant="outline">Sin vincular</Badge>
@@ -142,7 +142,7 @@ export default async function EditPerformerPage({ params }: Props) {
       </div>
 
       {/* Recent Videos */}
-      {performer.videos.length > 0 && (
+      {performer.VideoPerformer.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default async function EditPerformerPage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {performer.videos.map(({ video }) => (
+              {performer.VideoPerformer.map(({ video }) => (
                 <Link
                   key={video.id}
                   href={`/admin/videos/${video.id}`}
@@ -180,7 +180,7 @@ export default async function EditPerformerPage({ params }: Props) {
 
       {/* Photo Gallery */}
       <div className="mb-6">
-        <PerformerGallery performerSlug={performer.slug} initialPhotos={performer.photos} />
+        <PerformerGallery performerSlug={performer.slug} initialPhotos={performer.PerformerPhoto} />
       </div>
 
       <PerformerForm performer={performer} />

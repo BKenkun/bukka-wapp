@@ -18,15 +18,15 @@ export default async function AdminForumPage() {
     prisma.forumCategory.findMany({
       orderBy: { order: "asc" },
       include: {
-        _count: { select: { posts: true } },
+        _count: { select: { ForumPost: true } },
       },
     }),
     prisma.forumPost.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
       include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true } },
+        user: { select: { name: true, email: true } },
+        ForumCategory: { select: { name: true } },
       },
     }),
     prisma.forumPost.aggregate({
@@ -99,7 +99,7 @@ export default async function AdminForumPage() {
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <Badge key={cat.id} variant="secondary" className="text-sm">
-                {cat.name} ({cat._count.posts})
+                {cat.name} ({cat._count.ForumPost})
               </Badge>
             ))}
             {categories.length === 0 && (
@@ -147,8 +147,8 @@ export default async function AdminForumPage() {
                         <span className="truncate">{post.title}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{post.author.name || post.author.email}</TableCell>
-                    <TableCell>{post.category.name}</TableCell>
+                    <TableCell>{post.user.name || post.user.email}</TableCell>
+                    <TableCell>{post.ForumCategory.name}</TableCell>
                     <TableCell>{post.viewCount.toLocaleString()}</TableCell>
                     <TableCell>{post.replyCount}</TableCell>
                     <TableCell>

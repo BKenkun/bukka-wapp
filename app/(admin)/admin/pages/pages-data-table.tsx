@@ -21,11 +21,11 @@ import {
   IconEye,
   IconSearch,
   IconTrash,
-  IconVideo,
-  IconHeart,
-  IconBrandInstagram,
-  IconBrandTwitter,
+  IconFile,
+  IconArrowsSort,
   IconCheck,
+  IconClock,
+  IconArchive,
 } from "@tabler/icons-react"
 import {
   Table,
@@ -45,6 +45,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -58,46 +65,39 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 
-interface PerformerRow {
+interface PageRow {
   id: string
   slug: string
-  name: string
-  bio: string | null
-  profileImage: string | null
-  nationality: string | null
-  birthDate: Date | null
-  height: number | null
-  instagram: string | null
-  twitter: string | null
+  title: string
+  metaTitle: string | null
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
   createdAt: Date
-  _count: {
-    videos: number
-    favorites: number
-    products: number
-  }
-  user: {
-    id: string
-    name: string | null
-    email: string
-  } | null
+  updatedAt: Date
 }
 
-interface PerformersDataTableProps {
-  performers: PerformerRow[]
+interface PagesDataTableProps {
+  pages: PageRow[]
   currentPage: number
   totalPages: number
   totalCount: number
+  pageSize: number
 }
 
-export function PerformersDataTable({
-  performers,
+const statusConfig = {
+  DRAFT: { label: "Borrador", icon: IconClock, color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  PUBLISHED: { label: "Publicada", icon: IconCheck, color: "bg-green-500/20 text-green-400 border-green-500/30" },
+  ARCHIVED: { label: "Archivada", icon: IconArchive, color: "bg-gray-500/20 text-gray-400 border-gray-500/30" },
+}
+
+export function PagesDataTable({
+  pages,
   currentPage,
   totalPages,
   totalCount,
-}: PerformersDataTableProps) {
+  pageSize,
+}: PagesDataTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -105,10 +105,10 @@ export function PerformersDataTable({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [searchValue, setSearchValue] = React.useState(searchParams.get("search") || "")
-  const [deletePerformer, setDeletePerformer] = React.useState<PerformerRow | null>(null)
+  const [deletePage, setDeletePage] = React.useState<PageRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  const columns: ColumnDef<PerformerRow>[] = [
+  const columns: ColumnDef<PageRow>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -132,103 +132,82 @@ export function PerformersDataTable({
       enableHiding: false,
     },
     {
-      accessorKey: "name",
-      header: "Performer",
+      accessorKey: "title",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Título
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const performer = row.original
+        const page = row.original
         return (
           <div className="flex items-center gap-3">
-            <Avatar className="size-10">
-              <AvatarImage src={performer.profileImage || undefined} alt={performer.name} />
-              <AvatarFallback>{performer.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="font-medium truncate">{performer.name}</p>
-                {performer.user && (
-                  <Badge variant="secondary" className="text-xs">
-                    <IconCheck className="mr-1 size-3" />
-                    Verified
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground truncate">
-                /{performer.slug}
-              </p>
+            <div className="size-10 rounded bg-muted flex items-center justify-center">
+              <IconFile className="size-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium">{page.title}</p>
+              {page.metaTitle && (
+                <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  {page.metaTitle}
+                </p>
+              )}
             </div>
           </div>
         )
       },
     },
     {
-      accessorKey: "nationality",
-      header: "Nacionalidad",
+      accessorKey: "slug",
+      header: "Slug",
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground">
+          /{row.original.slug}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Estado
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
+        const status = statusConfig[row.original.status]
+        const StatusIcon = status.icon
         return (
-          <span className="text-sm">
-            {row.original.nationality || "-"}
-          </span>
+          <Badge variant="outline" className={status.color}>
+            <StatusIcon className="size-3 mr-1" />
+            {status.label}
+          </Badge>
         )
       },
     },
     {
-      accessorKey: "stats",
-      header: "Stats",
+      accessorKey: "updatedAt",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Actualizada
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const performer = row.original
-        return (
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1">
-              <IconVideo className="size-4 text-muted-foreground" />
-              <span>{performer._count.videos}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <IconHeart className="size-4 text-muted-foreground" />
-              <span>{performer._count.favorites}</span>
-            </div>
-          </div>
-        )
-      },
-    },
-    {
-      accessorKey: "social",
-      header: "Social",
-      cell: ({ row }) => {
-        const performer = row.original
-        return (
-          <div className="flex items-center gap-2">
-            {performer.instagram && (
-              <a
-                href={`https://instagram.com/${performer.instagram}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <IconBrandInstagram className="size-4" />
-              </a>
-            )}
-            {performer.twitter && (
-              <a
-                href={`https://twitter.com/${performer.twitter}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <IconBrandTwitter className="size-4" />
-              </a>
-            )}
-            {!performer.instagram && !performer.twitter && (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Fecha",
-      cell: ({ row }) => {
-        const date = new Date(row.original.createdAt)
+        const date = new Date(row.original.updatedAt)
         return (
           <span className="text-sm text-muted-foreground">
             {date.toLocaleDateString("es-ES", {
@@ -244,7 +223,7 @@ export function PerformersDataTable({
       id: "actions",
       header: "",
       cell: ({ row }) => {
-        const performer = row.original
+        const page = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -255,14 +234,16 @@ export function PerformersDataTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {page.status === "PUBLISHED" && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/${page.slug}`} target="_blank">
+                    <IconEye className="mr-2 size-4" />
+                    Ver página
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
-                <Link href={`/modelos/${performer.slug}`} target="_blank">
-                  <IconEye className="mr-2 size-4" />
-                  Ver perfil
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/admin/performers/${performer.id}`}>
+                <Link href={`/admin/pages/${page.id}`}>
                   <IconEdit className="mr-2 size-4" />
                   Editar
                 </Link>
@@ -270,7 +251,7 @@ export function PerformersDataTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={() => setDeletePerformer(performer)}
+                onClick={() => setDeletePage(page)}
               >
                 <IconTrash className="mr-2 size-4" />
                 Eliminar
@@ -283,7 +264,7 @@ export function PerformersDataTable({
   ]
 
   const table = useReactTable({
-    data: performers,
+    data: pages,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -309,15 +290,26 @@ export function PerformersDataTable({
       params.delete("search")
     }
     params.delete("page")
-    router.push(`/admin/performers?${params.toString()}`)
+    router.push(`/admin/pages?${params.toString()}`)
   }, [searchValue, searchParams, router])
 
+  const handleStatusFilter = React.useCallback((status: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (status && status !== "all") {
+      params.set("status", status)
+    } else {
+      params.delete("status")
+    }
+    params.delete("page")
+    router.push(`/admin/pages?${params.toString()}`)
+  }, [searchParams, router])
+
   const handleDelete = async () => {
-    if (!deletePerformer) return
+    if (!deletePage) return
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/performers/${deletePerformer.slug}`, {
+      const response = await fetch(`/api/admin/pages/${deletePage.id}`, {
         method: "DELETE",
       })
 
@@ -325,13 +317,13 @@ export function PerformersDataTable({
         throw new Error("Error al eliminar")
       }
 
-      toast.success("Performer eliminada correctamente")
+      toast.success("Página eliminada correctamente")
       router.refresh()
     } catch (error) {
-      toast.error("Error al eliminar la performer")
+      toast.error("Error al eliminar la página")
     } finally {
       setIsDeleting(false)
-      setDeletePerformer(null)
+      setDeletePage(null)
     }
   }
 
@@ -343,7 +335,7 @@ export function PerformersDataTable({
           <div className="relative flex-1">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar performers..."
+              placeholder="Buscar páginas..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               className="pl-9"
@@ -354,32 +346,61 @@ export function PerformersDataTable({
           </Button>
         </form>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              Columnas
-              <IconChevronDown className="ml-2 size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id === "name" ? "Performer" : column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Select
+            defaultValue={searchParams.get("status") || "all"}
+            onValueChange={handleStatusFilter}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="DRAFT">Borrador</SelectItem>
+              <SelectItem value="PUBLISHED">Publicada</SelectItem>
+              <SelectItem value="ARCHIVED">Archivada</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Columnas
+                <IconChevronDown className="ml-2 size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
+                      {column.id === "title" ? "Título" : column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      {/* Selected actions */}
+      {Object.keys(rowSelection).length > 0 && (
+        <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+          <span className="text-sm text-muted-foreground">
+            {Object.keys(rowSelection).length} seleccionados
+          </span>
+          <Button variant="destructive" size="sm">
+            Eliminar seleccionados
+          </Button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="rounded-lg border">
@@ -423,7 +444,7 @@ export function PerformersDataTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No se encontraron performers
+                  No se encontraron páginas
                 </TableCell>
               </TableRow>
             )}
@@ -433,10 +454,34 @@ export function PerformersDataTable({
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Mostrando {(currentPage - 1) * 20 + 1} -{" "}
-          {Math.min(currentPage * 20, totalCount)} de {totalCount}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {(currentPage - 1) * pageSize + 1} -{" "}
+            {Math.min(currentPage * pageSize, totalCount)} de {totalCount}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Por página:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                const params = new URLSearchParams(searchParams.toString())
+                params.set("pageSize", value)
+                params.delete("page")
+                router.push(`/admin/pages?${params.toString()}`)
+              }}
+            >
+              <SelectTrigger className="w-[70px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -445,7 +490,7 @@ export function PerformersDataTable({
             onClick={() => {
               const params = new URLSearchParams(searchParams.toString())
               params.set("page", String(currentPage - 1))
-              router.push(`/admin/performers?${params.toString()}`)
+              router.push(`/admin/pages?${params.toString()}`)
             }}
           >
             Anterior
@@ -457,7 +502,7 @@ export function PerformersDataTable({
             onClick={() => {
               const params = new URLSearchParams(searchParams.toString())
               params.set("page", String(currentPage + 1))
-              router.push(`/admin/performers?${params.toString()}`)
+              router.push(`/admin/pages?${params.toString()}`)
             }}
           >
             Siguiente
@@ -466,13 +511,13 @@ export function PerformersDataTable({
       </div>
 
       {/* Delete Dialog */}
-      <AlertDialog open={!!deletePerformer} onOpenChange={() => setDeletePerformer(null)}>
+      <AlertDialog open={!!deletePage} onOpenChange={() => setDeletePage(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar performer?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar página?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. La performer &quot;{deletePerformer?.name}&quot;
-              será eliminada permanentemente junto con todos sus datos asociados.
+              Esta acción no se puede deshacer. La página &quot;{deletePage?.title}&quot;
+              será eliminada permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,16 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { HomeSectionList } from "./home-section-list"
-import { IconHome, IconLayoutGrid, IconPhoto, IconVideo, IconUsers, IconBrandCampaignmonitor, IconClock } from "@tabler/icons-react"
+import { IconHome } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-const sectionTypeConfig = {
-  HERO: { label: "Hero", icon: IconPhoto, color: "text-purple-500" },
-  VIDEO_GRID: { label: "Grid de Videos", icon: IconVideo, color: "text-blue-500" },
-  ACTRESS_GRID: { label: "Grid de Modelos", icon: IconUsers, color: "text-pink-500" },
-  CTA_BANNER: { label: "Banner CTA", icon: IconBrandCampaignmonitor, color: "text-orange-500" },
-  COUNTDOWN: { label: "Cuenta Atrás", icon: IconClock, color: "text-green-500" },
-  CATEGORY_FEATURED: { label: "Categoría Destacada", icon: IconLayoutGrid, color: "text-yellow-500" },
-}
 
 export default async function AdminHomePage() {
   const sections = await prisma.homeSection.findMany({
@@ -82,7 +73,6 @@ export default async function AdminHomePage() {
               ...s,
               config: s.config as Record<string, unknown> | null,
             }))}
-            typeConfig={sectionTypeConfig}
           />
         </CardContent>
       </Card>

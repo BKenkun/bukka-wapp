@@ -34,14 +34,12 @@ export async function GET() {
           supportEmail: "",
           maintenanceMode: false,
         },
-        ageVerification: {
+        discountBanner: {
           enabled: true,
-          text: "Este sitio web contiene material para adultos. Al entrar, confirmas que tienes al menos 18 años de edad.",
-        },
-        company: {
-          name: "NEON BULB, S.L.",
-          address: "",
-          vat: "",
+          text: "DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%",
+          buttonText: "SUBSCRÍBETE AHORA",
+          buttonUrl: "/registro",
+          backgroundColor: "#00B1DE",
         },
       })
     }
@@ -75,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { site, ageVerification, company } = body
+    const { site, discountBanner } = body
 
     await prisma.siteSettings.upsert({
       where: { key: SETTINGS_KEY },
@@ -83,15 +81,13 @@ export async function POST(request: NextRequest) {
         key: SETTINGS_KEY,
         value: {
           site: site || {},
-          ageVerification: ageVerification || {},
-          company: company || {},
+          discountBanner: discountBanner || {},
         },
       },
       update: {
         value: {
           site: site || {},
-          ageVerification: ageVerification || {},
-          company: company || {},
+          discountBanner: discountBanner || {},
         },
       },
     })

@@ -35,23 +35,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           parentId: null, // Only top-level comments
         },
         include: {
-          author: {
+          user: {
             select: {
               id: true,
               name: true,
               image: true,
-              subscriptionPlan: {
+              SubscriptionPlan: {
                 select: {
                   slug: true,
                   name: true,
-                  color: true,
                 },
               },
             },
           },
-          children: {
+          other_Comment: {
             include: {
-              author: {
+              user: {
                 select: {
                   id: true,
                   name: true,
@@ -78,20 +77,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       likeCount: comment.likeCount,
       createdAt: comment.createdAt.toISOString(),
       author: {
-        id: comment.author.id,
-        name: comment.author.name || "Usuario",
-        image: comment.author.image,
-        plan: comment.author.subscriptionPlan,
+        id: comment.user.id,
+        name: comment.user.name || "Usuario",
+        image: comment.user.image,
+        plan: comment.user.SubscriptionPlan,
       },
-      replies: comment.children.map((reply) => ({
+      replies: comment.other_Comment.map((reply) => ({
         id: reply.id,
         content: reply.content,
         likeCount: reply.likeCount,
         createdAt: reply.createdAt.toISOString(),
         author: {
-          id: reply.author.id,
-          name: reply.author.name || "Usuario",
-          image: reply.author.image,
+          id: reply.user.id,
+          name: reply.user.name || "Usuario",
+          image: reply.user.image,
         },
       })),
     }))
@@ -174,16 +173,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         parentId: parentId || null,
       },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             name: true,
             image: true,
-            subscriptionPlan: {
+            SubscriptionPlan: {
               select: {
                 slug: true,
                 name: true,
-                color: true,
               },
             },
           },
@@ -198,10 +196,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         likeCount: comment.likeCount,
         createdAt: comment.createdAt.toISOString(),
         author: {
-          id: comment.author.id,
-          name: comment.author.name || "Usuario",
-          image: comment.author.image,
-          plan: comment.author.subscriptionPlan,
+          id: comment.user.id,
+          name: comment.user.name || "Usuario",
+          image: comment.user.image,
+          plan: comment.user.SubscriptionPlan,
         },
         replies: [],
       },

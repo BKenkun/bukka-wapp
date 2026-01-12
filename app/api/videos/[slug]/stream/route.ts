@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkVideoAccess } from "@/lib/subscription-guard"
-import { getPlaybackToken } from "@/lib/mux/client"
+import { getPlaybackToken, planQualityToMuxResolution } from "@/lib/mux/client"
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: {
-          subscriptionPlan: true,
+          SubscriptionPlan: true,
         },
       })
     }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       user ? {
         id: user.id,
         subscriptionPlanId: user.subscriptionPlanId,
-        subscriptionPlan: user.subscriptionPlan,
+        subscriptionPlan: user.SubscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
       } : null,
       {
@@ -73,13 +73,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Generar token de playback
-    const token = await getPlaybackToken(video.muxPlaybackId, user?.id)
+    // Obtener la calidad máxima del plan del usuario
+    const maxVideoQuality = user?.SubscriptionPlan?.maxVideoQuality || "720p"
+    const muxMaxResolution = planQualityToMuxResolution(maxVideoQuality)
+
+    // Generar token de playback con restricción de calidad
+    const token = await getPlaybackToken(video.muxPlaybackId, user?.id, muxMaxResolution)
 
     return NextResponse.json({
       token,
       playbackId: video.muxPlaybackId,
-      maxQuality: accessResult.maxQuality,
+      maxQuality: maxVideoQuality,
+      maxResolution: muxMaxResolution,
     })
   } catch (error) {
     console.error("Error getting stream token:", error)

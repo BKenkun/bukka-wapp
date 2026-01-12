@@ -8,10 +8,8 @@ const planSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional().nullable(),
   level: z.number().int().min(0).default(0),
-  color: z.string().optional().nullable(),
   icon: z.string().optional().nullable(),
   monthlyPrice: z.number().min(0).default(0),
-  dailyPrice: z.number().min(0).default(0),
   yearlyPrice: z.number().optional().nullable(),
   features: z.any().optional().default([]),
   maxVideoQuality: z.string().default("720p"),
@@ -77,7 +75,7 @@ export async function GET() {
     })
     const paidSubscribers = await prisma.user.count({
       where: {
-        subscriptionPlan: {
+        SubscriptionPlan: {
           isFree: false,
           monthlyPrice: { gt: 0 },
         },
@@ -142,10 +140,8 @@ export async function POST(request: Request) {
         name: data.name,
         description: data.description,
         level: data.level,
-        color: data.color,
         icon: data.icon,
         monthlyPrice: data.monthlyPrice,
-        dailyPrice: data.dailyPrice,
         yearlyPrice: data.yearlyPrice,
         features: data.features,
         maxVideoQuality: data.maxVideoQuality,

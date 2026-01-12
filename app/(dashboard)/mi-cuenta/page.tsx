@@ -54,7 +54,7 @@ export default async function MiCuentaPage() {
     prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        subscriptionPlan: true,
+        SubscriptionPlan: true,
       },
     }),
     // Videos watched count
@@ -85,7 +85,7 @@ export default async function MiCuentaPage() {
     prisma.order.findMany({
       where: { userId: session.user.id },
       include: {
-        items: {
+        OrderItem: {
           include: {
             product: {
               select: {
@@ -94,7 +94,6 @@ export default async function MiCuentaPage() {
               },
             },
           },
-          take: 1,
         },
       },
       orderBy: { createdAt: "desc" },
@@ -105,7 +104,7 @@ export default async function MiCuentaPage() {
       prisma.comment.count({
         where: {
           authorId: session.user.id,
-          children: { some: {} },
+          other_Comment: { some: {} },
         },
       }),
       prisma.forumPost.count({
@@ -119,9 +118,9 @@ export default async function MiCuentaPage() {
     (async () => {
       const currentUser = await prisma.user.findUnique({
         where: { id: session.user.id },
-        include: { subscriptionPlan: true },
+        include: { SubscriptionPlan: true },
       })
-      const currentLevel = currentUser?.subscriptionPlan?.level ?? 0
+      const currentLevel = currentUser?.SubscriptionPlan?.level ?? 0
 
       return prisma.subscriptionPlan.findMany({
         where: {
@@ -210,8 +209,8 @@ export default async function MiCuentaPage() {
 
   const transformedOrders = recentOrders.map((order) => ({
     id: order.id,
-    imageSrc: order.items[0]?.product?.images[0] || "/placeholder.jpg",
-    title: order.items[0]?.product?.name || "Producto",
+    imageSrc: order.OrderItem[0]?.product?.images[0] || "/placeholder.jpg",
+    title: order.OrderItem[0]?.product?.name || "Producto",
     price: `${Number(order.total).toFixed(2)}€`,
     status: formatOrderStatus(order.status),
   }))
@@ -250,9 +249,9 @@ export default async function MiCuentaPage() {
     performerName: h.video.performers[0]?.performer?.name || "",
   }))
 
-  const currentPlanName = user.subscriptionPlan?.name || "Visitante"
-  const isHighestPlan = user.subscriptionPlan?.canAccessExclusive === true
-  const isFreeOrNoplan = !user.subscriptionPlan || user.subscriptionPlan.isFree
+  const currentPlanName = user.SubscriptionPlan?.name || "Visitante"
+  const isHighestPlan = user.SubscriptionPlan?.canAccessExclusive === true
+  const isFreeOrNoplan = !user.SubscriptionPlan || user.SubscriptionPlan.isFree
 
   return (
     <div className="min-h-screen bg-black">
@@ -310,7 +309,7 @@ export default async function MiCuentaPage() {
               <div className="flex items-center gap-4">
                 <div
                   className="w-[60px] h-[60px] rounded-[8px] flex items-center justify-center"
-                  style={{ backgroundColor: user.subscriptionPlan?.color || '#FA4860' }}
+                  style={{ backgroundColor: '#FA4860' }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

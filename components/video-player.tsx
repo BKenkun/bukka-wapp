@@ -1,63 +1,52 @@
 "use client"
 
+import Link from "next/link"
+
 interface VideoPlayerProps {
   thumbnailUrl: string
   title: string
   isLocked?: boolean
+  lockMessage?: string
+  requiredTier?: string
 }
 
-export function VideoPlayer({ thumbnailUrl, title, isLocked = true }: VideoPlayerProps) {
+export function VideoPlayer({
+  thumbnailUrl,
+  title,
+  isLocked = false,
+  lockMessage = "Este contenido requiere una suscripción",
+  requiredTier,
+}: VideoPlayerProps) {
   return (
-    <div className="relative w-full aspect-video overflow-hidden">
+    <div className="relative w-full aspect-video overflow-hidden bg-black">
       {/* Blurred background image */}
       <img
-        src={thumbnailUrl || "/placeholder.svg?height=600&width=900&query=woman blurred"}
+        src={thumbnailUrl || "/placeholder.svg?height=600&width=900"}
         alt={title}
-        className={`w-full h-full object-cover ${isLocked ? "blur-sm" : ""}`}
+        className={`w-full h-full object-cover ${isLocked ? "blur-md opacity-50" : ""}`}
       />
 
-      {/* Access Denied Overlay - Applied exact Figma specs */}
+      {/* Access Denied Overlay */}
       {isLocked && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="bg-black flex flex-col items-start gap-[10px]"
-            style={{
-              width: "481px",
-              height: "204px",
-              padding: "37px 70px",
-            }}
-          >
-            <h2
-              className="text-white text-center w-full uppercase"
-              style={{
-                fontSize: "24px",
-                fontWeight: 600,
-                lineHeight: "24px",
-              }}
-            >
+          <div className="bg-black/90 flex flex-col items-center gap-4 p-8 max-w-md mx-4">
+            <h2 className="text-white text-center uppercase text-xl font-semibold">
               Acceso Denegado
             </h2>
-            <p
-              className="text-white w-full"
-              style={{
-                fontSize: "16px",
-                fontWeight: 600,
-                lineHeight: "24px",
-              }}
-            >
-              Lorem ipsum dolor sit amet consectetur.
+            <p className="text-white/80 text-center text-sm">
+              {lockMessage}
             </p>
-            <button
-              className="bg-[#FA4860] hover:bg-[#e03d53] text-white uppercase flex justify-center items-center transition-colors mx-auto"
-              style={{
-                fontSize: "16px",
-                fontWeight: 600,
-                lineHeight: "24px",
-                padding: "10.5px 35px 9.5px 34px",
-              }}
+            {requiredTier && (
+              <p className="text-[#FA4860] text-center text-sm font-medium">
+                Requiere: {requiredTier}
+              </p>
+            )}
+            <Link
+              href="/suscripcion"
+              className="bg-[#FA4860] hover:bg-[#e03d53] text-white uppercase font-semibold px-8 py-3 transition-colors"
             >
-              Acceder
-            </button>
+              Ver Planes
+            </Link>
           </div>
         </div>
       )}

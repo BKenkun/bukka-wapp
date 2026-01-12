@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkVideoAccess } from "@/lib/subscription-guard"
+import { deleteMuxAsset } from "@/lib/mux/client"
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -48,14 +49,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       isLimitedEdition,
       limitedAccessUntil,
       releaseDate,
-      has720p,
-      has1080p,
-      has4k,
-      allowDownload,
+      // Preview customization
+      previewStartTime,
+      previewEndTime,
       metaTitle,
       metaDescription,
       performerIds,
       categoryIds,
+      productIds,
     } = body
 
     // Si cambia el slug, verificar que no exista
@@ -103,6 +104,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Actualizar relaciones de productos
+    if (productIds !== undefined) {
+      await prisma.videoProduct.deleteMany({
+        where: { videoId: existingVideo.id },
+      })
+
+      if (productIds.length > 0) {
+        await prisma.videoProduct.createMany({
+          data: productIds.map((productId: string) => ({
+            videoId: existingVideo.id,
+            productId,
+          })),
+        })
+      }
+    }
+
     const video = await prisma.video.update({
       where: { id: existingVideo.id },
       data: {
@@ -117,16 +134,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         isLimitedEdition,
         limitedAccessUntil: limitedAccessUntil ? new Date(limitedAccessUntil) : null,
         releaseDate: releaseDate ? new Date(releaseDate) : undefined,
-        has720p,
-        has1080p,
-        has4k,
-        allowDownload,
+        // Preview customization
+        previewStartTime: previewStartTime !== undefined ? previewStartTime : undefined,
+        previewEndTime: previewEndTime !== undefined ? previewEndTime : undefined,
         metaTitle,
         metaDescription,
       },
       include: {
         performers: { include: { performer: true } },
         categories: { include: { category: true } },
+        relatedProducts: { include: { product: true } },
       },
     })
 
@@ -162,12 +179,29 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const video = await prisma.video.findUnique({
       where: { slug },
+      select: {
+        id: true,
+        muxAssetId: true,
+      },
     })
 
     if (!video) {
       return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
     }
 
+    // Eliminar asset de Mux si existe
+    if (video.muxAssetId) {
+      try {
+        await deleteMuxAsset(video.muxAssetId)
+        console.log(`Mux asset ${video.muxAssetId} deleted successfully`)
+      } catch (muxError) {
+        // Log el error pero continuar con la eliminación de la BD
+        // El asset podría ya no existir en Mux
+        console.error("Error deleting Mux asset:", muxError)
+      }
+    }
+
+    // Eliminar video de la base de datos
     await prisma.video.delete({
       where: { id: video.id },
     })
@@ -259,7 +293,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: {
-          subscriptionPlan: true,
+          SubscriptionPlan: true,
         },
       })
     }
@@ -268,7 +302,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       user ? {
         id: user.id,
         subscriptionPlanId: user.subscriptionPlanId,
-        subscriptionPlan: user.subscriptionPlan,
+        subscriptionPlan: user.SubscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
       } : null,
       {
@@ -307,6 +341,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Generar URL del preview MP4 video
+    let previewVideoUrl = video.previewUrl
+    if (video.muxPlaybackId) {
+      // Usar MP4 medium quality (960x540) para preview
+      previewVideoUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
+    }
+
     // Transformar respuesta
     const response = {
       id: video.id,
@@ -314,7 +355,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       title: video.title,
       description: video.description,
       thumbnailUrl: video.thumbnailUrl,
-      previewUrl: video.previewUrl,
+      previewUrl: previewVideoUrl,
       duration: video.duration,
       releaseDate: video.releaseDate,
       viewCount: video.viewCount + (accessResult.hasAccess ? 1 : 0),
@@ -323,10 +364,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       isLimitedEdition: video.isLimitedEdition,
       isDiamondExclusive: video.isDiamondExclusive,
       limitedAccessUntil: video.limitedAccessUntil,
-      has720p: video.has720p,
-      has1080p: video.has1080p,
-      has4k: video.has4k,
-      allowDownload: video.allowDownload,
       metaTitle: video.metaTitle,
       metaDescription: video.metaDescription,
       performers: video.performers.map((vp) => vp.performer),
@@ -335,6 +372,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       gallery: video.gallery,
       relatedProducts: video.relatedProducts.map((vp) => vp.product),
       subtitles: video.subtitles,
+      // Preview settings
+      previewSettings: {
+        startTime: video.previewStartTime,
+        endTime: video.previewEndTime,
+        duration: video.previewEndTime - video.previewStartTime,
+      },
       // Información de acceso
       access: accessResult.hasAccess
         ? {

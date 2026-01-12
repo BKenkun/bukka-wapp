@@ -23,6 +23,7 @@ import {
   IconShield,
   IconBan,
   IconCrown,
+  IconArrowsSort,
 } from "@tabler/icons-react"
 import {
   Table,
@@ -58,7 +59,6 @@ interface SubscriptionPlan {
   id: string
   slug: string
   name: string
-  color: string | null
 }
 
 interface UserRow {
@@ -68,19 +68,19 @@ interface UserRow {
   username: string | null
   image: string | null
   subscriptionPlanId: string | null
-  subscriptionPlan: SubscriptionPlan | null
+  SubscriptionPlan: SubscriptionPlan | null
   subscriptionEnd: Date | null
   isAdmin: boolean
   isPerformer: boolean
   isVerified: boolean
   createdAt: Date
   _count: {
-    orders: number
+    Order: number
     favorites: number
-    comments: number
+    Comment: number
   }
-  badges: {
-    badge: {
+  UserBadge: {
+    Badge: {
       id: string
       name: string
       slug: string
@@ -95,6 +95,7 @@ interface UsersDataTableProps {
   totalPages: number
   totalCount: number
   plans: SubscriptionPlan[]
+  pageSize: number
 }
 
 export function UsersDataTable({
@@ -103,6 +104,7 @@ export function UsersDataTable({
   totalPages,
   totalCount,
   plans,
+  pageSize,
 }: UsersDataTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -137,7 +139,16 @@ export function UsersDataTable({
     },
     {
       accessorKey: "name",
-      header: "Usuario",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Usuario
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const user = row.original
         return (
@@ -165,23 +176,15 @@ export function UsersDataTable({
       },
     },
     {
-      accessorKey: "subscriptionPlan",
+      accessorKey: "SubscriptionPlan",
       header: "Suscripción",
       cell: ({ row }) => {
         const user = row.original
         const isExpired = user.subscriptionEnd && new Date(user.subscriptionEnd) < new Date()
-        const planColor = user.subscriptionPlan?.color || "#6B7280"
         return (
           <div className="space-y-1">
-            <Badge
-              variant="outline"
-              style={{
-                borderColor: planColor,
-                color: planColor,
-                backgroundColor: `${planColor}20`,
-              }}
-            >
-              {user.subscriptionPlan?.name || "Sin plan"}
+            <Badge variant="outline">
+              {user.SubscriptionPlan?.name || "Sin plan"}
             </Badge>
             {user.subscriptionEnd && (
               <p className={`text-xs ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
@@ -193,21 +196,21 @@ export function UsersDataTable({
       },
     },
     {
-      accessorKey: "badges",
+      accessorKey: "UserBadge",
       header: "Badges",
       cell: ({ row }) => {
-        const badges = row.original.badges
+        const badges = row.original.UserBadge
         if (badges.length === 0) return <span className="text-muted-foreground">-</span>
         return (
           <div className="flex flex-wrap gap-1 max-w-[150px]">
             {badges.slice(0, 3).map((ub) => (
               <Badge
-                key={ub.badge.id}
+                key={ub.Badge.id}
                 variant="outline"
                 className="text-xs"
-                style={{ borderColor: ub.badge.color || undefined }}
+                style={{ borderColor: ub.Badge.color || undefined }}
               >
-                {ub.badge.name}
+                {ub.Badge.name}
               </Badge>
             ))}
             {badges.length > 3 && (
@@ -226,15 +229,24 @@ export function UsersDataTable({
         const user = row.original
         return (
           <div className="text-sm text-muted-foreground">
-            <p>{user._count.orders} pedidos</p>
-            <p>{user._count.comments} comentarios</p>
+            <p>{user._count.Order} pedidos</p>
+            <p>{user._count.Comment} comentarios</p>
           </div>
         )
       },
     },
     {
       accessorKey: "createdAt",
-      header: "Registro",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Registro
+          <IconArrowsSort className="ml-2 size-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const date = new Date(row.original.createdAt)
         return (
@@ -444,10 +456,34 @@ export function UsersDataTable({
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Mostrando {(currentPage - 1) * 20 + 1} -{" "}
-          {Math.min(currentPage * 20, totalCount)} de {totalCount}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {(currentPage - 1) * pageSize + 1} -{" "}
+            {Math.min(currentPage * pageSize, totalCount)} de {totalCount}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Por página:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                const params = new URLSearchParams(searchParams.toString())
+                params.set("pageSize", value)
+                params.delete("page")
+                router.push(`/admin/users?${params.toString()}`)
+              }}
+            >
+              <SelectTrigger className="w-[70px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"

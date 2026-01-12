@@ -8,7 +8,7 @@ export default function NewPerformerPage() {
     <div className="px-4 lg:px-6">
       <div className="mb-6">
         <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/admin/performers">
+          <Link href="/admin/actrices">
             <IconArrowLeft className="mr-2 size-4" />
             Volver a Actrices
           </Link>

@@ -47,7 +47,7 @@ async function getStats() {
     prisma.subscriptionPlan.findMany({
       where: { isActive: true },
       orderBy: { level: "asc" },
-      select: { id: true, name: true, slug: true, color: true },
+      select: { id: true, name: true, slug: true },
     }),
     prisma.order.findMany({
       take: 5,
@@ -69,7 +69,6 @@ async function getStats() {
       planId: stat.subscriptionPlanId,
       planName: plan?.name || "Sin plan",
       planSlug: plan?.slug || "none",
-      color: plan?.color || "#6B7280",
       count: stat._count,
     }
   })
@@ -102,12 +101,12 @@ export default async function AdminDashboardPage() {
       href: "/admin/videos",
     },
     {
-      title: "Performers",
+      title: "Actrices",
       value: stats.totalPerformers.toLocaleString(),
       change: "+2",
       trend: "up" as const,
       description: "Actrices registradas",
-      href: "/admin/performers",
+      href: "/admin/actrices",
     },
     {
       title: "Usuarios",
@@ -170,8 +169,8 @@ export default async function AdminDashboardPage() {
                   <div className="w-20 text-sm font-medium">{stat.planName}</div>
                   <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full"
-                      style={{ width: `${percentage}%`, backgroundColor: stat.color }}
+                      className="h-full bg-primary"
+                      style={{ width: `${percentage}%` }}
                     />
                   </div>
                   <div className="w-20 text-right text-sm">
@@ -199,9 +198,9 @@ export default async function AdminDashboardPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                <Link href="/admin/performers/new">
+                <Link href="/admin/actrices/new">
                   <IconUsers className="size-6" />
-                  <span>Nueva Performer</span>
+                  <span>Nueva Actriz</span>
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-20 flex-col gap-2">

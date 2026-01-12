@@ -48,8 +48,8 @@ export default async function ModelosPage({
         slug: true,
         name: true,
         profileImage: true,
-        user: { select: { isVerified: true } },
-        _count: { select: { videos: true } },
+        User: { select: { isVerified: true } },
+        _count: { select: { VideoPerformer: true } },
       },
     }),
     prisma.performer.count(),
@@ -63,20 +63,20 @@ export default async function ModelosPage({
     slug: p.slug,
     name: p.name,
     imageUrl: p.profileImage || "/woman-in-black-bikini-on-beach.jpg",
-    videoCount: p._count.videos,
-    verified: p.user?.isVerified || false,
+    videoCount: p._count.VideoPerformer,
+    verified: p.User?.isVerified || false,
   }))
 
   return (
-    <main className="flex-1 flex flex-col font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col font-sans bg-black text-white pt-[120px]">
       {/* Discount Banner */}
-      <div>
+      <div className="mt-[17px]">
         <DiscountBanner />
       </div>
 
       <div className="py-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
         <div className="w-full">
-          <div className="flex flex-col gap-4 mt-[25px]">
+          <div className="flex flex-col gap-4">
             {/* Title and count section */}
             <div className="flex flex-col gap-[10px]">
               <h1

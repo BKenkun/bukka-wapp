@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { IconArrowLeft, IconMail, IconShield, IconBan } from "@tabler/icons-react"
+import { IconArrowLeft, IconShield, IconBan } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,11 +20,13 @@ export default async function UserDetailPage({ params }: Props) {
     prisma.user.findUnique({
       where: { id },
       include: {
-        subscriptionPlan: true,
-        badges: {
-          include: { badge: true },
+        SubscriptionPlan: {
+          select: { id: true, slug: true, name: true },
         },
-        orders: {
+        UserBadge: {
+          include: { Badge: true },
+        },
+        Order: {
           take: 10,
           orderBy: { createdAt: "desc" },
           select: {
@@ -35,28 +37,28 @@ export default async function UserDetailPage({ params }: Props) {
             createdAt: true,
           },
         },
-        subscriptionHistory: {
+        SubscriptionHistory: {
           take: 10,
           orderBy: { startDate: "desc" },
           include: {
-            plan: {
-              select: { id: true, slug: true, name: true, color: true },
+            SubscriptionPlan: {
+              select: { id: true, slug: true, name: true },
             },
           },
         },
         favorites: {
           take: 5,
           include: {
-            video: { select: { id: true, title: true, thumbnailUrl: true } },
-            performer: { select: { id: true, name: true, profileImage: true } },
+            Video: { select: { id: true, title: true, thumbnailUrl: true } },
+            Performer: { select: { id: true, name: true, profileImage: true } },
           },
         },
         _count: {
           select: {
-            orders: true,
+            Order: true,
             favorites: true,
-            comments: true,
-            forumPosts: true,
+            Comment: true,
+            ForumPost: true,
           },
         },
       },
@@ -64,7 +66,7 @@ export default async function UserDetailPage({ params }: Props) {
     prisma.subscriptionPlan.findMany({
       where: { isActive: true },
       orderBy: { level: "asc" },
-      select: { id: true, slug: true, name: true, color: true },
+      select: { id: true, slug: true, name: true },
     }),
   ])
 
@@ -73,7 +75,17 @@ export default async function UserDetailPage({ params }: Props) {
   }
 
   const isExpired = user.subscriptionEnd && new Date(user.subscriptionEnd) < new Date()
-  const planColor = user.subscriptionPlan?.color || "#6B7280"
+
+  // Transform user data for client component (camelCase expected)
+  const userForForm = {
+    id: user.id,
+    subscriptionPlanId: user.subscriptionPlanId,
+    subscriptionPlan: user.SubscriptionPlan,
+    subscriptionEnd: user.subscriptionEnd,
+    isAdmin: user.isAdmin,
+    isPerformer: user.isPerformer,
+    isModerator: user.isModerator,
+  }
 
   return (
     <div className="px-4 lg:px-6">
@@ -86,10 +98,6 @@ export default async function UserDetailPage({ params }: Props) {
             </Link>
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <IconMail className="mr-2 size-4" />
-              Enviar email
-            </Button>
             <Button variant="destructive" size="sm">
               <IconBan className="mr-2 size-4" />
               Suspender
@@ -116,7 +124,7 @@ export default async function UserDetailPage({ params }: Props) {
               )}
               {user.isPerformer && (
                 <Badge className="bg-pink-500/20 text-pink-400">
-                  Performer
+                  Actriz
                 </Badge>
               )}
               {user.isVerified && (
@@ -130,15 +138,8 @@ export default async function UserDetailPage({ params }: Props) {
               <p className="text-sm text-muted-foreground">@{user.username}</p>
             )}
             <div className="flex items-center gap-4 mt-3">
-              <Badge
-                variant="outline"
-                style={{
-                  borderColor: planColor,
-                  color: planColor,
-                  backgroundColor: `${planColor}20`,
-                }}
-              >
-                {user.subscriptionPlan?.name || "Sin plan"}
+              <Badge variant="outline">
+                {user.SubscriptionPlan?.name || "Sin plan"}
               </Badge>
               {user.subscriptionEnd && (
                 <span className={`text-sm ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
@@ -162,7 +163,7 @@ export default async function UserDetailPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{user._count.orders}</p>
+            <p className="text-2xl font-bold">{user._count.Order}</p>
           </CardContent>
         </Card>
         <Card>
@@ -182,7 +183,7 @@ export default async function UserDetailPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{user._count.comments}</p>
+            <p className="text-2xl font-bold">{user._count.Comment}</p>
           </CardContent>
         </Card>
         <Card>
@@ -192,7 +193,7 @@ export default async function UserDetailPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{user._count.forumPosts}</p>
+            <p className="text-2xl font-bold">{user._count.ForumPost}</p>
           </CardContent>
         </Card>
       </div>
@@ -200,7 +201,7 @@ export default async function UserDetailPage({ params }: Props) {
       {/* Tabs */}
       <Tabs defaultValue="subscription" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="subscription">Suscripción</TabsTrigger>
+          <TabsTrigger value="subscription">Suscripcion</TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
           <TabsTrigger value="badges">Badges</TabsTrigger>
           <TabsTrigger value="activity">Actividad</TabsTrigger>
@@ -209,13 +210,13 @@ export default async function UserDetailPage({ params }: Props) {
         <TabsContent value="subscription" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Gestión de Suscripción</CardTitle>
+              <CardTitle>Gestion de Suscripcion</CardTitle>
               <CardDescription>
-                Cambia el nivel de suscripción o extiende la fecha de expiración
+                Cambia el nivel de suscripcion o extiende la fecha de expiracion
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UserSubscriptionForm user={user} plans={plans} />
+              <UserSubscriptionForm user={userForForm} plans={plans} />
             </CardContent>
           </Card>
 
@@ -225,26 +226,17 @@ export default async function UserDetailPage({ params }: Props) {
               <CardTitle>Historial de Suscripciones</CardTitle>
             </CardHeader>
             <CardContent>
-              {user.subscriptionHistory.length === 0 ? (
+              {user.SubscriptionHistory.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Sin historial de suscripciones
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {user.subscriptionHistory.map((history) => {
-                    const historyPlanColor = history.plan?.color || "#6B7280"
-                    return (
+                  {user.SubscriptionHistory.map((history) => (
                       <div key={history.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                         <div>
-                          <Badge
-                            variant="outline"
-                            style={{
-                              borderColor: historyPlanColor,
-                              color: historyPlanColor,
-                              backgroundColor: `${historyPlanColor}20`,
-                            }}
-                          >
-                            {history.plan?.name || "Plan eliminado"}
+                          <Badge variant="outline">
+                            {history.SubscriptionPlan?.name || "Plan eliminado"}
                           </Badge>
                           <p className="text-sm text-muted-foreground mt-1">
                             {new Date(history.startDate).toLocaleDateString("es-ES")}
@@ -256,8 +248,7 @@ export default async function UserDetailPage({ params }: Props) {
                           <p className="text-xs text-muted-foreground">{history.paymentGateway}</p>
                         </div>
                       </div>
-                    )
-                  })}
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -270,13 +261,13 @@ export default async function UserDetailPage({ params }: Props) {
               <CardTitle>Pedidos Recientes</CardTitle>
             </CardHeader>
             <CardContent>
-              {user.orders.length === 0 ? (
+              {user.Order.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Sin pedidos
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {user.orders.map((order) => (
+                  {user.Order.map((order) => (
                     <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                       <div>
                         <Link href={`/admin/orders/${order.id}`} className="font-medium hover:underline">
@@ -303,27 +294,27 @@ export default async function UserDetailPage({ params }: Props) {
             <CardHeader>
               <CardTitle>Badges del Usuario</CardTitle>
               <CardDescription>
-                Badges obtenidos por suscripción, antigüedad y logros
+                Badges obtenidos por suscripcion, antiguedad y logros
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {user.badges.length === 0 ? (
+              {user.UserBadge.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Sin badges
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-3">
-                  {user.badges.map((ub) => (
+                  {user.UserBadge.map((ub) => (
                     <div
-                      key={ub.badge.id}
+                      key={ub.Badge.id}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg border"
-                      style={{ borderColor: ub.badge.color || undefined }}
+                      style={{ borderColor: ub.Badge.color || undefined }}
                     >
                       <div
                         className="size-4 rounded-full"
-                        style={{ backgroundColor: ub.badge.color || "#888" }}
+                        style={{ backgroundColor: ub.Badge.color || "#888" }}
                       />
-                      <span className="font-medium">{ub.badge.name}</span>
+                      <span className="font-medium">{ub.Badge.name}</span>
                     </div>
                   ))}
                 </div>
@@ -346,27 +337,27 @@ export default async function UserDetailPage({ params }: Props) {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {user.favorites.map((fav) => (
                     <div key={fav.id} className="text-center">
-                      {fav.video && (
+                      {fav.Video && (
                         <>
                           <div className="aspect-video bg-muted rounded overflow-hidden mb-2">
-                            {fav.video.thumbnailUrl && (
+                            {fav.Video.thumbnailUrl && (
                               <img
-                                src={fav.video.thumbnailUrl}
-                                alt={fav.video.title}
+                                src={fav.Video.thumbnailUrl}
+                                alt={fav.Video.title}
                                 className="w-full h-full object-cover"
                               />
                             )}
                           </div>
-                          <p className="text-sm truncate">{fav.video.title}</p>
+                          <p className="text-sm truncate">{fav.Video.title}</p>
                         </>
                       )}
-                      {fav.performer && (
+                      {fav.Performer && (
                         <>
                           <Avatar className="size-16 mx-auto mb-2">
-                            <AvatarImage src={fav.performer.profileImage || undefined} />
-                            <AvatarFallback>{fav.performer.name.substring(0, 2)}</AvatarFallback>
+                            <AvatarImage src={fav.Performer.profileImage || undefined} />
+                            <AvatarFallback>{fav.Performer.name.substring(0, 2)}</AvatarFallback>
                           </Avatar>
-                          <p className="text-sm truncate">{fav.performer.name}</p>
+                          <p className="text-sm truncate">{fav.Performer.name}</p>
                         </>
                       )}
                     </div>
@@ -378,7 +369,7 @@ export default async function UserDetailPage({ params }: Props) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Información de Cuenta</CardTitle>
+              <CardTitle>Informacion de Cuenta</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -403,10 +394,10 @@ export default async function UserDetailPage({ params }: Props) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Es Founder</p>
-                  <p className="font-medium">{user.isFounder ? "Sí" : "No"}</p>
+                  <p className="font-medium">{user.isFounder ? "Si" : "No"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Rol de relación</p>
+                  <p className="text-sm text-muted-foreground">Rol de relacion</p>
                   <p className="font-medium">{user.relationshipRole || "-"}</p>
                 </div>
               </div>

@@ -40,6 +40,18 @@ export const ourFileRouter = {
       return { url: file.ufsUrl }
     }),
 
+  // Upload de preview/trailer personalizado (admin)
+  videoPreview: f({ video: { maxFileSize: "512MB", maxFileCount: 1 } })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user) throw new Error("No autorizado")
+      // TODO: Verificar si es admin
+      return { userId: session.user.id }
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl }
+    }),
+
   // Upload de galería de video (admin)
   videoGallery: f({ image: { maxFileSize: "4MB", maxFileCount: 20 } })
     .middleware(async () => {

@@ -5,6 +5,7 @@ import { IconUsers, IconUserPlus, IconCrown, IconDiamond } from "@tabler/icons-r
 
 interface SearchParams {
   page?: string
+  pageSize?: string
   planId?: string
   search?: string
 }
@@ -16,7 +17,7 @@ export default async function AdminUsersPage({
 }) {
   const params = await searchParams
   const page = Number(params.page) || 1
-  const pageSize = 20
+  const pageSize = Number(params.pageSize) || 20
   const skip = (page - 1) * pageSize
 
   // Build where clause for filtering
@@ -45,24 +46,23 @@ export default async function AdminUsersPage({
       take: pageSize,
       orderBy: { createdAt: "desc" },
       include: {
-        subscriptionPlan: {
+        SubscriptionPlan: {
           select: {
             id: true,
             slug: true,
             name: true,
-            color: true,
           },
         },
         _count: {
           select: {
-            orders: true,
+            Order: true,
             favorites: true,
-            comments: true,
+            Comment: true,
           },
         },
-        badges: {
+        UserBadge: {
           include: {
-            badge: true,
+            Badge: true,
           },
         },
       },
@@ -71,7 +71,7 @@ export default async function AdminUsersPage({
     prisma.subscriptionPlan.findMany({
       where: { isActive: true },
       orderBy: { level: "asc" },
-      select: { id: true, slug: true, name: true, color: true },
+      select: { id: true, slug: true, name: true },
     }),
     prisma.user.groupBy({
       by: ["subscriptionPlanId"],
@@ -163,6 +163,7 @@ export default async function AdminUsersPage({
         totalPages={totalPages}
         totalCount={totalCount}
         plans={plans}
+        pageSize={pageSize}
       />
     </div>
   )

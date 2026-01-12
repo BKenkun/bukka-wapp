@@ -64,7 +64,7 @@ const navContent = [
   },
   {
     title: "Actrices",
-    url: "/admin/performers",
+    url: "/admin/actrices",
     icon: IconUserStar,
   },
   {

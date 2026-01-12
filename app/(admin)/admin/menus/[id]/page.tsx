@@ -10,6 +10,10 @@ interface Props {
 
 // Menús predefinidos del sistema
 const SYSTEM_MENUS: Record<string, { name: string; description: string }> = {
+  "topbar": {
+    name: "Top Bar",
+    description: "Enlaces con iconos en la barra superior (BUKAKERY, GANGLORY, etc.)",
+  },
   "header-main": {
     name: "Menú Principal (Header)",
     description: "Enlaces principales de navegación en el header",

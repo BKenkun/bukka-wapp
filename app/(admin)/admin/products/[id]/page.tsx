@@ -14,23 +14,23 @@ interface Props {
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params
 
-  const [product, performers, categories] = await Promise.all([
+  const [productRaw, performers, categories] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
       include: {
-        performer: {
+        Performer: {
           select: { id: true, name: true, slug: true },
         },
-        categories: {
+        ProductToCategory: {
           include: {
-            category: {
+            ShopCategory: {
               select: { id: true, name: true, slug: true },
             },
           },
         },
         _count: {
           select: {
-            orderItems: true,
+            OrderItem: true,
             favorites: true,
           },
         },
@@ -46,8 +46,21 @@ export default async function EditProductPage({ params }: Props) {
     }),
   ])
 
-  if (!product) {
+  if (!productRaw) {
     notFound()
+  }
+
+  // Transformar para compatibilidad
+  const product = {
+    ...productRaw,
+    performer: productRaw.Performer,
+    categories: productRaw.ProductToCategory.map((ptc) => ({
+      category: ptc.ShopCategory,
+    })),
+    _count: {
+      orderItems: productRaw._count.OrderItem,
+      favorites: productRaw._count.favorites,
+    },
   }
 
   // Calculate total revenue

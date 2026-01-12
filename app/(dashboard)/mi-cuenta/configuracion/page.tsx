@@ -741,7 +741,7 @@ export default function ConfiguracionPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-zinc-400 text-sm">Plan actual</p>
-                  <p className="text-xl font-semibold" style={{ color: subscriptionData.plan.color }}>
+                  <p className="text-xl font-semibold text-[#FA4860]">
                     {subscriptionData.plan.name}
                   </p>
                 </div>

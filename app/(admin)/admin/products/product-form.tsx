@@ -478,7 +478,7 @@ export function ProductForm({ product, performers, categories }: ProductFormProp
           {/* Performer */}
           <Card>
             <CardHeader>
-              <CardTitle>Performer Asociada</CardTitle>
+              <CardTitle>Actriz Asociada</CardTitle>
               <CardDescription>Para productos de colección</CardDescription>
             </CardHeader>
             <CardContent>

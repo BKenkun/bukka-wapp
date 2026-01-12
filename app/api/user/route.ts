@@ -20,13 +20,12 @@ export async function GET() {
         username: true,
         image: true,
         subscriptionPlanId: true,
-        subscriptionPlan: {
+        SubscriptionPlan: {
           select: {
             id: true,
             slug: true,
             name: true,
             level: true,
-            color: true,
             maxVideoQuality: true,
             canComment: true,
             canAccessForum: true,
@@ -51,9 +50,9 @@ export async function GET() {
         _count: {
           select: {
             favorites: true,
-            orders: true,
-            comments: true,
-            forumPosts: true,
+            Order: true,
+            Comment: true,
+            ForumPost: true,
           },
         },
       },
@@ -63,7 +62,14 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    // Transform response for frontend compatibility
+    const { SubscriptionPlan, ...rest } = user
+    const transformedUser = {
+      ...rest,
+      subscriptionPlan: SubscriptionPlan,
+    }
+
+    return NextResponse.json({ user: transformedUser })
   } catch (error) {
     console.error("Error fetching user:", error)
     return NextResponse.json(
