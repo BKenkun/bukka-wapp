@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { auth } from "@/lib/auth"
+import { canAccessRoute, type AdminRole } from "@/lib/admin-permissions"
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -24,7 +25,7 @@ export async function proxy(request: NextRequest) {
 
   // Debug en desarrollo
   if (process.env.NODE_ENV === "development" && (isAdminRoute || isProtectedRoute)) {
-    console.log(`[PROXY] ${pathname} - Session:`, session?.user?.email, "isAdmin:", session?.user?.isAdmin)
+    console.log(`[PROXY] ${pathname} - Session:`, session?.user?.email, "isAdmin:", session?.user?.isAdmin, "adminRole:", session?.user?.adminRole)
   }
 
   // Si es ruta admin (excepto /admin/login)
@@ -40,6 +41,13 @@ export async function proxy(request: NextRequest) {
       // Autenticado pero no es admin -> home
       console.log(`[PROXY] User ${session.user.email} tried to access admin without permission`)
       return NextResponse.redirect(new URL("/", request.url))
+    }
+
+    // Verificar permisos por rol para la ruta específica
+    const adminRole = session.user.adminRole as AdminRole | null
+    if (!canAccessRoute(adminRole, pathname)) {
+      console.log(`[PROXY] User ${session.user.email} with role ${adminRole} lacks permission for ${pathname}`)
+      return NextResponse.redirect(new URL("/admin", request.url))
     }
   }
 

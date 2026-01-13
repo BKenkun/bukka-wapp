@@ -23,12 +23,28 @@ interface SubscriptionPlan {
   name: string
 }
 
+type AdminRole =
+  | "GLOBAL_ADMIN"
+  | "CONTENT_EDITOR"
+  | "ECOMMERCE_MANAGER"
+  | "FINANCE_MANAGER"
+  | "COMMUNITY_MODERATOR"
+
+const ADMIN_ROLES: { value: AdminRole; label: string; description: string }[] = [
+  { value: "GLOBAL_ADMIN", label: "Admin Global", description: "Acceso completo a todas las secciones" },
+  { value: "CONTENT_EDITOR", label: "Editor de Contenido", description: "Videos, Actrices, Blog, CMS" },
+  { value: "ECOMMERCE_MANAGER", label: "Gestor E-commerce", description: "Productos, Categorías, Pedidos" },
+  { value: "FINANCE_MANAGER", label: "Gestor Financiero", description: "Suscripciones, Códigos Promo" },
+  { value: "COMMUNITY_MODERATOR", label: "Moderador", description: "Usuarios, Foro, Casting" },
+]
+
 interface User {
   id: string
   subscriptionPlanId: string | null
   subscriptionPlan: SubscriptionPlan | null
   subscriptionEnd: Date | null
   isAdmin: boolean
+  adminRole: string | null
   isPerformer: boolean
   isModerator: boolean
 }
@@ -48,6 +64,7 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
       : ""
   )
   const [isAdmin, setIsAdmin] = React.useState(user.isAdmin)
+  const [adminRole, setAdminRole] = React.useState<string>(user.adminRole || "GLOBAL_ADMIN")
   const [isPerformer, setIsPerformer] = React.useState(user.isPerformer)
   const [isModerator, setIsModerator] = React.useState(user.isModerator)
 
@@ -63,6 +80,7 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
           subscriptionPlanId: planId || null,
           subscriptionEnd: subscriptionEnd ? new Date(subscriptionEnd) : null,
           isAdmin,
+          adminRole: isAdmin ? adminRole : null,
           isPerformer,
           isModerator,
         }),
@@ -141,7 +159,7 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
           <div>
             <Label htmlFor="isAdmin">Administrador</Label>
             <p className="text-xs text-muted-foreground">
-              Acceso completo al panel de administración
+              Acceso al panel de administración
             </p>
           </div>
           <Switch
@@ -150,6 +168,27 @@ export function UserSubscriptionForm({ user, plans }: UserSubscriptionFormProps)
             onCheckedChange={setIsAdmin}
           />
         </div>
+
+        {isAdmin && (
+          <div className="ml-4 p-4 border rounded-lg bg-muted/30 space-y-3">
+            <Label>Rol de Administrador</Label>
+            <Select value={adminRole} onValueChange={setAdminRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar rol" />
+              </SelectTrigger>
+              <SelectContent>
+                {ADMIN_ROLES.map((role) => (
+                  <SelectItem key={role.value} value={role.value}>
+                    <div className="flex flex-col">
+                      <span>{role.label}</span>
+                      <span className="text-xs text-muted-foreground">{role.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div>

@@ -39,6 +39,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       subscriptionPlanId,
       subscriptionEnd,
       isAdmin,
+      adminRole,
       isPerformer,
       isModerator,
       isVerified,
@@ -67,12 +68,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           ? new Date()
           : undefined,
         isAdmin: isAdmin !== undefined ? isAdmin : undefined,
+        adminRole: adminRole !== undefined ? adminRole : undefined,
         isPerformer: isPerformer !== undefined ? isPerformer : undefined,
         isModerator: isModerator !== undefined ? isModerator : undefined,
         isVerified: isVerified !== undefined ? isVerified : undefined,
       },
       include: {
-        subscriptionPlan: true,
+        SubscriptionPlan: true,
       },
     })
 

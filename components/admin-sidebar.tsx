@@ -22,7 +22,10 @@ import {
   IconMenu2,
   IconHome,
   IconHash,
+  IconLogout,
+  IconChevronUp,
 } from "@tabler/icons-react"
+import { signOut } from "next-auth/react"
 
 import {
   Sidebar,
@@ -36,145 +39,192 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { hasPermission, type AdminRole, type Permission } from "@/lib/admin-permissions"
 
 interface AdminSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
     name: string
     email: string
     avatar: string
+    adminRole: string | null
   }
 }
 
+interface NavItem {
+  title: string
+  url: string
+  icon: React.ComponentType
+  permission: Permission
+}
+
 // Dashboard
-const navDashboard = [
+const navDashboard: NavItem[] = [
   {
     title: "Dashboard",
     url: "/admin",
     icon: IconDashboard,
+    permission: "dashboard",
   },
 ]
 
 // Contenido (Videos, Modelos, Blog, Categorías, Tags)
-const navContent = [
+const navContent: NavItem[] = [
   {
     title: "Videos",
     url: "/admin/videos",
     icon: IconVideo,
+    permission: "videos",
   },
   {
     title: "Actrices",
     url: "/admin/actrices",
     icon: IconUserStar,
+    permission: "performers",
   },
   {
     title: "Categorías",
     url: "/admin/video-categories",
     icon: IconCategory,
+    permission: "video_categories",
   },
   {
     title: "Tags",
     url: "/admin/tags",
     icon: IconHash,
+    permission: "tags",
   },
   {
     title: "Blog",
     url: "/admin/blog",
     icon: IconNews,
+    permission: "blog",
   },
 ]
 
 // CMS (Páginas, Menús, Banners, Home)
-const navCMS = [
+const navCMS: NavItem[] = [
   {
     title: "Secciones Home",
     url: "/admin/home",
     icon: IconHome,
+    permission: "home_sections",
   },
   {
     title: "Páginas",
     url: "/admin/pages",
     icon: IconFileText,
+    permission: "pages",
   },
   {
     title: "Menús",
     url: "/admin/menus",
     icon: IconMenu2,
+    permission: "menus",
   },
   {
     title: "Banners",
     url: "/admin/banners",
     icon: IconPhoto,
+    permission: "banners",
   },
 ]
 
 // Tienda
-const navShop = [
+const navShop: NavItem[] = [
   {
     title: "Productos",
     url: "/admin/products",
     icon: IconShoppingBag,
+    permission: "products",
   },
   {
     title: "Categorías",
     url: "/admin/shop-categories",
     icon: IconCategory,
+    permission: "shop_categories",
   },
   {
     title: "Pedidos",
     url: "/admin/orders",
     icon: IconPackage,
+    permission: "orders",
   },
 ]
 
 // Comunidad
-const navCommunity = [
+const navCommunity: NavItem[] = [
   {
     title: "Usuarios",
     url: "/admin/users",
     icon: IconUsers,
+    permission: "users",
   },
   {
     title: "Foro",
     url: "/admin/forum",
     icon: IconMessage,
+    permission: "forum",
   },
 ]
 
 // Negocio
-const navBusiness = [
+const navBusiness: NavItem[] = [
   {
     title: "Suscripciones",
     url: "/admin/subscriptions",
     icon: IconReceipt,
+    permission: "subscriptions",
   },
   {
     title: "Códigos Promo",
     url: "/admin/promo-codes",
     icon: IconTag,
+    permission: "promo_codes",
   },
   {
     title: "Casting",
     url: "/admin/casting",
     icon: IconUserCheck,
+    permission: "casting",
   },
 ]
 
 // Configuración
-const navSettings = [
+const navSettings: NavItem[] = [
   {
     title: "Configuración",
     url: "/admin/settings",
     icon: IconSettings,
+    permission: "settings",
   },
 ]
 
 export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
   const pathname = usePathname()
+  const role = user.adminRole as AdminRole | null
 
   const isActive = (url: string) => {
     if (url === "/admin") return pathname === "/admin"
     return pathname.startsWith(url)
   }
+
+  // Filtrar items según permisos del rol
+  const filterByPermission = (items: NavItem[]) =>
+    items.filter((item) => hasPermission(role, item.permission))
+
+  const filteredContent = filterByPermission(navContent)
+  const filteredCMS = filterByPermission(navCMS)
+  const filteredShop = filterByPermission(navShop)
+  const filteredCommunity = filterByPermission(navCommunity)
+  const filteredBusiness = filterByPermission(navBusiness)
+  const filteredSettings = filterByPermission(navSettings)
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -199,7 +249,7 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {/* Dashboard */}
+        {/* Dashboard - siempre visible para admins */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -222,158 +272,192 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
         </SidebarGroup>
 
         {/* Contenido */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Contenido</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navContent.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredContent.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Contenido</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredContent.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* CMS */}
-        <SidebarGroup>
-          <SidebarGroupLabel>CMS</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navCMS.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredCMS.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>CMS</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredCMS.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Tienda */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Tienda</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navShop.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredShop.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Tienda</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredShop.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Comunidad */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Comunidad</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navCommunity.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredCommunity.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Comunidad</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredCommunity.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Negocio */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Negocio</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navBusiness.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredBusiness.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Negocio</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredBusiness.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Configuración */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navSettings.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredSettings.length > 0 && (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredSettings.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <div className="flex items-center gap-2 px-1 py-1.5">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="size-8 rounded-full object-cover"
-                />
-                <div className="flex flex-col text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">{user.email}</span>
-                </div>
-              </div>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="w-full cursor-pointer">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="size-8 rounded-full object-cover"
+                  />
+                  <div className="flex flex-col text-left text-sm leading-tight flex-1">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                  </div>
+                  <IconChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="top"
+                align="start"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
+              >
+                <DropdownMenuItem asChild>
+                  <Link href="/" className="cursor-pointer">
+                    Ver sitio web
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/admin/login" })}
+                  className="text-destructive cursor-pointer"
+                >
+                  <IconLogout className="mr-2 size-4" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

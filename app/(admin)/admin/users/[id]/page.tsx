@@ -83,6 +83,7 @@ export default async function UserDetailPage({ params }: Props) {
     subscriptionPlan: user.SubscriptionPlan,
     subscriptionEnd: user.subscriptionEnd,
     isAdmin: user.isAdmin,
+    adminRole: user.adminRole,
     isPerformer: user.isPerformer,
     isModerator: user.isModerator,
   }

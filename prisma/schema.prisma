@@ -545,6 +545,7 @@ model User {
   relationshipStatus                           RelationshipStatus?
   relationshipRole                             RelationshipRole?
   isAdmin                                      Boolean               @default(false)
+  adminRole                                    AdminRole?
   isPerformer                                  Boolean               @default(false)
   isVerified                                   Boolean               @default(false)
   isModerator                                  Boolean               @default(false)
@@ -824,4 +825,12 @@ enum VideoStatus {
   SCHEDULED
   PUBLISHED
   ARCHIVED
+}
+
+enum AdminRole {
+  GLOBAL_ADMIN
+  CONTENT_EDITOR
+  ECOMMERCE_MANAGER
+  FINANCE_MANAGER
+  COMMUNITY_MODERATOR
 }

@@ -14,10 +14,15 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
+interface LoginFormProps extends React.ComponentProps<"form"> {
+  showRegisterLink?: boolean
+}
+
 export function LoginForm({
   className,
+  showRegisterLink = true,
   ...props
-}: React.ComponentProps<"form">) {
+}: LoginFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -114,12 +119,14 @@ export function LoginForm({
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
           </Button>
-          <FieldDescription className="text-center">
-            ¿No tienes cuenta?{" "}
-            <a href="/registro" className="underline underline-offset-4 text-white hover:text-white">
-              Regístrate
-            </a>
-          </FieldDescription>
+          {showRegisterLink && (
+            <FieldDescription className="text-center">
+              ¿No tienes cuenta?{" "}
+              <a href="/registro" className="underline underline-offset-4 text-white hover:text-white">
+                Regístrate
+              </a>
+            </FieldDescription>
+          )}
         </Field>
       </FieldGroup>
     </form>

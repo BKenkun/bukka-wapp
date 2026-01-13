@@ -25,18 +25,21 @@ declare module "next-auth" {
       name: string | null
       image: string | null
       isAdmin: boolean
+      adminRole: string | null
       SubscriptionPlan: SubscriptionPlanData | null
       subscriptionEnd: Date | null
     }
   }
   interface User {
     isAdmin?: boolean
+    adminRole?: string | null
     SubscriptionPlan?: SubscriptionPlanData | null
     subscriptionEnd?: Date | null
   }
   interface JWT {
     id?: string
     isAdmin?: boolean
+    adminRole?: string | null
     SubscriptionPlan?: SubscriptionPlanData | null
     subscriptionEnd?: Date | null
   }
@@ -60,7 +63,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            password: true,
+            isAdmin: true,
+            adminRole: true,
+            subscriptionEnd: true,
             SubscriptionPlan: {
               select: {
                 id: true,
@@ -95,6 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           image: user.image,
           isAdmin: user.isAdmin,
+          adminRole: user.adminRole,
           SubscriptionPlan: user.SubscriptionPlan,
           subscriptionEnd: user.subscriptionEnd,
         }
@@ -106,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id
         token.isAdmin = user.isAdmin
+        token.adminRole = user.adminRole
         token.SubscriptionPlan = user.SubscriptionPlan
         token.subscriptionEnd = user.subscriptionEnd
       }
@@ -113,7 +126,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update" && token.id) {
         const freshUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          include: {
+          select: {
+            adminRole: true,
+            subscriptionEnd: true,
             SubscriptionPlan: {
               select: {
                 id: true,
@@ -132,6 +147,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         })
         if (freshUser) {
+          token.adminRole = freshUser.adminRole
           token.SubscriptionPlan = freshUser.SubscriptionPlan
           token.subscriptionEnd = freshUser.subscriptionEnd
         }
@@ -142,6 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token && session.user) {
         session.user.id = token.id as string
         session.user.isAdmin = (token.isAdmin as boolean) ?? false
+        session.user.adminRole = (token.adminRole as string | null) ?? null
         session.user.SubscriptionPlan = (token.SubscriptionPlan as SubscriptionPlanData | null) ?? null
         session.user.subscriptionEnd = (token.subscriptionEnd as Date | null) ?? null
       }

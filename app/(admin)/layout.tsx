@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   // Verificar si es admin
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { isAdmin: true, name: true, email: true, image: true },
+    select: { isAdmin: true, adminRole: true, name: true, email: true, image: true },
   })
 
   if (!user?.isAdmin) {
@@ -33,6 +33,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     name: user.name || "Admin",
     email: user.email || "",
     avatar: user.image || "/avatars/admin.jpg",
+    adminRole: user.adminRole,
   }
 
   return (
