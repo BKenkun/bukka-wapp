@@ -58,14 +58,13 @@ import {
 } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { useUploadThing } from "@/lib/uploadthing-client"
 import * as UpChunk from "@mux/upchunk"
 
 const videoSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
   slug: z.string().min(1, "El slug es requerido").regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
   description: z.string().optional(),
-  thumbnailUrl: z.string().url("URL inválida").or(z.literal("")),
+  thumbnailUrl: z.string().min(1, "El thumbnail es requerido"),
   previewUrl: z.string().url("URL inválida").optional().nullable().or(z.literal("")),
   status: z.enum(["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"]),
   minTierPlanId: z.string().nullable(),
@@ -117,6 +116,7 @@ interface VideoFormProps {
     description: string | null
     thumbnailUrl: string
     previewUrl: string | null
+    muxUploadId: string | null
     muxPlaybackId: string | null
     muxAssetId: string | null
     duration: number
@@ -166,43 +166,81 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   const [videoUploadId, setVideoUploadId] = React.useState<string | null>(video?.muxUploadId || null)
   const [muxAssetId, setMuxAssetId] = React.useState<string | null>(video?.muxAssetId || null)
   const [muxPlaybackId, setMuxPlaybackId] = React.useState<string | null>(video?.muxPlaybackId || null)
+  const [videoDuration, setVideoDuration] = React.useState<number>(video?.duration || 0)
+  const [isCheckingMuxStatus, setIsCheckingMuxStatus] = React.useState(false)
+  const [muxProcessingStatus, setMuxProcessingStatus] = React.useState<"idle" | "processing" | "ready" | "error">(
+    video?.muxPlaybackId ? "ready" : "idle"
+  )
   const [isDraggingVideo, setIsDraggingVideo] = React.useState(false)
+  const [isDraggingThumbnail, setIsDraggingThumbnail] = React.useState(false)
   const dragCounterRef = React.useRef(0)
   const [playbackToken, setPlaybackToken] = React.useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = React.useState(false)
   const [customPreviewUrl, setCustomPreviewUrl] = React.useState<string | null>(video?.previewUrl || null)
   const [isUploadingPreview, setIsUploadingPreview] = React.useState(false)
+  const [isUploading, setIsUploading] = React.useState(false)
   const previewInputRef = React.useRef<HTMLInputElement>(null)
 
-  const { startUpload, isUploading } = useUploadThing("videoThumbnail", {
-    onClientUploadComplete: (res) => {
-      if (res?.[0]) {
-        const url = res[0].ufsUrl
-        setValue("thumbnailUrl", url)
-        setThumbnailPreview(url)
-        toast.success("Thumbnail subido correctamente")
-      }
-    },
-    onUploadError: (error) => {
-      toast.error(`Error al subir: ${error.message}`)
-    },
-  })
 
-  const { startUpload: startPreviewUpload } = useUploadThing("videoPreview", {
-    onClientUploadComplete: (res) => {
-      if (res?.[0]) {
-        const url = res[0].ufsUrl
-        setValue("previewUrl", url)
-        setCustomPreviewUrl(url)
-        toast.success("Preview personalizado subido correctamente")
+  // Local upload function for thumbnails
+  const uploadThumbnail = async (file: File) => {
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "thumbnails")
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir thumbnail")
       }
+
+      const result = await response.json()
+      setValue("thumbnailUrl", result.url)
+      setThumbnailPreview(result.url)
+      toast.success("Thumbnail subido correctamente")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al subir thumbnail"
+      toast.error(message)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Local upload function for preview videos
+  const uploadPreview = async (file: File) => {
+    setIsUploadingPreview(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "previews")
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir preview")
+      }
+
+      const result = await response.json()
+      setValue("previewUrl", result.url)
+      setCustomPreviewUrl(result.url)
+      toast.success("Preview personalizado subido correctamente")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al subir preview"
+      toast.error(message)
+    } finally {
       setIsUploadingPreview(false)
-    },
-    onUploadError: (error) => {
-      toast.error(`Error al subir preview: ${error.message}`)
-      setIsUploadingPreview(false)
-    },
-  })
+    }
+  }
 
   const {
     register,
@@ -240,21 +278,62 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   const watchTitle = watch("title")
   const watchIsDiamondExclusive = watch("isDiamondExclusive")
   const watchIsLimitedEdition = watch("isLimitedEdition")
-  const watchThumbnailUrl = watch("thumbnailUrl")
   const watchPreviewStartTime = watch("previewStartTime")
   const watchPreviewEndTime = watch("previewEndTime")
+
+  // Check Mux asset status
+  const checkMuxAssetStatus = React.useCallback(async () => {
+    if (!muxAssetId) return
+
+    setIsCheckingMuxStatus(true)
+    try {
+      const response = await fetch(`/api/mux/asset-status?assetId=${muxAssetId}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.status === "ready" && data.playbackId) {
+          setMuxPlaybackId(data.playbackId)
+          setVideoDuration(data.duration || 0)
+          setMuxProcessingStatus("ready")
+          // Update preview end time to video duration if not set
+          if (data.duration && watchPreviewEndTime === 0) {
+            setValue("previewEndTime", Math.min(30, data.duration))
+          }
+          toast.success("Video procesado correctamente")
+        } else if (data.status === "errored") {
+          setMuxProcessingStatus("error")
+          toast.error("Error al procesar el video")
+        } else {
+          setMuxProcessingStatus("processing")
+        }
+      }
+    } catch (error) {
+      console.error("Error checking Mux status:", error)
+    } finally {
+      setIsCheckingMuxStatus(false)
+    }
+  }, [muxAssetId, watchPreviewEndTime, setValue])
+
+  // Auto-poll for Mux status when processing
+  React.useEffect(() => {
+    if (muxProcessingStatus === "processing" && muxAssetId && !muxPlaybackId) {
+      const interval = setInterval(checkMuxAssetStatus, 5000) // Check every 5 seconds
+      return () => clearInterval(interval)
+    }
+  }, [muxProcessingStatus, muxAssetId, muxPlaybackId, checkMuxAssetStatus])
 
   // Fetch playback token when muxPlaybackId exists
   React.useEffect(() => {
     const fetchPlaybackToken = async () => {
-      if (!video?.slug || !video?.muxPlaybackId) {
+      // Use local state muxPlaybackId (works for both new and existing videos)
+      if (!muxPlaybackId) {
         setPlaybackToken(null)
         return
       }
 
       setIsLoadingPreview(true)
       try {
-        const response = await fetch(`/api/videos/${video.slug}/stream`)
+        // Use direct endpoint that doesn't require video slug
+        const response = await fetch(`/api/mux/playback-token?playbackId=${muxPlaybackId}`)
         if (response.ok) {
           const data = await response.json()
           setPlaybackToken(data.token)
@@ -271,7 +350,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
     }
 
     fetchPlaybackToken()
-  }, [video?.slug, video?.muxPlaybackId])
+  }, [muxPlaybackId])
 
   // Auto-generate slug from title
   React.useEffect(() => {
@@ -312,17 +391,50 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-    await startUpload(Array.from(files))
+    await uploadThumbnail(files[0])
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
+    }
+  }
+
+  // Thumbnail drag and drop handlers
+  const handleThumbnailDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingThumbnail(true)
+  }
+
+  const handleThumbnailDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingThumbnail(false)
+  }
+
+  const handleThumbnailDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleThumbnailDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingThumbnail(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      if (file.type.startsWith("image/")) {
+        await uploadThumbnail(file)
+      } else {
+        toast.error("Solo se permiten archivos de imagen")
+      }
     }
   }
 
   const handlePreviewUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-    setIsUploadingPreview(true)
-    await startPreviewUpload(Array.from(files))
+    await uploadPreview(files[0])
     if (previewInputRef.current) {
       previewInputRef.current.value = ""
     }
@@ -377,7 +489,8 @@ export function VideoForm({ video, performers, categories, products, subscriptio
       })
 
       if (!response.ok) {
-        throw new Error("Error al crear upload")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Error al crear upload (${response.status})`)
       }
 
       const { uploadUrl, uploadId } = await response.json()
@@ -404,12 +517,14 @@ export function VideoForm({ video, performers, categories, products, subscriptio
         toast.success("Video subido correctamente. Procesando...")
         setIsVideoUploading(false)
         setVideoUploadProgress(100)
+        setMuxProcessingStatus("processing")
         // Poll for asset status
         pollUploadStatus(uploadId)
       })
     } catch (error) {
       console.error("Upload error:", error)
-      toast.error("Error al subir el video")
+      const errorMessage = error instanceof Error ? error.message : "Error al subir el video"
+      toast.error(errorMessage)
       setIsVideoUploading(false)
     }
   }
@@ -478,11 +593,18 @@ export function VideoForm({ video, performers, categories, products, subscriptio
         // Check if asset is ready with playbackId
         if (data.assetStatus === "ready" && data.playbackId) {
           setMuxPlaybackId(data.playbackId)
+          setMuxProcessingStatus("ready")
+          if (data.duration) {
+            setVideoDuration(data.duration)
+            // Set default preview end time
+            setValue("previewEndTime", Math.min(30, data.duration))
+          }
           toast.success("Video listo para reproducir")
           return
         }
 
         if (data.status === "errored" || data.assetStatus === "errored") {
+          setMuxProcessingStatus("error")
           toast.error("Error al procesar el video")
           return
         }
@@ -664,10 +786,10 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                 <Label>Thumbnail *</Label>
                 <div className="flex gap-4">
                   {/* Preview */}
-                  <div className="relative w-48 aspect-video bg-muted rounded-lg overflow-hidden border">
-                    {(thumbnailPreview || watchThumbnailUrl) ? (
+                  <div className="relative w-48 aspect-video bg-muted rounded-lg overflow-hidden border flex-shrink-0">
+                    {thumbnailPreview ? (
                       <Image
-                        src={thumbnailPreview || watchThumbnailUrl}
+                        src={thumbnailPreview}
                         alt="Thumbnail preview"
                         fill
                         className="object-cover"
@@ -679,8 +801,20 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                     )}
                   </div>
 
-                  {/* Upload Controls */}
-                  <div className="flex-1 space-y-3">
+                  {/* Dropzone */}
+                  <div
+                    onDragEnter={handleThumbnailDragEnter}
+                    onDragLeave={handleThumbnailDragLeave}
+                    onDragOver={handleThumbnailDragOver}
+                    onDrop={handleThumbnailDrop}
+                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    className={cn(
+                      "flex-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors flex flex-col items-center justify-center gap-2",
+                      isDraggingThumbnail && "border-primary bg-primary/5",
+                      !isDraggingThumbnail && "border-muted-foreground/25 hover:border-muted-foreground/50",
+                      isUploading && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -688,38 +822,22 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                       onChange={handleThumbnailUpload}
                       className="hidden"
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      className="w-full"
-                    >
-                      {isUploading ? (
-                        <>
-                          <IconLoader2 className="mr-2 size-4 animate-spin" />
-                          Subiendo...
-                        </>
-                      ) : (
-                        <>
-                          <IconUpload className="mr-2 size-4" />
-                          Subir Thumbnail
-                        </>
-                      )}
-                    </Button>
-
-                    <div className="text-xs text-muted-foreground">
-                      O introduce una URL directamente:
-                    </div>
-
-                    <Input
-                      {...register("thumbnailUrl")}
-                      placeholder="https://..."
-                      onChange={(e) => {
-                        register("thumbnailUrl").onChange(e)
-                        setThumbnailPreview(e.target.value)
-                      }}
-                    />
+                    {isUploading ? (
+                      <>
+                        <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Subiendo...</p>
+                      </>
+                    ) : (
+                      <>
+                        <IconUpload className="size-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground text-center">
+                          Arrastra una imagen aquí o haz clic para seleccionar
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG, WEBP (max 4MB)
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 {errors.thumbnailUrl && (
@@ -815,8 +933,8 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                   )}
                 </div>
 
-                {/* Mux Preview (fallback) */}
-                {!customPreviewUrl && video?.muxPlaybackId && (
+                {/* Mux Preview (fallback) - shows when video is processing or ready */}
+                {!customPreviewUrl && (muxPlaybackId || muxProcessingStatus === "processing") && (
                   <>
                     <div className="relative flex items-center py-2">
                       <div className="flex-grow border-t border-border"></div>
@@ -824,65 +942,94 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                       <div className="flex-grow border-t border-border"></div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Preview Display */}
-                      <div className="space-y-3">
-                        <div className="relative aspect-video bg-black rounded-lg overflow-hidden border">
-                          {isLoadingPreview ? (
-                            <div className="flex items-center justify-center h-full">
-                              <IconLoader2 className="size-8 text-muted-foreground animate-spin" />
-                            </div>
-                          ) : playbackToken && video?.muxPlaybackId ? (
-                            <MuxPlayer
-                              playbackId={video.muxPlaybackId}
-                              tokens={{ playback: playbackToken }}
-                              muted
-                              startTime={watchPreviewStartTime}
-                              style={{ width: "100%", height: "100%" }}
-                              primaryColor="#FA4860"
-                              streamType="on-demand"
-                            />
+                    {/* Processing state */}
+                    {muxProcessingStatus === "processing" && !muxPlaybackId && (
+                      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                        <IconLoader2 className="size-8 mb-3 animate-spin text-[#f9495f]" />
+                        <span className="text-sm font-medium">Procesando video...</span>
+                        <span className="text-xs mt-1">El preview estará disponible cuando termine el procesamiento</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={checkMuxAssetStatus}
+                          disabled={isCheckingMuxStatus}
+                        >
+                          {isCheckingMuxStatus ? (
+                            <>
+                              <IconLoader2 className="size-4 mr-2 animate-spin" />
+                              Verificando...
+                            </>
                           ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                              <IconInfoCircle className="size-8 mb-2" />
-                              <span className="text-xs">Error al cargar preview</span>
-                            </div>
+                            "Verificar estado"
                           )}
-                        </div>
-                        <div className="text-center text-xs text-muted-foreground">
-                          Duración del preview: {(watchPreviewEndTime - watchPreviewStartTime).toFixed(1)}s
-                        </div>
+                        </Button>
                       </div>
+                    )}
 
-                      {/* Range Slider para seleccionar inicio/fin */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Desde: <span className="font-medium text-foreground">{formatTime(watchPreviewStartTime)}</span>
-                          </span>
-                          <span className="text-muted-foreground">
-                            Hasta: <span className="font-medium text-foreground">{formatTime(watchPreviewEndTime)}</span>
-                          </span>
+                    {/* Ready state - show preview editor */}
+                    {muxPlaybackId && videoDuration > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Preview Display */}
+                        <div className="space-y-3">
+                          <div className="relative aspect-video bg-black rounded-lg overflow-hidden border">
+                            {isLoadingPreview ? (
+                              <div className="flex items-center justify-center h-full">
+                                <IconLoader2 className="size-8 text-muted-foreground animate-spin" />
+                              </div>
+                            ) : playbackToken && muxPlaybackId ? (
+                              <MuxPlayer
+                                playbackId={muxPlaybackId}
+                                tokens={{ playback: playbackToken }}
+                                muted
+                                startTime={watchPreviewStartTime}
+                                style={{ width: "100%", height: "100%" }}
+                                primaryColor="#FA4860"
+                                streamType="on-demand"
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                <IconInfoCircle className="size-8 mb-2" />
+                                <span className="text-xs">Cargando preview...</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-center text-xs text-muted-foreground">
+                            Duración del preview: {(watchPreviewEndTime - watchPreviewStartTime).toFixed(1)}s
+                          </div>
                         </div>
-                        <Slider
-                          value={[watchPreviewStartTime, watchPreviewEndTime]}
-                          min={0}
-                          max={video.duration}
-                          step={1}
-                          onValueChange={([start, end]) => {
-                            if (end > start) {
-                              setValue("previewStartTime", start)
-                              setValue("previewEndTime", end)
-                            }
-                          }}
-                          className="py-2"
-                        />
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>0:00</span>
-                          <span>{formatTime(video.duration)}</span>
+
+                        {/* Range Slider para seleccionar inicio/fin */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Desde: <span className="font-medium text-foreground">{formatTime(watchPreviewStartTime)}</span>
+                            </span>
+                            <span className="text-muted-foreground">
+                              Hasta: <span className="font-medium text-foreground">{formatTime(watchPreviewEndTime)}</span>
+                            </span>
+                          </div>
+                          <Slider
+                            value={[watchPreviewStartTime, watchPreviewEndTime]}
+                            min={0}
+                            max={videoDuration}
+                            step={1}
+                            onValueChange={([start, end]) => {
+                              if (end > start) {
+                                setValue("previewStartTime", start)
+                                setValue("previewEndTime", end)
+                              }
+                            }}
+                            className="py-2"
+                          />
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>0:00</span>
+                            <span>{formatTime(videoDuration)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 )}
               </div>
@@ -1195,7 +1342,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors text-xs"
+                      className="cursor-pointer hover:bg-destructive hover:text-white transition-colors text-xs"
                       onClick={() => {
                         const performer = performers.find((p) => p.name === name)
                         if (performer) togglePerformer(performer.id)
@@ -1275,7 +1422,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors text-xs"
+                      className="cursor-pointer hover:bg-destructive hover:text-white transition-colors text-xs"
                       onClick={() => {
                         const category = categories.find((c) => c.name === name)
                         if (category) toggleCategory(category.id)

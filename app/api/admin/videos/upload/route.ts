@@ -42,8 +42,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("Error creating Mux upload:", error)
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
     return NextResponse.json(
-      { error: "Error al crear upload" },
+      { error: `Error al crear upload: ${errorMessage}` },
       { status: 500 }
     )
   }

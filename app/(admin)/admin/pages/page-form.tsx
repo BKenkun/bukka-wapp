@@ -300,7 +300,7 @@ export function PageForm({ page }: PageFormProps) {
 
                 {isEditing && form.watch("status") === "PUBLISHED" && (
                   <Button type="button" variant="outline" asChild>
-                    <a href={`/${page.slug}`} target="_blank">
+                    <a href={`/p/${page.slug}`} target="_blank">
                       <IconEye className="mr-2 size-4" />
                       Ver página
                     </a>

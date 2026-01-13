@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkVideoAccess } from "@/lib/subscription-guard"
 import { deleteMuxAsset } from "@/lib/mux/client"
+import { deleteLocalFile } from "@/lib/file-utils"
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -57,7 +58,32 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       performerIds,
       categoryIds,
       productIds,
+      // Mux video replacement
+      muxUploadId,
+      muxAssetId,
+      muxPlaybackId,
     } = body
+
+    // Si se está reemplazando el video (nuevo muxAssetId), eliminar el asset antiguo de Mux
+    if (muxAssetId && existingVideo.muxAssetId && muxAssetId !== existingVideo.muxAssetId) {
+      try {
+        await deleteMuxAsset(existingVideo.muxAssetId)
+        console.log(`Old Mux asset ${existingVideo.muxAssetId} deleted on video replacement`)
+      } catch (muxError) {
+        // Log el error pero continuar - el asset podría ya no existir
+        console.error("Error deleting old Mux asset on replacement:", muxError)
+      }
+    }
+
+    // Si se está reemplazando el thumbnail, eliminar el archivo antiguo
+    if (thumbnailUrl && existingVideo.thumbnailUrl && thumbnailUrl !== existingVideo.thumbnailUrl) {
+      await deleteLocalFile(existingVideo.thumbnailUrl)
+    }
+
+    // Si se está reemplazando el preview personalizado, eliminar el archivo antiguo
+    if (previewUrl !== undefined && existingVideo.previewUrl && previewUrl !== existingVideo.previewUrl) {
+      await deleteLocalFile(existingVideo.previewUrl)
+    }
 
     // Si cambia el slug, verificar que no exista
     if (newSlug && newSlug !== slug) {
@@ -139,6 +165,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         previewEndTime: previewEndTime !== undefined ? previewEndTime : undefined,
         metaTitle,
         metaDescription,
+        // Mux fields (for video replacement)
+        ...(muxUploadId !== undefined && { muxUploadId }),
+        ...(muxAssetId !== undefined && { muxAssetId }),
+        ...(muxPlaybackId !== undefined && { muxPlaybackId }),
       },
       include: {
         performers: { include: { performer: true } },
@@ -182,6 +212,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       select: {
         id: true,
         muxAssetId: true,
+        thumbnailUrl: true,
+        previewUrl: true,
       },
     })
 
@@ -200,6 +232,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         console.error("Error deleting Mux asset:", muxError)
       }
     }
+
+    // Eliminar archivos locales (thumbnail y preview)
+    await deleteLocalFile(video.thumbnailUrl)
+    await deleteLocalFile(video.previewUrl)
 
     // Eliminar video de la base de datos
     await prisma.video.delete({

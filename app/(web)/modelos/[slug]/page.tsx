@@ -2,6 +2,8 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { DiscountBanner } from "@/components/discount-banner"
 import { SectionHeader } from "@/components/section-header"
+import { VideoCard } from "@/components/video-card"
+import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 import Image from "next/image"
 import Link from "next/link"
 import { IconBrandInstagram, IconBrandTwitter, IconBrandTiktok } from "@tabler/icons-react"
@@ -18,12 +20,12 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
   const performer = await prisma.performer.findUnique({
     where: { slug },
     include: {
-      user: { select: { isVerified: true } },
-      photos: {
+      User: { select: { isVerified: true } },
+      PerformerPhoto: {
         orderBy: { order: "asc" },
         take: 6,
       },
-      videos: {
+      VideoPerformer: {
         where: { video: { status: "PUBLISHED" } },
         orderBy: { video: { releaseDate: "desc" } },
         take: 6,
@@ -36,11 +38,15 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
               thumbnailUrl: true,
               duration: true,
               viewCount: true,
+              likeCount: true,
+              muxPlaybackId: true,
+              previewStartTime: true,
+              previewEndTime: true,
             },
           },
         },
       },
-      products: {
+      Product: {
         where: { status: "ACTIVE" },
         take: 5,
         select: {
@@ -53,9 +59,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       },
       _count: {
         select: {
-          videos: true,
+          VideoPerformer: true,
           favorites: true,
-          photos: true,
+          PerformerPhoto: true,
         },
       },
     },
@@ -70,8 +76,29 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
     ? Math.floor((Date.now() - performer.birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null
 
+  // Generate preview URLs for videos with Mux playback IDs
+  const videosWithPreviews = await Promise.all(
+    performer.VideoPerformer.map(async ({ video }) => {
+      let previewUrl: string | undefined = undefined
+
+      if (video.muxPlaybackId) {
+        try {
+          const token = await getVideoToken(video.muxPlaybackId)
+          previewUrl = getVideoPreviewUrl(video.muxPlaybackId, token, "medium")
+        } catch (error) {
+          console.error(`Error generating preview for video ${video.id}:`, error)
+        }
+      }
+
+      return {
+        ...video,
+        previewUrl,
+      }
+    })
+  )
+
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
       <div>
         <DiscountBanner />
       </div>
@@ -121,7 +148,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     >
                       {performer.name}
                     </h1>
-                    {performer.user?.isVerified && (
+                    {performer.User?.isVerified && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 21 21" fill="none">
                         <path
                           d="M18.5312 7.12335C18.2219 6.80008 17.9019 6.46697 17.7813 6.17406C17.6697 5.90577 17.6631 5.46107 17.6566 5.03032C17.6443 4.22954 17.6311 3.3221 17.0002 2.69115C16.3692 2.06021 15.4618 2.04708 14.661 2.03477C14.2303 2.02821 13.7856 2.02165 13.5173 1.91006C13.2252 1.78945 12.8913 1.46947 12.568 1.16015C12.0019 0.616175 11.3586 0 10.502 0C9.64547 0 9.00304 0.616175 8.43609 1.16015C8.11282 1.46947 7.77971 1.78945 7.4868 1.91006C7.22015 2.02165 6.77381 2.02821 6.34306 2.03477C5.54228 2.04708 4.63484 2.06021 4.0039 2.69115C3.37295 3.3221 3.36393 4.22954 3.34752 5.03032C3.34095 5.46107 3.33439 5.90577 3.22281 6.17406C3.1022 6.46615 2.78221 6.80008 2.47289 7.12335C1.92892 7.68947 1.31274 8.33272 1.31274 9.1893C1.31274 10.0459 1.92892 10.6883 2.47289 11.2552C2.78221 11.5785 3.1022 11.9116 3.22281 12.2045C3.33439 12.4728 3.34095 12.9175 3.34752 13.3483C3.35982 14.1491 3.37295 15.0565 4.0039 15.6874C4.63484 16.3184 5.54228 16.3315 6.34306 16.3438C6.77381 16.3504 7.21851 16.357 7.4868 16.4685C7.77889 16.5891 8.11282 16.9091 8.43609 17.2184C9.00222 17.7624 9.64547 18.3786 10.502 18.3786C11.3586 18.3786 12.001 17.7624 12.568 17.2184C12.8913 16.9091 13.2244 16.5891 13.5173 16.4685C13.7856 16.357 14.2303 16.3504 14.661 16.3438C15.4618 16.3315 16.3692 16.3184 17.0002 15.6874C17.6311 15.0565 17.6443 14.1491 17.6566 13.3483C17.6631 12.9175 17.6697 12.4728 17.7813 12.2045C17.9019 11.9124 18.2219 11.5785 18.5312 11.2552C19.0752 10.6891 19.6913 10.0459 19.6913 9.1893C19.6913 8.33272 19.0752 7.69029 18.5312 7.12335Z"
@@ -193,13 +220,13 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                 <div className="flex gap-8 mb-6">
                   <div className="text-center">
                     <div className="text-white font-montserrat text-2xl font-bold">
-                      {performer._count.photos}
+                      {performer._count.PerformerPhoto}
                     </div>
                     <div className="text-gray-300 font-montserrat text-sm">Fotos</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-montserrat text-2xl font-bold">
-                      {performer._count.videos}
+                      {performer._count.VideoPerformer}
                     </div>
                     <div className="text-gray-300 font-montserrat text-sm">Videos</div>
                   </div>
@@ -281,12 +308,12 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       </div>
 
       {/* Products Section */}
-      {performer.products.length > 0 && (
+      {performer.Product.length > 0 && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
             <SectionHeader title="PRODUCTOS" />
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-              {performer.products.map((product) => (
+              {performer.Product.map((product) => (
                 <Link
                   key={product.id}
                   href={`/tienda/${product.slug}`}
@@ -318,12 +345,12 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       )}
 
       {/* Photo Gallery Section */}
-      {performer.photos.length > 0 && (
+      {performer.PerformerPhoto.length > 0 && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
             <SectionHeader title="GALERÍA DE FOTOS" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              {performer.photos.map((photo) => (
+              {performer.PerformerPhoto.map((photo) => (
                 <div
                   key={photo.id}
                   className="relative w-full aspect-square overflow-hidden cursor-pointer group"
@@ -343,7 +370,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       )}
 
       {/* Gallery from old array field (fallback) */}
-      {performer.galleryImages && performer.galleryImages.length > 0 && performer.photos.length === 0 && (
+      {performer.galleryImages && performer.galleryImages.length > 0 && performer.PerformerPhoto.length === 0 && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
             <SectionHeader title="GALERÍA DE FOTOS" />
@@ -368,38 +395,27 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       )}
 
       {/* Videos Section */}
-      {performer.videos.length > 0 && (
+      {videosWithPreviews.length > 0 && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
             <SectionHeader title="VIDEOS DE LA ACTRIZ" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-              {performer.videos.map(({ video }) => (
-                <Link
+              {videosWithPreviews.map((video) => (
+                <VideoCard
                   key={video.id}
-                  href={`/videos/${video.slug}`}
-                  className="group"
-                >
-                  <div className="relative aspect-video overflow-hidden">
-                    <Image
-                      src={video.thumbnailUrl || "/images/2.jpg"}
-                      alt={video.title}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {video.duration > 0 && (
-                      <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 text-white text-sm font-montserrat">
-                        {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="mt-2 text-white font-montserrat text-base font-medium truncate">
-                    {video.title}
-                  </h3>
-                  <p className="text-gray-400 font-montserrat text-sm">
-                    {video.viewCount.toLocaleString()} vistas
-                  </p>
-                </Link>
+                  title={video.title}
+                  subtitle={performer.name}
+                  views={video.viewCount.toLocaleString()}
+                  likes={video.likeCount.toLocaleString()}
+                  imageUrl={video.thumbnailUrl || "/images/2.jpg"}
+                  previewUrl={video.previewUrl}
+                  previewStartTime={video.previewStartTime}
+                  previewEndTime={video.previewEndTime}
+                  isVerified={performer.User?.isVerified || false}
+                  slug={video.slug}
+                  videoId={video.id}
+                  variant="below"
+                />
               ))}
             </div>
           </div>

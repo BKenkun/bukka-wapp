@@ -8,12 +8,10 @@ import { z } from "zod"
 import Image from "next/image"
 import {
   IconLoader2,
-  IconBrandInstagram,
-  IconBrandTwitter,
-  IconBrandOnlyfans,
   IconUpload,
   IconX,
   IconPhoto,
+  IconGripVertical,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,7 +32,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { toast } from "sonner"
-import { useUploadThing } from "@/lib/uploadthing-client"
 
 const performerSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -49,12 +46,17 @@ const performerSchema = z.object({
   hairColor: z.string().optional(),
   eyeColor: z.string().optional(),
   skinTone: z.string().optional(),
-  instagram: z.string().optional(),
-  twitter: z.string().optional(),
-  onlyfans: z.string().optional(),
 })
 
 type PerformerFormData = z.infer<typeof performerSchema>
+
+interface GalleryPhoto {
+  id?: string
+  imageUrl: string
+  caption?: string
+  order: number
+  isNew?: boolean
+}
 
 interface PerformerFormProps {
   performer?: {
@@ -71,9 +73,12 @@ interface PerformerFormProps {
     hairColor: string | null
     eyeColor: string | null
     skinTone: string | null
-    instagram: string | null
-    twitter: string | null
-    onlyfans: string | null
+    PerformerPhoto?: {
+      id: string
+      imageUrl: string
+      caption: string | null
+      order: number
+    }[]
   }
 }
 
@@ -96,39 +101,121 @@ export function PerformerForm({ performer }: PerformerFormProps) {
   const [coverImage, setCoverImage] = React.useState<string>(performer?.coverImage || "")
   const [isUploadingProfile, setIsUploadingProfile] = React.useState(false)
   const [isUploadingCover, setIsUploadingCover] = React.useState(false)
+  const [isUploadingGallery, setIsUploadingGallery] = React.useState(false)
+
+  // Gallery state
+  const [galleryPhotos, setGalleryPhotos] = React.useState<GalleryPhoto[]>(
+    performer?.PerformerPhoto?.map(p => ({
+      id: p.id,
+      imageUrl: p.imageUrl,
+      caption: p.caption || undefined,
+      order: p.order,
+    })) || []
+  )
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null)
 
   const profileInputRef = React.useRef<HTMLInputElement>(null)
   const coverInputRef = React.useRef<HTMLInputElement>(null)
+  const galleryInputRef = React.useRef<HTMLInputElement>(null)
 
-  const { startUpload: startProfileUpload } = useUploadThing("performerImages", {
-    onClientUploadComplete: (res) => {
-      if (res && res[0]) {
-        setProfileImage(res[0].ufsUrl)
-        setValue("profileImage", res[0].ufsUrl)
-        toast.success("Foto de perfil subida")
-      }
-      setIsUploadingProfile(false)
-    },
-    onUploadError: (error) => {
-      toast.error(`Error: ${error.message}`)
-      setIsUploadingProfile(false)
-    },
-  })
+  // Local upload function for profile image
+  const uploadProfileImage = async (file: File) => {
+    setIsUploadingProfile(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "performers")
 
-  const { startUpload: startCoverUpload } = useUploadThing("performerImages", {
-    onClientUploadComplete: (res) => {
-      if (res && res[0]) {
-        setCoverImage(res[0].ufsUrl)
-        setValue("coverImage", res[0].ufsUrl)
-        toast.success("Imagen de portada subida")
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir imagen")
       }
+
+      const result = await response.json()
+      setProfileImage(result.url)
+      setValue("profileImage", result.url)
+      toast.success("Foto de perfil subida")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al subir imagen"
+      toast.error(message)
+    } finally {
+      setIsUploadingProfile(false)
+    }
+  }
+
+  // Local upload function for cover image
+  const uploadCoverImage = async (file: File) => {
+    setIsUploadingCover(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "performers")
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir imagen")
+      }
+
+      const result = await response.json()
+      setCoverImage(result.url)
+      setValue("coverImage", result.url)
+      toast.success("Imagen de portada subida")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al subir imagen"
+      toast.error(message)
+    } finally {
       setIsUploadingCover(false)
-    },
-    onUploadError: (error) => {
-      toast.error(`Error: ${error.message}`)
-      setIsUploadingCover(false)
-    },
-  })
+    }
+  }
+
+  // Upload gallery images
+  const uploadGalleryImages = async (files: FileList) => {
+    setIsUploadingGallery(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("folder", "performers")
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error("Error al subir imagen")
+        }
+
+        return response.json()
+      })
+
+      const results = await Promise.all(uploadPromises)
+
+      // Add new photos to gallery
+      const newPhotos: GalleryPhoto[] = results.map((result, index) => ({
+        imageUrl: result.url,
+        order: galleryPhotos.length + index,
+        isNew: true,
+      }))
+
+      setGalleryPhotos(prev => [...prev, ...newPhotos])
+      toast.success(`${files.length} imagen(es) subida(s)`)
+    } catch (error) {
+      toast.error("Error al subir imágenes")
+    } finally {
+      setIsUploadingGallery(false)
+    }
+  }
 
   const {
     register,
@@ -153,9 +240,6 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       hairColor: performer?.hairColor || "",
       eyeColor: performer?.eyeColor || "",
       skinTone: performer?.skinTone || "",
-      instagram: performer?.instagram || "",
-      twitter: performer?.twitter || "",
-      onlyfans: performer?.onlyfans || "",
     },
   })
 
@@ -177,33 +261,43 @@ export function PerformerForm({ performer }: PerformerFormProps) {
   const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-    setIsUploadingProfile(true)
-    await startProfileUpload(Array.from(files))
+    await uploadProfileImage(files[0])
     if (profileInputRef.current) profileInputRef.current.value = ""
   }
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-    setIsUploadingCover(true)
-    await startCoverUpload(Array.from(files))
+    await uploadCoverImage(files[0])
     if (coverInputRef.current) coverInputRef.current.value = ""
+  }
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    await uploadGalleryImages(files)
+    if (galleryInputRef.current) galleryInputRef.current.value = ""
   }
 
   const handleProfileDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     const files = e.dataTransfer.files
     if (!files || files.length === 0) return
-    setIsUploadingProfile(true)
-    await startProfileUpload(Array.from(files))
+    await uploadProfileImage(files[0])
   }
 
   const handleCoverDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     const files = e.dataTransfer.files
     if (!files || files.length === 0) return
-    setIsUploadingCover(true)
-    await startCoverUpload(Array.from(files))
+    await uploadCoverImage(files[0])
+  }
+
+  const handleGalleryDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+    await uploadGalleryImages(files)
   }
 
   const preventDefault = (e: React.DragEvent) => {
@@ -220,6 +314,38 @@ export function PerformerForm({ performer }: PerformerFormProps) {
     setValue("coverImage", "")
   }
 
+  const removeGalleryPhoto = (index: number) => {
+    setGalleryPhotos(prev => {
+      const newPhotos = prev.filter((_, i) => i !== index)
+      // Reorder remaining photos
+      return newPhotos.map((photo, i) => ({ ...photo, order: i }))
+    })
+  }
+
+  // Drag and drop reordering for gallery
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+
+    setGalleryPhotos(prev => {
+      const newPhotos = [...prev]
+      const draggedPhoto = newPhotos[draggedIndex]
+      newPhotos.splice(draggedIndex, 1)
+      newPhotos.splice(index, 0, draggedPhoto)
+      // Update order values
+      return newPhotos.map((photo, i) => ({ ...photo, order: i }))
+    })
+    setDraggedIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+  }
+
   const onSubmit = async (data: PerformerFormData) => {
     setIsSubmitting(true)
 
@@ -230,6 +356,12 @@ export function PerformerForm({ performer }: PerformerFormProps) {
         coverImage: coverImage || null,
         height: data.height ? parseInt(data.height) : null,
         birthDate: data.birthDate || null,
+        galleryPhotos: galleryPhotos.map((photo, index) => ({
+          id: photo.id,
+          imageUrl: photo.imageUrl,
+          caption: photo.caption || null,
+          order: index,
+        })),
       }
 
       const url = performer
@@ -420,48 +552,104 @@ export function PerformerForm({ performer }: PerformerFormProps) {
             </CardContent>
           </Card>
 
-          {/* Social Media */}
+          {/* Gallery */}
           <Card>
             <CardHeader>
-              <CardTitle>Redes Sociales</CardTitle>
-              <CardDescription>Perfiles en redes sociales</CardDescription>
+              <CardTitle>Galería de Fotos</CardTitle>
+              <CardDescription>
+                Sube fotos de la actriz. Arrastra para reordenar.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="instagram">Instagram</Label>
-                <div className="flex items-center gap-2">
-                  <IconBrandInstagram className="size-5 text-muted-foreground" />
-                  <Input
-                    id="instagram"
-                    {...register("instagram")}
-                    placeholder="nombre_usuario"
-                  />
-                </div>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryUpload}
+                className="hidden"
+              />
+
+              {/* Upload area */}
+              <div
+                onClick={() => galleryInputRef.current?.click()}
+                onDrop={handleGalleryDrop}
+                onDragOver={preventDefault}
+                onDragEnter={preventDefault}
+                className="border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer rounded-lg p-8 flex flex-col items-center justify-center gap-2 text-muted-foreground"
+              >
+                {isUploadingGallery ? (
+                  <>
+                    <IconLoader2 className="size-8 animate-spin" />
+                    <span className="text-sm">Subiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <IconUpload className="size-8" />
+                    <span className="text-sm text-center">
+                      Arrastra imágenes aquí o haz clic para seleccionar
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Puedes seleccionar múltiples imágenes
+                    </span>
+                  </>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="twitter">Twitter / X</Label>
-                <div className="flex items-center gap-2">
-                  <IconBrandTwitter className="size-5 text-muted-foreground" />
-                  <Input
-                    id="twitter"
-                    {...register("twitter")}
-                    placeholder="nombre_usuario"
-                  />
-                </div>
-              </div>
+              {/* Gallery grid */}
+              {galleryPhotos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {galleryPhotos.map((photo, index) => (
+                    <div
+                      key={photo.id || `new-${index}`}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`relative aspect-square rounded-lg overflow-hidden border group cursor-move ${
+                        draggedIndex === index ? "opacity-50" : ""
+                      }`}
+                    >
+                      <Image
+                        src={photo.imageUrl}
+                        alt={`Foto ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
 
-              <div className="space-y-2">
-                <Label htmlFor="onlyfans">OnlyFans</Label>
-                <div className="flex items-center gap-2">
-                  <IconBrandOnlyfans className="size-5 text-muted-foreground" />
-                  <Input
-                    id="onlyfans"
-                    {...register("onlyfans")}
-                    placeholder="nombre_usuario"
-                  />
+                      {/* Drag handle indicator */}
+                      <div className="absolute top-2 left-2 bg-black/60 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <IconGripVertical className="size-4 text-white" />
+                      </div>
+
+                      {/* Order badge */}
+                      <div className="absolute bottom-2 left-2 bg-black/60 rounded px-2 py-1">
+                        <span className="text-xs text-white font-medium">{index + 1}</span>
+                      </div>
+
+                      {/* Remove button */}
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 size-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeGalleryPhoto(index)
+                        }}
+                      >
+                        <IconX className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
+
+              {galleryPhotos.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay fotos en la galería
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

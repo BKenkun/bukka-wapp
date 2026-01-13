@@ -228,6 +228,7 @@ export function VideosPageClient({
                 {videos.map((video) => (
                   <VideoCard
                     key={video.id}
+                    videoId={video.id}
                     title={video.title}
                     subtitle={video.subtitle}
                     views={video.views}

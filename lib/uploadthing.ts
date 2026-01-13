@@ -170,6 +170,18 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file }) => {
       return { url: file.ufsUrl }
     }),
+
+  // Upload de favicon (admin)
+  faviconUpload: f({ image: { maxFileSize: "512KB", maxFileCount: 1 } })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user) throw new Error("No autorizado")
+      // TODO: Verificar si es admin
+      return { userId: session.user.id }
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

@@ -236,7 +236,7 @@ export function PagesDataTable({
               <DropdownMenuSeparator />
               {page.status === "PUBLISHED" && (
                 <DropdownMenuItem asChild>
-                  <Link href={`/${page.slug}`} target="_blank">
+                  <Link href={`/p/${page.slug}`} target="_blank">
                     <IconEye className="mr-2 size-4" />
                     Ver página
                   </Link>

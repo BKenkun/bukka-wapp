@@ -1,4 +1,9 @@
+"use client"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { IconSettings, IconShieldCheck } from "@tabler/icons-react"
 import { GeneralSettings } from "./general-settings"
+import { AgeVerificationSettings } from "./age-verification-settings"
 
 export default function SettingsPage() {
   return (
@@ -10,7 +15,26 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <GeneralSettings />
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="general" className="gap-2">
+            <IconSettings className="size-4" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="age-verification" className="gap-2">
+            <IconShieldCheck className="size-4" />
+            Verificación de Edad
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general">
+          <GeneralSettings />
+        </TabsContent>
+
+        <TabsContent value="age-verification">
+          <AgeVerificationSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

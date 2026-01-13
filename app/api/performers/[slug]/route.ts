@@ -48,9 +48,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       hairColor,
       eyeColor,
       skinTone,
-      instagram,
-      twitter,
-      onlyfans,
+      galleryPhotos,
     } = body
 
     // Si cambia el slug, verificar que no exista
@@ -66,6 +64,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Update performer
     const performer = await prisma.performer.update({
       where: { id: existingPerformer.id },
       data: {
@@ -81,11 +80,54 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         hairColor: hairColor || null,
         eyeColor: eyeColor || null,
         skinTone: skinTone || null,
-        instagram: instagram || null,
-        twitter: twitter || null,
-        onlyfans: onlyfans || null,
       },
     })
+
+    // Handle gallery photos if provided
+    if (galleryPhotos !== undefined) {
+      // Get existing photo IDs
+      const existingPhotos = await prisma.performerPhoto.findMany({
+        where: { performerId: existingPerformer.id },
+        select: { id: true },
+      })
+      const existingIds = new Set(existingPhotos.map(p => p.id))
+
+      // Get IDs from the request that should be kept
+      const newIds = new Set(galleryPhotos.filter((p: { id?: string }) => p.id).map((p: { id: string }) => p.id))
+
+      // Delete photos that are no longer in the list
+      const idsToDelete = [...existingIds].filter(id => !newIds.has(id))
+      if (idsToDelete.length > 0) {
+        await prisma.performerPhoto.deleteMany({
+          where: { id: { in: idsToDelete } },
+        })
+      }
+
+      // Update or create photos
+      for (const photo of galleryPhotos) {
+        if (photo.id && existingIds.has(photo.id)) {
+          // Update existing photo
+          await prisma.performerPhoto.update({
+            where: { id: photo.id },
+            data: {
+              imageUrl: photo.imageUrl,
+              caption: photo.caption,
+              order: photo.order,
+            },
+          })
+        } else {
+          // Create new photo
+          await prisma.performerPhoto.create({
+            data: {
+              performerId: existingPerformer.id,
+              imageUrl: photo.imageUrl,
+              caption: photo.caption,
+              order: photo.order,
+            },
+          })
+        }
+      }
+    }
 
     return NextResponse.json(performer)
   } catch (error) {
@@ -152,18 +194,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const performer = await prisma.performer.findUnique({
       where: { slug },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             username: true,
-            badges: {
+            UserBadge: {
               include: {
-                badge: true,
+                Badge: true,
               },
             },
           },
         },
-        products: {
+        Product: {
           where: { status: "ACTIVE" },
           take: 4,
           select: {
@@ -206,7 +248,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           duration: true,
           releaseDate: true,
           viewCount: true,
-          minTier: true,
+          minTierPlanId: true,
           isLimitedEdition: true,
           isDiamondExclusive: true,
         },
@@ -258,22 +300,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       hairColor: performer.hairColor,
       eyeColor: performer.eyeColor,
       skinTone: performer.skinTone,
-      instagram: performer.instagram,
-      twitter: performer.twitter,
-      onlyfans: performer.onlyfans,
       videoCount: performer.videoCount,
-      isVerified: !!performer.user,
-      verifiedUser: performer.user
+      isVerified: !!performer.User,
+      verifiedUser: performer.User
         ? {
-            username: performer.user.username,
-            badges: performer.user.badges.map((ub) => ({
-              slug: ub.badge.slug,
-              name: ub.badge.name,
-              color: ub.badge.color,
+            username: performer.User.username,
+            badges: performer.User.UserBadge.map((ub: { Badge: { slug: string; name: string; color: string | null } }) => ({
+              slug: ub.Badge.slug,
+              name: ub.Badge.name,
+              color: ub.Badge.color,
             })),
           }
         : null,
-      products: performer.products,
+      products: performer.Product,
       videos: {
         items: videos,
         pagination: {

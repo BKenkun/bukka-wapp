@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconLoader2, IconX } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { LocalUploadButton } from "@/components/local-upload-button"
 
 export function GeneralSettings() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -17,7 +18,9 @@ export function GeneralSettings() {
 
   // Site Settings
   const [siteName, setSiteName] = React.useState("BUKKAKERY")
-  const [siteDescription, setSiteDescription] = React.useState("")
+  const [seoTitle, setSeoTitle] = React.useState("")
+  const [seoDescription, setSeoDescription] = React.useState("")
+  const [favicon, setFavicon] = React.useState("")
   const [supportEmail, setSupportEmail] = React.useState("")
   const [maintenanceMode, setMaintenanceMode] = React.useState(false)
 
@@ -40,7 +43,9 @@ export function GeneralSettings() {
         const data = await response.json()
         if (data.site) {
           setSiteName(data.site.name || "BUKKAKERY")
-          setSiteDescription(data.site.description || "")
+          setSeoTitle(data.site.seoTitle || "")
+          setSeoDescription(data.site.seoDescription || "")
+          setFavicon(data.site.favicon || "")
           setSupportEmail(data.site.supportEmail || "")
           setMaintenanceMode(data.site.maintenanceMode || false)
         }
@@ -68,7 +73,9 @@ export function GeneralSettings() {
         body: JSON.stringify({
           site: {
             name: siteName,
-            description: siteDescription,
+            seoTitle,
+            seoDescription,
+            favicon,
             supportEmail,
             maintenanceMode,
           },
@@ -134,17 +141,6 @@ export function GeneralSettings() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="siteDescription">Descripción del Sitio</Label>
-            <Textarea
-              id="siteDescription"
-              value={siteDescription}
-              onChange={(e) => setSiteDescription(e.target.value)}
-              placeholder="Descripción para SEO..."
-              rows={3}
-            />
-          </div>
-
           <Separator />
 
           <div className="flex items-center justify-between">
@@ -159,6 +155,90 @@ export function GeneralSettings() {
               checked={maintenanceMode}
               onCheckedChange={setMaintenanceMode}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SEO Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO y Metadatos</CardTitle>
+          <CardDescription>
+            Configura los metadatos para buscadores
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="seoTitle">Título SEO</Label>
+            <Input
+              id="seoTitle"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              placeholder="Título que aparece en los resultados de búsqueda"
+            />
+            <p className="text-xs text-muted-foreground">
+              Recomendado: 50-60 caracteres
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seoDescription">Descripción SEO</Label>
+            <Textarea
+              id="seoDescription"
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              placeholder="Descripción que aparece en los resultados de búsqueda..."
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground">
+              Recomendado: 150-160 caracteres
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Favicon</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Icono que aparece en la pestaña del navegador (formato .ico, .png o .svg, max 512KB)
+            </p>
+
+            {favicon ? (
+              <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/50">
+                <img
+                  src={favicon}
+                  alt="Favicon preview"
+                  className="w-12 h-12 object-contain border rounded bg-white"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/placeholder.png'
+                  }}
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Favicon actual</p>
+                  <p className="text-xs text-muted-foreground truncate max-w-[300px]">{favicon}</p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setFavicon("")}
+                >
+                  <IconX className="size-4 mr-1" />
+                  Eliminar
+                </Button>
+              </div>
+            ) : (
+              <LocalUploadButton
+                folder="favicon"
+                accept="image/png,image/jpeg,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                buttonText="Subir Favicon"
+                maxSize="512KB"
+                onUploadComplete={(result) => {
+                  setFavicon(result.url)
+                  toast.success("Favicon subido correctamente")
+                }}
+                onUploadError={(error) => {
+                  toast.error(error.message)
+                }}
+              />
+            )}
           </div>
         </CardContent>
       </Card>

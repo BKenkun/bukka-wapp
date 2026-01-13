@@ -343,7 +343,7 @@ model Page {
 }
 
 model Performer {
-  id             String  @id @default(cuid())
+  id             String           @id @default(cuid())
   slug           String           @unique
   name           String
   bio            String?
@@ -357,14 +357,11 @@ model Performer {
   hairColor      String?
   eyeColor       String?
   skinTone       String?
-  instagram      String?
-  twitter        String?
-  onlyfans       String?
   videoCount     Int              @default(0)
   userId         String?          @unique
   createdAt      DateTime         @default(now())
-  updatedAt DateTime @updatedAt
-  favorites       Favorite[]
+  updatedAt      DateTime         @updatedAt
+  favorites      Favorite[]
   User           User?            @relation(fields: [userId], references: [id])
   PerformerPhoto PerformerPhoto[]
   Product        Product[]

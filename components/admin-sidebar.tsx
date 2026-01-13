@@ -15,7 +15,6 @@ import {
   IconTag,
   IconUserCheck,
   IconSettings,
-  IconHelp,
   IconUserStar,
   IconCategory,
   IconReceipt,
@@ -166,11 +165,6 @@ const navSettings = [
     title: "Configuración",
     url: "/admin/settings",
     icon: IconSettings,
-  },
-  {
-    title: "Ayuda",
-    url: "/admin/help",
-    icon: IconHelp,
   },
 ]
 

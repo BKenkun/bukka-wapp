@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import Link from "next/link"
+import { Lock } from "lucide-react"
 import { VideoGrid } from "./video-grid"
+import { useSubscription } from "@/hooks/use-subscription"
 
 interface Author {
   id: string
@@ -66,6 +69,7 @@ export function RelatedContentTabs({
   categoryIds,
 }: RelatedContentTabsProps) {
   const { data: session } = useSession()
+  const { canComment, isAuthenticated, planName } = useSubscription()
   const [activeTab, setActiveTab] = useState<"videos" | "comments">("videos")
   const [commentFilter, setCommentFilter] = useState<"popular" | "new">("popular")
   const [comments, setComments] = useState<Comment[]>(initialComments)
@@ -403,7 +407,7 @@ export function RelatedContentTabs({
             </div>
 
             {/* Comment Input Section */}
-            {session?.user ? (
+            {isAuthenticated && canComment ? (
               <>
                 <div
                   className="w-full p-6 flex items-center gap-4 mt-8"
@@ -414,7 +418,7 @@ export function RelatedContentTabs({
                   }}
                 >
                   <img
-                    src={session.user.image || "/placeholder.svg?height=60&width=60"}
+                    src={session?.user?.image || "/placeholder.svg?height=60&width=60"}
                     alt="Tu avatar"
                     className="w-[60px] h-[60px] rounded-full flex-shrink-0 object-cover"
                   />
@@ -457,6 +461,30 @@ export function RelatedContentTabs({
                   {submitting ? "Enviando..." : "Enviar"}
                 </button>
               </>
+            ) : isAuthenticated && !canComment ? (
+              <div
+                className="w-full p-6 mt-8 flex flex-col items-center gap-4"
+                style={{
+                  background: "rgba(107, 114, 128, 0.22)",
+                  borderLeft: "4px solid #00B1DE",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Lock className="w-6 h-6 text-[#00B1DE]" />
+                  <p className="text-white font-montserrat text-lg font-semibold">
+                    Los comentarios requieren suscripción Gold o superior
+                  </p>
+                </div>
+                <p className="text-white/60 font-montserrat text-sm">
+                  Tu plan actual: <span className="text-[#FA4860] font-medium">{planName}</span>
+                </p>
+                <Link
+                  href="/suscripciones"
+                  className="mt-2 px-6 py-3 bg-[#00B1DE] text-white font-montserrat font-semibold hover:bg-[#00B1DE]/80 transition-colors"
+                >
+                  Mejorar Suscripción
+                </Link>
+              </div>
             ) : (
               <div
                 className="w-full p-6 text-center mt-8"
@@ -465,9 +493,9 @@ export function RelatedContentTabs({
                 }}
               >
                 <p className="text-white/60 font-montserrat">
-                  <a href="/login" className="text-[#00B1DE] hover:underline">
+                  <Link href="/login" className="text-[#00B1DE] hover:underline">
                     Inicia sesión
-                  </a>{" "}
+                  </Link>{" "}
                   para dejar un comentario
                 </p>
               </div>

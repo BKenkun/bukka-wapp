@@ -30,7 +30,9 @@ export async function GET() {
       return NextResponse.json({
         site: {
           name: "BUKKAKERY",
-          description: "",
+          seoTitle: "",
+          seoDescription: "",
+          favicon: "",
           supportEmail: "",
           maintenanceMode: false,
         },

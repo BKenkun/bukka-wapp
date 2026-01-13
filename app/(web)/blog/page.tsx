@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Heart, MessageCircle } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { BlogCategoryFilter } from "./blog-category-filter"
+import { DiscountBanner } from "@/components/discount-banner"
 
 interface BlogPageProps {
   searchParams: Promise<{ categoria?: string; page?: string }>
@@ -80,9 +81,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   }
 
   return (
-    <main className="bg-black flex-1">
+    <main className="bg-black flex-1 pt-[120px]">
+      {/* Discount Banner */}
+      <div className="mt-[17px]">
+        <DiscountBanner />
+      </div>
+
       {/* Hero Banner */}
-      <div className="pt-[100px] px-4 md:px-8">
+      <div className="pt-8 px-4 md:px-8">
         <h1 className="text-white font-['Montserrat'] text-4xl font-bold mb-8">Blog</h1>
       </div>
 

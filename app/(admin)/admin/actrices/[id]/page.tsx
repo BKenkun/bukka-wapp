@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { PerformerForm } from "../performer-form"
-import { PerformerGallery } from "../performer-gallery"
 import Link from "next/link"
 import { IconArrowLeft, IconEye, IconTrash, IconVideo } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
@@ -177,11 +176,6 @@ export default async function EditPerformerPage({ params }: Props) {
           </CardContent>
         </Card>
       )}
-
-      {/* Photo Gallery */}
-      <div className="mb-6">
-        <PerformerGallery performerSlug={performer.slug} initialPhotos={performer.PerformerPhoto} />
-      </div>
 
       <PerformerForm performer={performer} />
     </div>

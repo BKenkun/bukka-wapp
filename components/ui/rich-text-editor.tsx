@@ -36,7 +36,9 @@ import {
   IconClearFormatting,
   IconArrowBackUp,
   IconArrowForwardUp,
+  IconSourceCode,
 } from "@tabler/icons-react"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 interface RichTextEditorProps {
@@ -77,7 +79,15 @@ function MenuButton({
   )
 }
 
-function MenuBar({ editor }: { editor: Editor | null }) {
+function MenuBar({
+  editor,
+  isHtmlMode,
+  onToggleHtmlMode
+}: {
+  editor: Editor | null
+  isHtmlMode: boolean
+  onToggleHtmlMode: () => void
+}) {
   const [linkUrl, setLinkUrl] = React.useState("")
   const [imageUrl, setImageUrl] = React.useState("")
 
@@ -107,14 +117,14 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       {/* History */}
       <MenuButton
         onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
+        disabled={isHtmlMode || !editor.can().undo()}
         title="Deshacer"
       >
         <IconArrowBackUp className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
+        disabled={isHtmlMode || !editor.can().redo()}
         title="Rehacer"
       >
         <IconArrowForwardUp className="size-4" />
@@ -125,35 +135,40 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       {/* Text formatting */}
       <MenuButton
         onClick={() => editor.chain().focus().toggleBold().run()}
-        isActive={editor.isActive("bold")}
+        isActive={!isHtmlMode && editor.isActive("bold")}
+        disabled={isHtmlMode}
         title="Negrita"
       >
         <IconBold className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        isActive={editor.isActive("italic")}
+        isActive={!isHtmlMode && editor.isActive("italic")}
+        disabled={isHtmlMode}
         title="Cursiva"
       >
         <IconItalic className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        isActive={editor.isActive("underline")}
+        isActive={!isHtmlMode && editor.isActive("underline")}
+        disabled={isHtmlMode}
         title="Subrayado"
       >
         <IconUnderline className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        isActive={editor.isActive("strike")}
+        isActive={!isHtmlMode && editor.isActive("strike")}
+        disabled={isHtmlMode}
         title="Tachado"
       >
         <IconStrikethrough className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleCode().run()}
-        isActive={editor.isActive("code")}
+        isActive={!isHtmlMode && editor.isActive("code")}
+        disabled={isHtmlMode}
         title="Código"
       >
         <IconCode className="size-4" />
@@ -164,21 +179,24 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       {/* Headings */}
       <MenuButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        isActive={editor.isActive("heading", { level: 1 })}
+        isActive={!isHtmlMode && editor.isActive("heading", { level: 1 })}
+        disabled={isHtmlMode}
         title="Título 1"
       >
         <IconH1 className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        isActive={editor.isActive("heading", { level: 2 })}
+        isActive={!isHtmlMode && editor.isActive("heading", { level: 2 })}
+        disabled={isHtmlMode}
         title="Título 2"
       >
         <IconH2 className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        isActive={editor.isActive("heading", { level: 3 })}
+        isActive={!isHtmlMode && editor.isActive("heading", { level: 3 })}
+        disabled={isHtmlMode}
         title="Título 3"
       >
         <IconH3 className="size-4" />
@@ -189,21 +207,24 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       {/* Alignment */}
       <MenuButton
         onClick={() => editor.chain().focus().setTextAlign("left").run()}
-        isActive={editor.isActive({ textAlign: "left" })}
+        isActive={!isHtmlMode && editor.isActive({ textAlign: "left" })}
+        disabled={isHtmlMode}
         title="Alinear izquierda"
       >
         <IconAlignLeft className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().setTextAlign("center").run()}
-        isActive={editor.isActive({ textAlign: "center" })}
+        isActive={!isHtmlMode && editor.isActive({ textAlign: "center" })}
+        disabled={isHtmlMode}
         title="Centrar"
       >
         <IconAlignCenter className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().setTextAlign("right").run()}
-        isActive={editor.isActive({ textAlign: "right" })}
+        isActive={!isHtmlMode && editor.isActive({ textAlign: "right" })}
+        disabled={isHtmlMode}
         title="Alinear derecha"
       >
         <IconAlignRight className="size-4" />
@@ -214,27 +235,31 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       {/* Lists */}
       <MenuButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        isActive={editor.isActive("bulletList")}
+        isActive={!isHtmlMode && editor.isActive("bulletList")}
+        disabled={isHtmlMode}
         title="Lista con viñetas"
       >
         <IconList className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        isActive={editor.isActive("orderedList")}
+        isActive={!isHtmlMode && editor.isActive("orderedList")}
+        disabled={isHtmlMode}
         title="Lista numerada"
       >
         <IconListNumbers className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        isActive={editor.isActive("blockquote")}
+        isActive={!isHtmlMode && editor.isActive("blockquote")}
+        disabled={isHtmlMode}
         title="Cita"
       >
         <IconQuote className="size-4" />
       </MenuButton>
       <MenuButton
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        disabled={isHtmlMode}
         title="Línea horizontal"
       >
         <IconSeparator className="size-4" />
@@ -249,9 +274,10 @@ function MenuBar({ editor }: { editor: Editor | null }) {
             type="button"
             variant="ghost"
             size="sm"
+            disabled={isHtmlMode}
             className={cn(
               "size-8 p-0",
-              editor.isActive("link") && "bg-muted text-foreground"
+              !isHtmlMode && editor.isActive("link") && "bg-muted text-foreground"
             )}
             title="Enlace"
           >
@@ -291,6 +317,7 @@ function MenuBar({ editor }: { editor: Editor | null }) {
             type="button"
             variant="ghost"
             size="sm"
+            disabled={isHtmlMode}
             className="size-8 p-0"
             title="Imagen"
           >
@@ -318,8 +345,20 @@ function MenuBar({ editor }: { editor: Editor | null }) {
       <MenuButton
         onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
         title="Limpiar formato"
+        disabled={isHtmlMode}
       >
         <IconClearFormatting className="size-4" />
+      </MenuButton>
+
+      <div className="w-px h-6 bg-border mx-1" />
+
+      {/* HTML Source */}
+      <MenuButton
+        onClick={onToggleHtmlMode}
+        isActive={isHtmlMode}
+        title={isHtmlMode ? "Vista visual" : "Editar HTML"}
+      >
+        <IconSourceCode className="size-4" />
       </MenuButton>
     </div>
   )
@@ -331,6 +370,9 @@ export function RichTextEditor({
   placeholder = "Escribe aquí...",
   className,
 }: RichTextEditorProps) {
+  const [isHtmlMode, setIsHtmlMode] = React.useState(false)
+  const [htmlContent, setHtmlContent] = React.useState(content)
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -360,7 +402,9 @@ export function RichTextEditor({
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      const html = editor.getHTML()
+      setHtmlContent(html)
+      onChange(html)
     },
     editorProps: {
       attributes: {
@@ -370,10 +414,40 @@ export function RichTextEditor({
     },
   })
 
+  const handleToggleHtmlMode = () => {
+    if (isHtmlMode && editor) {
+      // Switching from HTML to visual mode - update editor with HTML content
+      editor.commands.setContent(htmlContent)
+    } else if (editor) {
+      // Switching to HTML mode - update HTML content from editor
+      setHtmlContent(editor.getHTML())
+    }
+    setIsHtmlMode(!isHtmlMode)
+  }
+
+  const handleHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newHtml = e.target.value
+    setHtmlContent(newHtml)
+    onChange(newHtml)
+  }
+
   return (
     <div className={cn("rounded-md border bg-background", className)}>
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      <MenuBar
+        editor={editor}
+        isHtmlMode={isHtmlMode}
+        onToggleHtmlMode={handleToggleHtmlMode}
+      />
+      {isHtmlMode ? (
+        <Textarea
+          value={htmlContent}
+          onChange={handleHtmlChange}
+          placeholder="<p>Escribe HTML aquí...</p>"
+          className="min-h-[300px] font-mono text-sm rounded-none border-0 focus-visible:ring-0 resize-y"
+        />
+      ) : (
+        <EditorContent editor={editor} />
+      )}
     </div>
   )
 }

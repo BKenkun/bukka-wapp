@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { DiscountBanner } from "@/components/discount-banner"
 import { CtaBanner } from "@/components/cta-banner"
 import { VideosPageClient } from "./videos-page-client"
+import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 
 interface SearchParams {
   page?: string
@@ -124,28 +125,38 @@ export default async function VideosPage({
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
-  // Transform videos for the grid
-  const transformedVideos = videos.map((video) => {
-    // Use custom previewUrl if available, otherwise use Mux MP4
-    let videoPreviewUrl = video.previewUrl || undefined
-    if (!videoPreviewUrl && video.muxPlaybackId) {
-      videoPreviewUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
-    }
+  // Transform videos for the grid with signed preview URLs
+  const transformedVideos = await Promise.all(
+    videos.map(async (video) => {
+      // Use custom previewUrl if available, otherwise use signed Mux MP4
+      let videoPreviewUrl = video.previewUrl || undefined
 
-    return {
-      id: video.id,
-      slug: video.slug,
-      title: video.title,
-      subtitle: video.performers.map((p) => p.performer.name).join(", ") || "Bukkake",
-      views: formatViews(video.viewCount),
-      likes: `${Math.min(99, Math.max(70, Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100 + 70)))}%`,
-      imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
-      previewUrl: videoPreviewUrl,
-      previewStartTime: video.previewStartTime,
-      previewEndTime: video.previewEndTime,
-      isVerified: true,
-    }
-  })
+      if (!videoPreviewUrl && video.muxPlaybackId) {
+        try {
+          // Generate signed token for Mux MP4 preview
+          const token = await getVideoToken(video.muxPlaybackId)
+          videoPreviewUrl = getVideoPreviewUrl(video.muxPlaybackId, token, "medium")
+        } catch (error) {
+          console.warn(`Failed to generate preview token for video ${video.id}:`, error)
+          // Fallback: leave previewUrl undefined
+        }
+      }
+
+      return {
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        subtitle: video.performers.map((p) => p.performer.name).join(", ") || "Bukkake",
+        views: formatViews(video.viewCount),
+        likes: `${Math.min(99, Math.max(70, Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100 + 70)))}%`,
+        imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
+        previewUrl: videoPreviewUrl,
+        previewStartTime: video.previewStartTime,
+        previewEndTime: video.previewEndTime,
+        isVerified: true,
+      }
+    })
+  )
 
   // Get active filter names for display
   const activeFilters = {

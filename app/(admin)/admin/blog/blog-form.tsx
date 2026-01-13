@@ -41,7 +41,6 @@ import {
   IconX,
   IconUpload,
 } from "@tabler/icons-react"
-import { useUploadThing } from "@/lib/uploadthing-client"
 
 const blogFormSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
@@ -85,21 +84,6 @@ export function BlogForm({ post, categories }: BlogFormProps) {
   const [isUploading, setIsUploading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  const { startUpload } = useUploadThing("blogImages", {
-    onClientUploadComplete: (res) => {
-      if (res && res[0]) {
-        setFeaturedImage(res[0].ufsUrl)
-        form.setValue("featuredImage", res[0].ufsUrl)
-        toast.success("Imagen subida correctamente")
-      }
-      setIsUploading(false)
-    },
-    onUploadError: (error) => {
-      toast.error(`Error: ${error.message}`)
-      setIsUploading(false)
-    },
-  })
-
   const form = useForm<BlogFormValues>({
     resolver: zodResolver(blogFormSchema),
     defaultValues: {
@@ -133,8 +117,33 @@ export function BlogForm({ post, categories }: BlogFormProps) {
     const files = e.target.files
     if (!files || files.length === 0) return
     setIsUploading(true)
-    await startUpload(Array.from(files))
-    if (fileInputRef.current) fileInputRef.current.value = ""
+
+    try {
+      const formData = new FormData()
+      formData.append("file", files[0])
+      formData.append("folder", "blog")
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir imagen")
+      }
+
+      const result = await response.json()
+      setFeaturedImage(result.url)
+      form.setValue("featuredImage", result.url)
+      toast.success("Imagen subida correctamente")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al subir imagen"
+      toast.error(message)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
   const handleDrop = async (e: React.DragEvent) => {

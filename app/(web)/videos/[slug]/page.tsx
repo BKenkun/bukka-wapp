@@ -276,7 +276,7 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
   const hasMuxVideo = !!video.muxPlaybackId
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
       <div>
         <DiscountBanner />
       </div>

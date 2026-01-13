@@ -19,7 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { useUploadThing } from "@/lib/uploadthing-client"
 import { IconCamera, IconCheck, IconX, IconLoader2, IconBell, IconRefresh } from "@tabler/icons-react"
 
 // Schemas de validación con Zod
@@ -106,8 +105,6 @@ export default function ConfiguracionPage() {
 
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({})
-
-  const { startUpload } = useUploadThing("profileImage")
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -340,12 +337,28 @@ export default function ConfiguracionPage() {
 
     setUploadingPhoto(true)
     try {
-      const result = await startUpload([selectedFile])
-      if (result && result[0]?.url) {
+      // Upload to local storage
+      const formData = new FormData()
+      formData.append("file", selectedFile)
+      formData.append("folder", "avatars")
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json().catch(() => ({}))
+        throw new Error(errorData.error || "Error al subir imagen")
+      }
+
+      const uploadResult = await uploadRes.json()
+
+      if (uploadResult?.url) {
         const res = await fetch("/api/user", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: result[0].url }),
+          body: JSON.stringify({ image: uploadResult.url }),
         })
 
         if (res.ok) {

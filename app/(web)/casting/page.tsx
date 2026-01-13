@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation"
 import { Check, Clock } from "@/components/icons"
 import { toast } from "sonner"
 import { castingFormSchema } from "@/lib/validations/casting"
-import { useUploadThing } from "@/lib/uploadthing-client"
 
 export default function CastingPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [isUploading, setIsUploading] = useState(false)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -46,20 +45,25 @@ export default function CastingPage() {
     presentationVideo: null,
   })
 
-  // Upload hooks
-  const { startUpload: uploadDni, isUploading: isUploadingDni } = useUploadThing("castingId", {
-    onUploadProgress: (p) => setUploadProgress(prev => ({ ...prev, dni: p })),
-  })
+  // Local upload function
+  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("folder", folder)
 
-  const { startUpload: uploadPhotos, isUploading: isUploadingPhotos } = useUploadThing("castingDocuments", {
-    onUploadProgress: (p) => setUploadProgress(prev => ({ ...prev, photos: p })),
-  })
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    })
 
-  const { startUpload: uploadVideo, isUploading: isUploadingVideo } = useUploadThing("castingVideo", {
-    onUploadProgress: (p) => setUploadProgress(prev => ({ ...prev, video: p })),
-  })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || "Error al subir archivo")
+    }
 
-  const isUploading = isUploadingDni || isUploadingPhotos || isUploadingVideo
+    const result = await response.json()
+    return result.url
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -112,6 +116,7 @@ export default function CastingPage() {
     setErrors({})
 
     setIsSubmitting(true)
+    setIsUploading(true)
 
     try {
       // Subir archivos
@@ -122,29 +127,25 @@ export default function CastingPage() {
       // Subir DNI
       if (files.dniPhoto) {
         toast.info("Subiendo foto del DNI...")
-        const dniResult = await uploadDni([files.dniPhoto])
-        if (dniResult && dniResult[0]) {
-          dniPhotoUrl = dniResult[0].ufsUrl
-        }
+        dniPhotoUrl = await uploadFile(files.dniPhoto, "casting")
       }
 
       // Subir fotos generales
       if (files.generalPhotos.length > 0) {
         toast.info("Subiendo fotos generales...")
-        const photosResult = await uploadPhotos(files.generalPhotos)
-        if (photosResult) {
-          generalPhotoUrls = photosResult.map(f => f.ufsUrl)
+        for (const photo of files.generalPhotos) {
+          const url = await uploadFile(photo, "casting")
+          if (url) generalPhotoUrls.push(url)
         }
       }
 
       // Subir video
       if (files.presentationVideo) {
         toast.info("Subiendo video de presentación...")
-        const videoResult = await uploadVideo([files.presentationVideo])
-        if (videoResult && videoResult[0]) {
-          videoUrl = videoResult[0].ufsUrl
-        }
+        videoUrl = await uploadFile(files.presentationVideo, "casting")
       }
+
+      setIsUploading(false)
 
       // Enviar datos a la API
       toast.info("Guardando solicitud...")
@@ -190,7 +191,7 @@ export default function CastingPage() {
       toast.error(error instanceof Error ? error.message : "Error al enviar la solicitud")
     } finally {
       setIsSubmitting(false)
-      setUploadProgress({})
+      setIsUploading(false)
     }
   }
 
@@ -706,11 +707,6 @@ export default function CastingPage() {
                   {files.dniPhoto && (
                     <p className="text-green-400 text-xs mt-2">{files.dniPhoto.name}</p>
                   )}
-                  {uploadProgress.dni !== undefined && uploadProgress.dni > 0 && uploadProgress.dni < 100 && (
-                    <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-                      <div className="bg-[#06B6D4] h-2 rounded-full" style={{ width: `${uploadProgress.dni}%` }}></div>
-                    </div>
-                  )}
                 </div>
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-6 bg-transparent min-h-[180px]">
                   <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -742,11 +738,6 @@ export default function CastingPage() {
                   </button>
                   {files.generalPhotos.length > 0 && (
                     <p className="text-green-400 text-xs mt-2">{files.generalPhotos.length} archivo(s) seleccionado(s)</p>
-                  )}
-                  {uploadProgress.photos !== undefined && uploadProgress.photos > 0 && uploadProgress.photos < 100 && (
-                    <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-                      <div className="bg-[#06B6D4] h-2 rounded-full" style={{ width: `${uploadProgress.photos}%` }}></div>
-                    </div>
                   )}
                 </div>
               </div>
@@ -788,11 +779,6 @@ export default function CastingPage() {
                 </p>
                 {files.presentationVideo && (
                   <p className="text-green-400 text-xs mt-2">{files.presentationVideo.name}</p>
-                )}
-                {uploadProgress.video !== undefined && uploadProgress.video > 0 && uploadProgress.video < 100 && (
-                  <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-                    <div className="bg-[#06B6D4] h-2 rounded-full" style={{ width: `${uploadProgress.video}%` }}></div>
-                  </div>
                 )}
               </div>
             </div>

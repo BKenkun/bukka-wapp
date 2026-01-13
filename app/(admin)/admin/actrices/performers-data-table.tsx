@@ -23,8 +23,6 @@ import {
   IconTrash,
   IconVideo,
   IconHeart,
-  IconBrandInstagram,
-  IconBrandTwitter,
   IconCheck,
   IconArrowsSort,
 } from "@tabler/icons-react"
@@ -78,8 +76,6 @@ interface PerformerRow {
   nationality: string | null
   birthDate: Date | null
   height: number | null
-  instagram: string | null
-  twitter: string | null
   createdAt: Date
   _count: {
     VideoPerformer: number
@@ -214,40 +210,6 @@ export function PerformersDataTable({
               <IconHeart className="size-4 text-muted-foreground" />
               <span>{performer._count.favorites}</span>
             </div>
-          </div>
-        )
-      },
-    },
-    {
-      accessorKey: "social",
-      header: "Social",
-      cell: ({ row }) => {
-        const performer = row.original
-        return (
-          <div className="flex items-center gap-2">
-            {performer.instagram && (
-              <a
-                href={`https://instagram.com/${performer.instagram}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <IconBrandInstagram className="size-4" />
-              </a>
-            )}
-            {performer.twitter && (
-              <a
-                href={`https://twitter.com/${performer.twitter}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <IconBrandTwitter className="size-4" />
-              </a>
-            )}
-            {!performer.instagram && !performer.twitter && (
-              <span className="text-muted-foreground">-</span>
-            )}
           </div>
         )
       },
