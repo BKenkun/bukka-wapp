@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { authConfig } from "./auth.config"
 
 interface SubscriptionPlanData {
   id: string
@@ -17,35 +18,8 @@ interface SubscriptionPlanData {
   shopDiscount: number
 }
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string
-      email: string
-      name: string | null
-      image: string | null
-      isAdmin: boolean
-      adminRole: string | null
-      SubscriptionPlan: SubscriptionPlanData | null
-      subscriptionEnd: Date | null
-    }
-  }
-  interface User {
-    isAdmin?: boolean
-    adminRole?: string | null
-    SubscriptionPlan?: SubscriptionPlanData | null
-    subscriptionEnd?: Date | null
-  }
-  interface JWT {
-    id?: string
-    isAdmin?: boolean
-    adminRole?: string | null
-    SubscriptionPlan?: SubscriptionPlanData | null
-    subscriptionEnd?: Date | null
-  }
-}
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       name: "credentials",
@@ -114,6 +88,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
@@ -154,21 +129,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token
     },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.isAdmin = (token.isAdmin as boolean) ?? false
-        session.user.adminRole = (token.adminRole as string | null) ?? null
-        session.user.SubscriptionPlan = (token.SubscriptionPlan as SubscriptionPlanData | null) ?? null
-        session.user.subscriptionEnd = (token.subscriptionEnd as Date | null) ?? null
-      }
-      return session
-    },
-  },
-  pages: {
-    signIn: "/admin/login",
-  },
-  session: {
-    strategy: "jwt",
   },
 })
