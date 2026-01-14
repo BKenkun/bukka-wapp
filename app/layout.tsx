@@ -35,11 +35,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description: seo.description,
       siteName: seo.siteName,
       type: "website",
+      images: ["/64x64.svg"],
     },
     twitter: {
       card: "summary_large_image",
       title: seo.title,
       description: seo.description,
+      images: ["/64x64.svg"],
     },
   }
 }
