@@ -12,6 +12,14 @@ const nextConfig = {
     '@prisma/client-runtime-utils',
     'pg',
   ],
+  outputFileTracingIncludes: {
+    '/**/*': [
+      './node_modules/.prisma/**/*',
+      './node_modules/@prisma/client/**/*',
+      './node_modules/@prisma/client-runtime-utils/**/*',
+      './node_modules/@prisma/adapter-pg/**/*',
+    ],
+  },
 }
 
 export default nextConfig
