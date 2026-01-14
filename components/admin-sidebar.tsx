@@ -24,6 +24,8 @@ import {
   IconHash,
   IconLogout,
   IconChevronUp,
+  IconPalette,
+  IconTruck,
 } from "@tabler/icons-react"
 import { signOut } from "next-auth/react"
 
@@ -149,6 +151,18 @@ const navShop: NavItem[] = [
     url: "/admin/shop-categories",
     icon: IconCategory,
     permission: "shop_categories",
+  },
+  {
+    title: "Atributos",
+    url: "/admin/attributes",
+    icon: IconPalette,
+    permission: "attributes",
+  },
+  {
+    title: "Envío",
+    url: "/admin/shipping",
+    icon: IconTruck,
+    permission: "shipping",
   },
   {
     title: "Pedidos",

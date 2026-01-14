@@ -49,6 +49,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       riskLevel,
       performerId,
       categoryIds,
+      productType,
+      weight,
     } = body
 
     // Si cambia el slug, verificar que no exista
@@ -108,6 +110,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         status,
         riskLevel,
         performerId: performerId || null,
+        productType: productType || undefined,
+        weight: weight !== undefined ? weight : undefined,
       },
       include: {
         performer: true,

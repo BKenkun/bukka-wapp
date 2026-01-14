@@ -1,28 +1,100 @@
 "use client"
 
-import { useState } from "react"
+import * as React from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { VariantSelector } from "@/components/shop/variant-selector"
+
+interface AttributeValue {
+  id: string
+  value: string
+  slug: string
+  colorHex: string | null
+  imageUrl: string | null
+}
+
+interface Attribute {
+  id: string
+  name: string
+  slug: string
+  type: "SELECT" | "COLOR" | "IMAGE"
+  values: AttributeValue[]
+}
+
+interface VariantInfo {
+  id: string
+  sku: string | null
+  price: number
+  compareAtPrice: number | null
+  stock: number
+  imageUrl: string | null
+  isAvailable: boolean
+}
 
 interface ProductAddToCartProps {
   productId: string
+  productSlug: string
+  productType: "SIMPLE" | "VARIABLE"
   stock: number
   trackInventory: boolean
+  basePrice: number
+  compareAtPrice: number | null
+  attributes?: Attribute[]
+  onPriceChange?: (price: number, compareAtPrice: number | null) => void
 }
 
-export function ProductAddToCart({ productId, stock, trackInventory }: ProductAddToCartProps) {
+export function ProductAddToCart({
+  productId,
+  productSlug,
+  productType,
+  stock,
+  trackInventory,
+  basePrice,
+  compareAtPrice,
+  attributes = [],
+  onPriceChange,
+}: ProductAddToCartProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [quantity, setQuantity] = useState(1)
+  const [loading, setLoading] = React.useState(false)
+  const [quantity, setQuantity] = React.useState(1)
+  const [selectedVariant, setSelectedVariant] = React.useState<VariantInfo | null>(null)
 
-  const isOutOfStock = trackInventory && stock === 0
-  const maxQuantity = trackInventory ? stock : 99
+  const isVariable = productType === "VARIABLE"
+
+  // For VARIABLE products, use variant stock. For SIMPLE, use product stock
+  const currentStock = isVariable && selectedVariant ? selectedVariant.stock : stock
+  const currentPrice = isVariable && selectedVariant ? selectedVariant.price : basePrice
+  const currentCompareAtPrice = isVariable && selectedVariant
+    ? selectedVariant.compareAtPrice
+    : compareAtPrice
+
+  const isOutOfStock = isVariable
+    ? !selectedVariant || !selectedVariant.isAvailable
+    : trackInventory && stock === 0
+  const maxQuantity = trackInventory ? currentStock : 99
+
+  // Notify parent of price changes
+  React.useEffect(() => {
+    if (onPriceChange) {
+      onPriceChange(currentPrice, currentCompareAtPrice)
+    }
+  }, [currentPrice, currentCompareAtPrice, onPriceChange])
+
+  const handleVariantChange = (variant: VariantInfo | null) => {
+    setSelectedVariant(variant)
+    setQuantity(1) // Reset quantity when variant changes
+  }
 
   const handleAddToCart = async () => {
     if (!session?.user) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    if (isVariable && !selectedVariant) {
+      toast.error("Selecciona una variante")
       return
     }
 
@@ -32,64 +104,86 @@ export function ProductAddToCart({ productId, stock, trackInventory }: ProductAd
       const res = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({
+          productId,
+          quantity,
+          variantId: selectedVariant?.id || null,
+        }),
       })
 
       if (res.ok) {
-        toast.success("Producto añadido al carrito")
+        toast.success("Producto anadido al carrito")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al añadir al carrito")
+        toast.error(error.error || "Error al anadir al carrito")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al añadir al carrito")
+      toast.error("Error al anadir al carrito")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center gap-4">
-      {/* Quantity Selector */}
-      {!isOutOfStock && (
-        <div className="flex items-center border border-gray-700">
-          <button
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
-            disabled={quantity <= 1}
-          >
-            -
-          </button>
-          <span className="px-4 py-3 text-white font-medium min-w-[50px] text-center">
-            {quantity}
-          </span>
-          <button
-            onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-            className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
-            disabled={quantity >= maxQuantity}
-          >
-            +
-          </button>
-        </div>
+    <div className="space-y-6">
+      {/* Variant Selector */}
+      {isVariable && attributes.length > 0 && (
+        <VariantSelector
+          productSlug={productSlug}
+          attributes={attributes}
+          basePrice={basePrice}
+          onVariantChange={handleVariantChange}
+        />
       )}
 
-      {/* Add to Cart Button */}
-      <button
-        onClick={handleAddToCart}
-        disabled={loading || isOutOfStock}
-        className="text-white text-center disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
-        style={{
-          fontFamily: "Montserrat",
-          fontSize: "16px",
-          fontWeight: 500,
-          background: isOutOfStock ? "#6B7280" : "#FA4860",
-          padding: "14px 28px",
-        }}
-      >
-        {loading ? "Añadiendo..." : isOutOfStock ? "Agotado" : "Añadir al carrito"}
-      </button>
+      <div className="flex items-center gap-4">
+        {/* Quantity Selector */}
+        {!isOutOfStock && (
+          <div className="flex items-center border border-gray-700">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
+              disabled={quantity <= 1}
+            >
+              -
+            </button>
+            <span className="px-4 py-3 text-white font-medium min-w-[50px] text-center">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+              className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
+              disabled={quantity >= maxQuantity}
+            >
+              +
+            </button>
+          </div>
+        )}
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={handleAddToCart}
+          disabled={loading || isOutOfStock}
+          className="text-white text-center disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+          style={{
+            fontFamily: "Montserrat",
+            fontSize: "16px",
+            fontWeight: 500,
+            background: isOutOfStock ? "#6B7280" : "#FA4860",
+            padding: "14px 28px",
+          }}
+        >
+          {loading
+            ? "Anadiendo..."
+            : isOutOfStock
+              ? isVariable && !selectedVariant
+                ? "Selecciona opciones"
+                : "Agotado"
+              : "Anadir al carrito"}
+        </button>
+      </div>
     </div>
   )
 }

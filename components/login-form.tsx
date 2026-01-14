@@ -16,11 +16,13 @@ import { Input } from "@/components/ui/input"
 
 interface LoginFormProps extends React.ComponentProps<"form"> {
   showRegisterLink?: boolean
+  showForgotPassword?: boolean
 }
 
 export function LoginForm({
   className,
   showRegisterLink = true,
+  showForgotPassword = true,
   ...props
 }: LoginFormProps) {
   const router = useRouter()
@@ -98,12 +100,14 @@ export function LoginForm({
         <Field>
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </a>
+            {showForgotPassword && (
+              <a
+                href="#"
+                className="ml-auto text-sm underline-offset-4 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
+            )}
           </div>
           <Input
             id="password"

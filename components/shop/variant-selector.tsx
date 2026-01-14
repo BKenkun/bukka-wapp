@@ -1,0 +1,226 @@
+"use client"
+
+import * as React from "react"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
+
+interface AttributeValue {
+  id: string
+  value: string
+  slug: string
+  colorHex: string | null
+  imageUrl: string | null
+}
+
+interface Attribute {
+  id: string
+  name: string
+  slug: string
+  type: "SELECT" | "COLOR" | "IMAGE"
+  values: AttributeValue[]
+}
+
+interface VariantInfo {
+  id: string
+  sku: string | null
+  price: number
+  compareAtPrice: number | null
+  stock: number
+  imageUrl: string | null
+  isAvailable: boolean
+}
+
+interface VariantSelectorProps {
+  productSlug: string
+  attributes: Attribute[]
+  basePrice: number
+  onVariantChange?: (variant: VariantInfo | null, selectedValues: Record<string, string>) => void
+  className?: string
+}
+
+export function VariantSelector({
+  productSlug,
+  attributes,
+  basePrice,
+  onVariantChange,
+  className,
+}: VariantSelectorProps) {
+  const [selectedValues, setSelectedValues] = React.useState<Record<string, string>>({})
+  const [currentVariant, setCurrentVariant] = React.useState<VariantInfo | null>(null)
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  // Initialize with first values
+  React.useEffect(() => {
+    const initial: Record<string, string> = {}
+    attributes.forEach((attr) => {
+      if (attr.values.length > 0) {
+        initial[attr.id] = attr.values[0].id
+      }
+    })
+    setSelectedValues(initial)
+  }, [attributes])
+
+  // Fetch variant when selection changes
+  React.useEffect(() => {
+    const valueIds = Object.values(selectedValues).filter(Boolean)
+    if (valueIds.length === 0 || valueIds.length !== attributes.length) {
+      setCurrentVariant(null)
+      onVariantChange?.(null, selectedValues)
+      return
+    }
+
+    async function fetchVariant() {
+      setIsLoading(true)
+      try {
+        const res = await fetch(
+          `/api/products/${productSlug}/variant?values=${valueIds.join(",")}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setCurrentVariant(data.variant)
+          onVariantChange?.(data.variant, selectedValues)
+        } else {
+          setCurrentVariant(null)
+          onVariantChange?.(null, selectedValues)
+        }
+      } catch {
+        setCurrentVariant(null)
+        onVariantChange?.(null, selectedValues)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchVariant()
+  }, [selectedValues, productSlug, attributes.length, onVariantChange])
+
+  const handleValueChange = (attributeId: string, valueId: string) => {
+    setSelectedValues((prev) => ({
+      ...prev,
+      [attributeId]: valueId,
+    }))
+  }
+
+  const getValueById = (attributeId: string, valueId: string) => {
+    const attr = attributes.find((a) => a.id === attributeId)
+    return attr?.values.find((v) => v.id === valueId)
+  }
+
+  return (
+    <div className={cn("space-y-4", className)}>
+      {attributes.map((attr) => (
+        <div key={attr.id} className="space-y-2">
+          <Label className="text-sm font-medium">{attr.name}</Label>
+
+          {attr.type === "SELECT" && (
+            <Select
+              value={selectedValues[attr.id] || ""}
+              onValueChange={(value) => handleValueChange(attr.id, value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={`Seleccionar ${attr.name.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {attr.values.map((val) => (
+                  <SelectItem key={val.id} value={val.id}>
+                    {val.value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {attr.type === "COLOR" && (
+            <div className="flex flex-wrap gap-2">
+              {attr.values.map((val) => {
+                const isSelected = selectedValues[attr.id] === val.id
+                return (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => handleValueChange(attr.id, val.id)}
+                    className={cn(
+                      "relative size-10 rounded-full border-2 transition-all",
+                      isSelected
+                        ? "ring-2 ring-primary ring-offset-2"
+                        : "hover:scale-110"
+                    )}
+                    style={{ backgroundColor: val.colorHex || "#ccc" }}
+                    title={val.value}
+                  >
+                    <span className="sr-only">{val.value}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {attr.type === "IMAGE" && (
+            <div className="flex flex-wrap gap-2">
+              {attr.values.map((val) => {
+                const isSelected = selectedValues[attr.id] === val.id
+                return (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => handleValueChange(attr.id, val.id)}
+                    className={cn(
+                      "relative size-16 rounded-lg border-2 overflow-hidden transition-all",
+                      isSelected
+                        ? "ring-2 ring-primary ring-offset-2 border-primary"
+                        : "hover:scale-105 border-muted"
+                    )}
+                    title={val.value}
+                  >
+                    {val.imageUrl ? (
+                      <img
+                        src={val.imageUrl}
+                        alt={val.value}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex items-center justify-center size-full text-xs">
+                        {val.value}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Show selected value name for COLOR and IMAGE */}
+          {(attr.type === "COLOR" || attr.type === "IMAGE") && selectedValues[attr.id] && (
+            <p className="text-sm text-muted-foreground">
+              {getValueById(attr.id, selectedValues[attr.id])?.value}
+            </p>
+          )}
+        </div>
+      ))}
+
+      {/* Variant Info Display */}
+      {isLoading && (
+        <p className="text-sm text-muted-foreground animate-pulse">Buscando variante...</p>
+      )}
+
+      {!isLoading && currentVariant && (
+        <div className="pt-2 space-y-1">
+          {currentVariant.sku && (
+            <p className="text-xs text-muted-foreground">SKU: {currentVariant.sku}</p>
+          )}
+          {!currentVariant.isAvailable && (
+            <p className="text-sm text-destructive font-medium">Agotado</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

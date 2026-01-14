@@ -18,6 +18,8 @@ export type Permission =
   | "banners"
   | "products"
   | "shop_categories"
+  | "attributes"
+  | "shipping"
   | "orders"
   | "users"
   | "forum"
@@ -40,7 +42,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     "menus",
     "banners",
   ],
-  ECOMMERCE_MANAGER: ["dashboard", "products", "shop_categories", "orders"],
+  ECOMMERCE_MANAGER: ["dashboard", "products", "shop_categories", "attributes", "shipping", "orders"],
   FINANCE_MANAGER: [
     "dashboard",
     "subscriptions",
@@ -74,6 +76,8 @@ export function getPermissionsForRole(role: AdminRole): Permission[] {
       "banners",
       "products",
       "shop_categories",
+      "attributes",
+      "shipping",
       "orders",
       "users",
       "forum",
@@ -99,6 +103,8 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/admin/banners": "banners",
   "/admin/products": "products",
   "/admin/shop-categories": "shop_categories",
+  "/admin/attributes": "attributes",
+  "/admin/shipping": "shipping",
   "/admin/orders": "orders",
   "/admin/users": "users",
   "/admin/forum": "forum",

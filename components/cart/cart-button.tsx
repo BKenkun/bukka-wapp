@@ -8,12 +8,16 @@ import Image from "next/image"
 interface CartItem {
   id: string
   quantity: number
+  variantId: string | null
+  variantLabel: string | null
   product: {
     id: string
     slug: string
     name: string
     price: number
     imageUrl: string | null
+    available: boolean
+    productType: "SIMPLE" | "VARIABLE"
   }
 }
 
@@ -158,7 +162,7 @@ export function CartButton() {
                 <>
                   <div className="max-h-[300px] overflow-y-auto space-y-4">
                     {cart.items.map((item) => (
-                      <div key={item.id} className="flex gap-3">
+                      <div key={item.id} className={`flex gap-3 ${!item.product.available ? "opacity-50" : ""}`}>
                         <div className="relative w-16 h-16 flex-shrink-0">
                           <Image
                             src={item.product.imageUrl || "/placeholder.jpg"}
@@ -171,9 +175,17 @@ export function CartButton() {
                           <h4 className="text-white text-sm font-medium truncate">
                             {item.product.name}
                           </h4>
+                          {item.variantLabel && (
+                            <p className="text-gray-500 text-xs truncate">
+                              {item.variantLabel}
+                            </p>
+                          )}
                           <p className="text-gray-400 text-sm">
                             {item.quantity} x {item.product.price.toFixed(2)} €
                           </p>
+                          {!item.product.available && (
+                            <p className="text-red-500 text-xs">No disponible</p>
+                          )}
                         </div>
                         <button
                           onClick={() => handleRemoveItem(item.id)}

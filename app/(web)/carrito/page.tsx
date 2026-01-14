@@ -10,6 +10,8 @@ import { DiscountBanner } from "@/components/discount-banner"
 interface CartItem {
   id: string
   quantity: number
+  variantId: string | null
+  variantLabel: string | null
   product: {
     id: string
     slug: string
@@ -17,7 +19,8 @@ interface CartItem {
     price: number
     imageUrl: string | null
     stock: number
-    trackInventory: boolean
+    available: boolean
+    productType: "SIMPLE" | "VARIABLE"
   }
 }
 
@@ -66,6 +69,19 @@ export default function CarritoPage() {
     }
   }, [session])
 
+  const refetchCart = async () => {
+    try {
+      const res = await fetch("/api/cart")
+      if (res.ok) {
+        const data = await res.json()
+        setCart(data.cart)
+        window.dispatchEvent(new CustomEvent("cart-updated"))
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error)
+    }
+  }
+
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return
     setUpdating(itemId)
@@ -78,8 +94,7 @@ export default function CarritoPage() {
       })
 
       if (res.ok) {
-        const data = await res.json()
-        setCart(data.cart)
+        await refetchCart()
       }
     } catch (error) {
       console.error("Error updating quantity:", error)
@@ -97,8 +112,7 @@ export default function CarritoPage() {
       })
 
       if (res.ok) {
-        const data = await res.json()
-        setCart(data.cart)
+        await refetchCart()
       }
     } catch (error) {
       console.error("Error removing item:", error)
@@ -164,7 +178,7 @@ export default function CarritoPage() {
               {cart.items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-[#1a1a1a] border border-gray-800 p-4 flex gap-4"
+                  className={`bg-[#1a1a1a] border border-gray-800 p-4 flex gap-4 ${!item.product.available ? "opacity-60" : ""}`}
                 >
                   {/* Product Image */}
                   <Link href={`/tienda/${item.product.slug}`} className="flex-shrink-0">
@@ -186,12 +200,23 @@ export default function CarritoPage() {
                       </h3>
                     </Link>
 
+                    {/* Variant Label */}
+                    {item.variantLabel && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        {item.variantLabel}
+                      </p>
+                    )}
+
                     <p className="text-[#FA4860] font-montserrat font-bold text-xl mt-2">
                       {item.product.price.toFixed(2)} €
                     </p>
 
-                    {/* Stock warning */}
-                    {item.product.trackInventory && item.product.stock <= 3 && (
+                    {/* Availability warnings */}
+                    {!item.product.available ? (
+                      <p className="text-red-500 text-sm mt-1">
+                        Este producto ya no esta disponible
+                      </p>
+                    ) : item.product.stock > 0 && item.product.stock <= 3 && (
                       <p className="text-yellow-500 text-sm mt-1">
                         Solo quedan {item.product.stock} unidades
                       </p>
@@ -199,28 +224,32 @@ export default function CarritoPage() {
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-4 mt-4">
-                      <div className="flex items-center border border-gray-700">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          disabled={updating === item.id || item.quantity <= 1}
-                          className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          -
-                        </button>
-                        <span className="px-4 py-1 text-white font-medium">
-                          {updating === item.id ? "..." : item.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                          disabled={
-                            updating === item.id ||
-                            (item.product.trackInventory && item.quantity >= item.product.stock)
-                          }
-                          className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          +
-                        </button>
-                      </div>
+                      {item.product.available ? (
+                        <div className="flex items-center border border-gray-700">
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            disabled={updating === item.id || item.quantity <= 1}
+                            className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            -
+                          </button>
+                          <span className="px-4 py-1 text-white font-medium">
+                            {updating === item.id ? "..." : item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            disabled={
+                              updating === item.id ||
+                              (item.product.stock > 0 && item.quantity >= item.product.stock)
+                            }
+                            className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-red-500 text-sm">No disponible</span>
+                      )}
 
                       <button
                         onClick={() => handleRemoveItem(item.id)}

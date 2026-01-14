@@ -25,7 +25,7 @@ export default async function AdminLoginPage() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <LoginForm showRegisterLink={false} />
+            <LoginForm showRegisterLink={false} showForgotPassword={false} />
           </div>
         </div>
       </div>

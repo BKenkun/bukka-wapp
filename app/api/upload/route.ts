@@ -1,82 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir, unlink, access } from "fs/promises"
-import path from "path"
-import { randomUUID } from "crypto"
-
-// Allowed folders and their max file sizes (in bytes)
-const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: string[]; requireAdmin: boolean }> = {
-  thumbnails: {
-    maxSize: 4 * 1024 * 1024, // 4MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: true,
-  },
-  previews: {
-    maxSize: 50 * 1024 * 1024, // 50MB
-    allowedTypes: ["video/mp4", "video/webm"],
-    requireAdmin: true,
-  },
-  gallery: {
-    maxSize: 4 * 1024 * 1024, // 4MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: true,
-  },
-  products: {
-    maxSize: 4 * 1024 * 1024, // 4MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: true,
-  },
-  performers: {
-    maxSize: 4 * 1024 * 1024, // 4MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: true,
-  },
-  banners: {
-    maxSize: 8 * 1024 * 1024, // 8MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    requireAdmin: true,
-  },
-  blog: {
-    maxSize: 4 * 1024 * 1024, // 4MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    requireAdmin: true,
-  },
-  categories: {
-    maxSize: 2 * 1024 * 1024, // 2MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: true,
-  },
-  favicon: {
-    maxSize: 512 * 1024, // 512KB
-    allowedTypes: ["image/jpeg", "image/png", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"],
-    requireAdmin: true,
-  },
-  avatars: {
-    maxSize: 2 * 1024 * 1024, // 2MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
-    requireAdmin: false, // Users can upload their own avatars
-  },
-  casting: {
-    maxSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
-    requireAdmin: false, // Public casting form
-  },
-}
-
-// Extension by MIME type
-const EXTENSIONS: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-  "image/gif": ".gif",
-  "image/svg+xml": ".svg",
-  "image/x-icon": ".ico",
-  "image/vnd.microsoft.icon": ".ico",
-  "video/mp4": ".mp4",
-  "video/webm": ".webm",
-  "application/pdf": ".pdf",
-}
+import { uploadFile, deleteFile, FOLDER_CONFIG } from "@/lib/storage"
 
 export async function POST(request: NextRequest) {
   try {
@@ -135,29 +60,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique filename
-    const ext = EXTENSIONS[file.type] || ".bin"
-    const filename = `${randomUUID()}${ext}`
+    // Upload file (uses Vercel Blob in production, local in development)
+    const result = await uploadFile(file, folder)
 
-    // Ensure directory exists
-    const uploadDir = path.join(process.cwd(), "private", folder)
-    await mkdir(uploadDir, { recursive: true })
-
-    // Write file
-    const filePath = path.join(uploadDir, filename)
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filePath, buffer)
-
-    // Return the URL path to access the file
-    const url = `/api/files/${folder}/${filename}`
-
-    return NextResponse.json({
-      url,
-      filename,
-      size: file.size,
-      type: file.type,
-    })
+    return NextResponse.json(result)
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(
@@ -168,8 +74,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * DELETE - Eliminar archivo local
- * Body: { url: string } - La URL del archivo a eliminar (ej: /api/files/thumbnails/abc123.jpg)
+ * DELETE - Eliminar archivo
+ * Body: { url: string } - La URL del archivo a eliminar
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -194,42 +100,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "URL no proporcionada" }, { status: 400 })
     }
 
-    // Parse the URL to get folder and filename
-    // Expected format: /api/files/{folder}/{filename}
-    const match = url.match(/^\/api\/files\/([^/]+)\/([^/]+)$/)
-    if (!match) {
-      // Not a local file URL, ignore
-      return NextResponse.json({ success: true, message: "No es un archivo local" })
-    }
+    const deleted = await deleteFile(url)
 
-    const [, folder, filename] = match
-
-    // Validate folder exists in config
-    if (!FOLDER_CONFIG[folder]) {
-      return NextResponse.json({ error: "Carpeta no válida" }, { status: 400 })
-    }
-
-    // Construct file path
-    const filePath = path.join(process.cwd(), "private", folder, filename)
-
-    // Security: ensure the path is within the private directory
-    const privatePath = path.join(process.cwd(), "private")
-    const resolvedPath = path.resolve(filePath)
-    if (!resolvedPath.startsWith(privatePath)) {
-      return NextResponse.json({ error: "Ruta no válida" }, { status: 400 })
-    }
-
-    // Check if file exists and delete it
-    try {
-      await access(filePath)
-      await unlink(filePath)
-      console.log(`Deleted local file: ${filePath}`)
-    } catch {
-      // File doesn't exist, that's okay
-      console.log(`File not found (already deleted?): ${filePath}`)
-    }
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      deleted,
+      message: deleted ? "Archivo eliminado" : "No se pudo eliminar o no existía"
+    })
   } catch (error) {
     console.error("Error deleting file:", error)
     return NextResponse.json(

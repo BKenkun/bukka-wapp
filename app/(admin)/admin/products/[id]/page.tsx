@@ -14,7 +14,7 @@ interface Props {
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params
 
-  const [productRaw, performers, categories] = await Promise.all([
+  const [productRaw, performers, categories, attributes] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
       include: {
@@ -43,6 +43,17 @@ export default async function EditProductPage({ params }: Props) {
     prisma.shopCategory.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
+    }),
+    prisma.attribute.findMany({
+      where: { isActive: true },
+      orderBy: { order: "asc" },
+      include: {
+        values: {
+          where: { isActive: true },
+          orderBy: { order: "asc" },
+          select: { id: true, value: true, slug: true, colorHex: true },
+        },
+      },
     }),
   ])
 
@@ -78,6 +89,8 @@ export default async function EditProductPage({ params }: Props) {
     ...product,
     price: Number(product.price),
     compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+    weight: product.weight ? Number(product.weight) : null,
+    productType: product.productType || "SIMPLE",
   }
 
   return (
@@ -180,6 +193,7 @@ export default async function EditProductPage({ params }: Props) {
         product={formattedProduct}
         performers={performers}
         categories={categories}
+        attributes={attributes}
       />
     </div>
   )

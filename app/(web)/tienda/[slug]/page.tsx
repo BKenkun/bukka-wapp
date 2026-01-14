@@ -18,7 +18,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const product = await prisma.product.findUnique({
     where: { slug, status: "ACTIVE" },
     include: {
-      performer: {
+      Performer: {
         select: {
           id: true,
           slug: true,
@@ -26,14 +26,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           profileImage: true,
         },
       },
-      categories: {
+      ProductToCategory: {
         include: {
-          category: {
+          ShopCategory: {
             select: { id: true, slug: true, name: true },
           },
         },
       },
-      videos: {
+      VideoProduct: {
         include: {
           video: {
             select: {
@@ -45,6 +45,20 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           },
         },
         take: 4,
+      },
+      // For VARIABLE products, get associated attributes
+      attributes: {
+        include: {
+          attribute: {
+            include: {
+              values: {
+                where: { isActive: true },
+                orderBy: { order: "asc" },
+              },
+            },
+          },
+        },
+        orderBy: { order: "asc" },
       },
     },
   })
@@ -60,11 +74,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       id: { not: product.id },
       OR: [
         product.performerId ? { performerId: product.performerId } : {},
-        product.categories.length > 0
+        product.ProductToCategory.length > 0
           ? {
-              categories: {
+              ProductToCategory: {
                 some: {
-                  categoryId: { in: product.categories.map((c) => c.categoryId) },
+                  categoryId: { in: product.ProductToCategory.map((c) => c.categoryId) },
                 },
               },
             }
@@ -73,7 +87,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     },
     take: 4,
     include: {
-      performer: {
+      Performer: {
         select: { name: true },
       },
     },
@@ -87,6 +101,23 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const discountPercent = hasDiscount
     ? Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)
     : 0
+
+  // Transform attributes for the variant selector component
+  const productAttributes = product.attributes.map((pa) => ({
+    id: pa.attribute.id,
+    name: pa.attribute.name,
+    slug: pa.attribute.slug,
+    type: pa.attribute.type as "SELECT" | "COLOR" | "IMAGE",
+    values: pa.attribute.values.map((v) => ({
+      id: v.id,
+      value: v.value,
+      slug: v.slug,
+      colorHex: v.colorHex,
+      imageUrl: v.imageUrl,
+    })),
+  }))
+
+  const isVariable = product.productType === "VARIABLE"
 
   return (
     <main className="flex-1 flex flex-col bg-black text-white">
@@ -102,15 +133,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           {/* Right Side - Product Info */}
           <div className="flex flex-col space-y-6">
             {/* Categories */}
-            {product.categories.length > 0 && (
+            {product.ProductToCategory.length > 0 && (
               <div className="flex gap-2 flex-wrap">
-                {product.categories.map(({ category }) => (
+                {product.ProductToCategory.map(({ ShopCategory }) => (
                   <Link
-                    key={category.id}
-                    href={`/tienda?category=${category.slug}`}
+                    key={ShopCategory.id}
+                    href={`/tienda?category=${ShopCategory.slug}`}
                     className="text-sm px-3 py-1 bg-gray-800 hover:bg-gray-700 transition-colors"
                   >
-                    {category.name}
+                    {ShopCategory.name}
                   </Link>
                 ))}
               </div>
@@ -144,15 +175,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             )}
 
             {/* Performer Badge */}
-            {product.performer && (
+            {product.Performer && (
               <Link
-                href={`/modelos/${product.performer.slug}`}
+                href={`/modelos/${product.Performer.slug}`}
                 className="flex items-center gap-3 p-3 bg-gray-900 hover:bg-gray-800 transition-colors w-fit"
               >
-                {product.performer.profileImage && (
+                {product.Performer.profileImage && (
                   <Image
-                    src={product.performer.profileImage}
-                    alt={product.performer.name}
+                    src={product.Performer.profileImage}
+                    alt={product.Performer.name}
                     width={40}
                     height={40}
                     className="rounded-full object-cover"
@@ -160,7 +191,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 )}
                 <div>
                   <p className="text-xs text-white/60">Producto de</p>
-                  <p className="text-sm font-medium text-[#00B1DE]">{product.performer.name}</p>
+                  <p className="text-sm font-medium text-[#00B1DE]">{product.Performer.name}</p>
                 </div>
               </Link>
             )}
@@ -242,16 +273,21 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             {/* Add to Cart Button */}
             <ProductAddToCart
               productId={product.id}
+              productSlug={product.slug}
+              productType={isVariable ? "VARIABLE" : "SIMPLE"}
               stock={product.stock}
               trackInventory={product.trackInventory}
+              basePrice={Number(product.price)}
+              compareAtPrice={product.compareAtPrice ? Number(product.compareAtPrice) : null}
+              attributes={productAttributes}
             />
 
             {/* Related Videos */}
-            {product.videos.length > 0 && (
+            {product.VideoProduct.length > 0 && (
               <div className="pt-6 border-t border-gray-800">
                 <h3 className="text-lg font-semibold mb-4">Aparece en estos videos</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {product.videos.map(({ video }) => (
+                  {product.VideoProduct.map(({ video }) => (
                     <Link
                       key={video.id}
                       href={`/videos/${video.slug}`}
@@ -308,8 +344,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   <h3 className="text-sm font-medium line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
                     {relProduct.name}
                   </h3>
-                  {relProduct.performer && (
-                    <p className="text-xs text-white/60">{relProduct.performer.name}</p>
+                  {relProduct.Performer && (
+                    <p className="text-xs text-white/60">{relProduct.Performer.name}</p>
                   )}
                   <p className="text-sm font-bold mt-1">{Number(relProduct.price).toFixed(2)}€</p>
                 </Link>

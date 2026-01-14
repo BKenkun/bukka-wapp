@@ -105,6 +105,9 @@ const createOrderSchema = z.object({
   shippingAddress: shippingAddressSchema,
   billingAddress: shippingAddressSchema.optional(),
   sameAsBilling: z.boolean().default(true),
+  shippingRateId: z.string().optional(),
+  shippingMethod: z.string().optional(),
+  shippingCost: z.number().min(0).default(0),
 })
 
 // POST - Crear orden desde el carrito
@@ -125,7 +128,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { shippingAddress, billingAddress, sameAsBilling } = validatedData.data
+    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost } = validatedData.data
 
     // Get cart with items
     const cart = await prisma.cart.findUnique({
@@ -136,11 +139,32 @@ export async function POST(request: NextRequest) {
             product: {
               select: {
                 id: true,
+                name: true,
                 price: true,
                 stock: true,
                 trackInventory: true,
                 status: true,
                 riskLevel: true,
+                productType: true,
+              },
+            },
+            variant: {
+              select: {
+                id: true,
+                price: true,
+                stock: true,
+                isActive: true,
+                attributeValues: {
+                  include: {
+                    attributeValue: {
+                      include: {
+                        attribute: {
+                          select: { name: true },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -159,15 +183,39 @@ export async function POST(request: NextRequest) {
     for (const item of cart.items) {
       if (item.product.status !== "ACTIVE") {
         return NextResponse.json(
-          { error: `Product ${item.product.id} is not available` },
+          { error: `Product "${item.product.name}" is not available` },
           { status: 400 }
         )
       }
-      if (item.product.trackInventory && item.product.stock < item.quantity) {
-        return NextResponse.json(
-          { error: `Not enough stock for product ${item.product.id}` },
-          { status: 400 }
-        )
+
+      // For variable products, check variant availability and stock
+      if (item.product.productType === "VARIABLE") {
+        if (!item.variant) {
+          return NextResponse.json(
+            { error: `Variant required for "${item.product.name}"` },
+            { status: 400 }
+          )
+        }
+        if (!item.variant.isActive) {
+          return NextResponse.json(
+            { error: `Selected variant for "${item.product.name}" is no longer available` },
+            { status: 400 }
+          )
+        }
+        if (item.product.trackInventory && item.variant.stock < item.quantity) {
+          return NextResponse.json(
+            { error: `Not enough stock for "${item.product.name}"` },
+            { status: 400 }
+          )
+        }
+      } else {
+        // Simple product stock check
+        if (item.product.trackInventory && item.product.stock < item.quantity) {
+          return NextResponse.json(
+            { error: `Not enough stock for "${item.product.name}"` },
+            { status: 400 }
+          )
+        }
       }
     }
 
@@ -179,14 +227,14 @@ export async function POST(request: NextRequest) {
 
     const discountPercent = user?.SubscriptionPlan?.shopDiscount || 0
 
-    // Calculate totals
-    const subtotal = cart.items.reduce(
-      (sum, item) => sum + Number(item.product.price) * item.quantity,
-      0
-    )
+    // Calculate totals - use variant price when applicable
+    const subtotal = cart.items.reduce((sum, item) => {
+      const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product.price)
+      return sum + itemPrice * item.quantity
+    }, 0)
     const discount = (subtotal * discountPercent) / 100
     const tax = 0 // Could calculate based on shipping address
-    const shipping = 0 // Could calculate based on shipping address
+    const shipping = shippingCost // Use shipping cost from request
     const total = subtotal - discount + tax + shipping
 
     // Determine order risk level (highest risk of any product)
@@ -214,12 +262,30 @@ export async function POST(request: NextRequest) {
           riskLevel: riskLevel as "LOW_RISK" | "HIGH_RISK",
           shippingAddress: shippingAddress as object,
           billingAddress: (sameAsBilling ? shippingAddress : billingAddress) as object,
+          shippingMethod: shippingMethod || null,
           items: {
-            create: cart.items.map((item) => ({
-              productId: item.product.id,
-              quantity: item.quantity,
-              price: item.product.price,
-            })),
+            create: cart.items.map((item) => {
+              // Build variant snapshot for variable products
+              const variantSnapshot = item.variant
+                ? Object.fromEntries(
+                    item.variant.attributeValues.map((av) => [
+                      av.attributeValue.attribute.name,
+                      av.attributeValue.value,
+                    ])
+                  )
+                : null
+
+              // Use variant price if available
+              const itemPrice = item.variant ? item.variant.price : item.product.price
+
+              return {
+                productId: item.product.id,
+                variantId: item.variantId || null,
+                quantity: item.quantity,
+                price: itemPrice,
+                variantSnapshot: variantSnapshot,
+              }
+            }),
           },
         },
         include: {
@@ -236,10 +302,19 @@ export async function POST(request: NextRequest) {
       // Update stock for tracked inventory products
       for (const item of cart.items) {
         if (item.product.trackInventory) {
-          await tx.product.update({
-            where: { id: item.product.id },
-            data: { stock: { decrement: item.quantity } },
-          })
+          if (item.variant) {
+            // Decrement variant stock for variable products
+            await tx.productVariant.update({
+              where: { id: item.variant.id },
+              data: { stock: { decrement: item.quantity } },
+            })
+          } else {
+            // Decrement product stock for simple products
+            await tx.product.update({
+              where: { id: item.product.id },
+              data: { stock: { decrement: item.quantity } },
+            })
+          }
         }
       }
 

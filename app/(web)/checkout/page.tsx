@@ -6,16 +6,21 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
+import { ShippingCalculator, FreeShippingProgress } from "@/components/checkout/shipping-calculator"
 
 interface CartItem {
   id: string
   quantity: number
+  variantId: string | null
+  variantLabel: string | null
   product: {
     id: string
     slug: string
     name: string
     price: number
     imageUrl: string | null
+    available: boolean
+    productType: "SIMPLE" | "VARIABLE"
   }
 }
 
@@ -27,6 +32,17 @@ interface CartData {
   discount: number
   discountPercent: number
   total: number
+}
+
+interface ShippingRate {
+  id: string
+  name: string
+  description: string | null
+  originalPrice: number
+  price: number
+  isFree: boolean
+  estimatedDays: number | null
+  isAvailable: boolean
 }
 
 interface ShippingAddress {
@@ -60,6 +76,7 @@ export default function CheckoutPage() {
   })
 
   const [paymentMethod, setPaymentMethod] = useState<string>("card")
+  const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -114,8 +131,17 @@ export default function CheckoutPage() {
       toast.error("Por favor completa todos los campos obligatorios")
       return
     }
+    // Validate shipping rate selection
+    if (!selectedShippingRate) {
+      toast.error("Por favor selecciona un metodo de envio")
+      return
+    }
     setStep("payment")
   }
+
+  // Calculate totals with shipping
+  const shippingCost = selectedShippingRate?.price ?? 0
+  const grandTotal = (cart?.total ?? 0) + shippingCost
 
   const handlePlaceOrder = async () => {
     setSubmitting(true)
@@ -127,6 +153,9 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           shippingAddress,
           paymentGateway: paymentMethod,
+          shippingRateId: selectedShippingRate?.id,
+          shippingMethod: selectedShippingRate?.name,
+          shippingCost: selectedShippingRate?.price ?? 0,
           notes: "",
         }),
       })
@@ -356,9 +385,25 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* Shipping Calculator */}
+                <div className="mt-6 pt-6 border-t border-gray-700">
+                  <h3 className="text-lg font-bold text-white mb-4">Opciones de Envio</h3>
+                  <ShippingCalculator
+                    postalCode={shippingAddress.postalCode}
+                    country={shippingAddress.country}
+                    subtotal={cart?.total ?? 0}
+                    onPostalCodeChange={(pc) =>
+                      setShippingAddress({ ...shippingAddress, postalCode: pc })
+                    }
+                    onShippingRateSelect={setSelectedShippingRate}
+                    selectedRateId={selectedShippingRate?.id}
+                  />
+                </div>
+
                 <button
                   type="submit"
-                  className="mt-6 w-full bg-[#FA4860] text-white font-semibold py-3 hover:bg-[#e8415a] transition-colors"
+                  disabled={!selectedShippingRate}
+                  className="mt-6 w-full bg-[#FA4860] text-white font-semibold py-3 hover:bg-[#e8415a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continuar al Pago
                 </button>
@@ -381,6 +426,15 @@ export default function CheckoutPage() {
                       <p className="text-gray-400 text-sm">
                         {shippingAddress.postalCode} {shippingAddress.city}
                       </p>
+                      {selectedShippingRate && (
+                        <div className="mt-3 pt-3 border-t border-gray-700">
+                          <p className="text-gray-400 text-sm mb-1">Metodo de envio:</p>
+                          <p className="text-white">{selectedShippingRate.name}</p>
+                          <p className="text-[#FA4860] font-medium">
+                            {selectedShippingRate.isFree ? "GRATIS" : `${selectedShippingRate.price.toFixed(2)} €`}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => setStep("shipping")}
@@ -508,7 +562,7 @@ export default function CheckoutPage() {
               {/* Cart Items */}
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
                 {cart?.items.map((item) => (
-                  <div key={item.id} className="flex gap-3">
+                  <div key={item.id} className={`flex gap-3 ${!item.product.available ? "opacity-50" : ""}`}>
                     <div className="relative w-16 h-16 flex-shrink-0">
                       <Image
                         src={item.product.imageUrl || "/placeholder.jpg"}
@@ -522,7 +576,13 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-white text-sm font-medium truncate">{item.product.name}</h4>
+                      {item.variantLabel && (
+                        <p className="text-gray-500 text-xs truncate">{item.variantLabel}</p>
+                      )}
                       <p className="text-gray-400 text-sm">{item.product.price.toFixed(2)} €</p>
+                      {!item.product.available && (
+                        <p className="text-red-500 text-xs">No disponible</p>
+                      )}
                     </div>
                     <div className="text-white font-medium">
                       {(item.product.price * item.quantity).toFixed(2)} €
@@ -546,13 +606,19 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-gray-400">
                   <span>Envio</span>
-                  <span className="text-white">Gratis</span>
+                  {selectedShippingRate ? (
+                    <span className={selectedShippingRate.isFree ? "text-green-500" : "text-white"}>
+                      {selectedShippingRate.isFree ? "GRATIS" : `${shippingCost.toFixed(2)} €`}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-sm">Selecciona codigo postal</span>
+                  )}
                 </div>
 
                 <div className="border-t border-gray-700 pt-3">
                   <div className="flex justify-between text-white font-bold text-xl">
                     <span>Total</span>
-                    <span>{cart?.total.toFixed(2)} €</span>
+                    <span>{grandTotal.toFixed(2)} €</span>
                   </div>
                 </div>
               </div>

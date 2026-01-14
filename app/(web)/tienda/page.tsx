@@ -64,7 +64,7 @@ export default async function TiendaPage({
       take: pageSize,
       orderBy,
       include: {
-        performer: {
+        Performer: {
           select: { name: true, slug: true },
         },
       },
@@ -226,7 +226,7 @@ export default async function TiendaPage({
                   images: product.images,
                   stock: product.stock,
                   trackInventory: product.trackInventory,
-                  performer: product.performer,
+                  performer: product.Performer,
                 }}
               />
             ))}

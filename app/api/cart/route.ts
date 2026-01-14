@@ -28,6 +28,29 @@ export async function GET() {
                 stock: true,
                 trackInventory: true,
                 status: true,
+                productType: true,
+              },
+            },
+            variant: {
+              select: {
+                id: true,
+                sku: true,
+                price: true,
+                compareAtPrice: true,
+                stock: true,
+                imageUrl: true,
+                isActive: true,
+                attributeValues: {
+                  include: {
+                    attributeValue: {
+                      include: {
+                        attribute: {
+                          select: { name: true },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -36,30 +59,69 @@ export async function GET() {
     })
 
     if (!cart) {
-      cart = await prisma.cart.create({
+      // Create cart with same include structure as findUnique
+      const newCart = await prisma.cart.create({
         data: { userId: session.user.id },
-        include: { items: { include: { product: true } } },
+      })
+      // Return empty cart immediately since it has no items
+      return NextResponse.json({
+        cart: {
+          id: newCart.id,
+          items: [],
+          itemCount: 0,
+          subtotal: 0,
+          discount: 0,
+          discountPercent: 0,
+          total: 0,
+        },
       })
     }
 
     // Transform cart items
-    const items = cart.items.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      product: {
-        id: item.product.id,
-        slug: item.product.slug,
-        name: item.product.name,
-        price: Number(item.product.price),
-        compareAtPrice: item.product.compareAtPrice
-          ? Number(item.product.compareAtPrice)
-          : null,
-        imageUrl: item.product.images[0] || null,
-        stock: item.product.stock,
-        available: item.product.status === "ACTIVE" &&
-          (!item.product.trackInventory || item.product.stock > 0),
-      },
-    }))
+    const items = cart.items.map((item) => {
+      const hasVariant = item.variant !== null
+      const variant = item.variant
+
+      // Build variant label like "Talla: M, Color: Rojo"
+      const variantLabel = variant
+        ? variant.attributeValues
+            .map((av) => `${av.attributeValue.attribute.name}: ${av.attributeValue.value}`)
+            .join(", ")
+        : null
+
+      // Use variant price/stock if available
+      const price = hasVariant ? Number(variant!.price) : Number(item.product.price)
+      const compareAtPrice = hasVariant
+        ? variant!.compareAtPrice ? Number(variant!.compareAtPrice) : null
+        : item.product.compareAtPrice ? Number(item.product.compareAtPrice) : null
+      const stock = hasVariant ? variant!.stock : item.product.stock
+      const imageUrl = hasVariant && variant!.imageUrl
+        ? variant!.imageUrl
+        : item.product.images[0] || null
+
+      // Check availability
+      const isAvailable = item.product.status === "ACTIVE" &&
+        (!item.product.trackInventory || stock > 0) &&
+        (!hasVariant || variant!.isActive)
+
+      return {
+        id: item.id,
+        quantity: item.quantity,
+        variantId: item.variantId,
+        variantLabel,
+        product: {
+          id: item.product.id,
+          slug: item.product.slug,
+          name: item.product.name,
+          price,
+          compareAtPrice,
+          imageUrl,
+          stock,
+          available: isAvailable,
+          productType: item.product.productType,
+        },
+      }
+    })
 
     // Calculate totals
     const subtotal = items.reduce(
@@ -101,6 +163,7 @@ export async function GET() {
 const addToCartSchema = z.object({
   productId: z.string(),
   quantity: z.number().int().min(1).default(1),
+  variantId: z.string().nullable().optional(),
 })
 
 // POST - Añadir item al carrito
@@ -121,12 +184,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { productId, quantity } = validatedData.data
+    const { productId, quantity, variantId } = validatedData.data
 
     // Verify product exists and is available
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      select: { id: true, status: true, stock: true, trackInventory: true },
+      select: {
+        id: true,
+        status: true,
+        stock: true,
+        trackInventory: true,
+        productType: true,
+      },
     })
 
     if (!product) {
@@ -140,7 +209,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (product.trackInventory && product.stock < quantity) {
+    // For VARIABLE products, require a variant
+    if (product.productType === "VARIABLE" && !variantId) {
+      return NextResponse.json(
+        { error: "Variant required for this product" },
+        { status: 400 }
+      )
+    }
+
+    // If variantId provided, verify it exists and belongs to this product
+    let variant = null
+    if (variantId) {
+      variant = await prisma.productVariant.findUnique({
+        where: { id: variantId },
+        select: { id: true, productId: true, stock: true, isActive: true },
+      })
+
+      if (!variant || variant.productId !== productId) {
+        return NextResponse.json(
+          { error: "Variant not found" },
+          { status: 404 }
+        )
+      }
+
+      if (!variant.isActive) {
+        return NextResponse.json(
+          { error: "Variant not available" },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Check stock - use variant stock for variable products, product stock for simple
+    const stockToCheck = variant ? variant.stock : product.stock
+    if (product.trackInventory && stockToCheck < quantity) {
       return NextResponse.json(
         { error: "Not enough stock" },
         { status: 400 }
@@ -158,13 +260,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check if item already in cart
-    const existingItem = await prisma.cartItem.findUnique({
+    // Check if item already in cart (same product + variant combination)
+    const actualVariantId = variantId ?? null
+    const existingItem = await prisma.cartItem.findFirst({
       where: {
-        cartId_productId: {
-          cartId: cart.id,
-          productId,
-        },
+        cartId: cart.id,
+        productId,
+        variantId: actualVariantId,
       },
     })
 
@@ -172,7 +274,7 @@ export async function POST(request: NextRequest) {
       // Update quantity
       const newQuantity = existingItem.quantity + quantity
 
-      if (product.trackInventory && product.stock < newQuantity) {
+      if (product.trackInventory && stockToCheck < newQuantity) {
         return NextResponse.json(
           { error: "Not enough stock" },
           { status: 400 }
@@ -189,6 +291,7 @@ export async function POST(request: NextRequest) {
         data: {
           cartId: cart.id,
           productId,
+          variantId: actualVariantId,
           quantity,
         },
       })
@@ -235,6 +338,7 @@ export async function PATCH(request: NextRequest) {
       include: {
         cart: { select: { userId: true } },
         product: { select: { stock: true, trackInventory: true } },
+        variant: { select: { stock: true } },
       },
     })
 
@@ -248,8 +352,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "Item removed" })
     }
 
-    // Check stock
-    if (item.product.trackInventory && item.product.stock < quantity) {
+    // Check stock - use variant stock if available
+    const stockToCheck = item.variant ? item.variant.stock : item.product.stock
+    if (item.product.trackInventory && stockToCheck < quantity) {
       return NextResponse.json(
         { error: "Not enough stock" },
         { status: 400 }

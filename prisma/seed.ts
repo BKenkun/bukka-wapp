@@ -293,6 +293,7 @@ async function main() {
     where: { email: "admin@bukkakery.com" },
     update: {
       isAdmin: true,
+      adminRole: "GLOBAL_ADMIN",
       isVerified: true,
       subscriptionPlanId: planIdsBySlug["diamond"],
     },
@@ -302,6 +303,7 @@ async function main() {
       name: "Admin",
       username: "admin",
       isAdmin: true,
+      adminRole: "GLOBAL_ADMIN",
       isVerified: true,
       subscriptionPlanId: planIdsBySlug["diamond"],
       emailVerified: new Date(),
@@ -569,6 +571,314 @@ async function main() {
       })
     }
   }
+
+  // 10. Attributes for Products
+  console.log("🎨 Creating product attributes...")
+
+  const attributesData = [
+    {
+      slug: "talla",
+      name: "Talla",
+      type: "SELECT" as const,
+      order: 1,
+      values: [
+        { slug: "xs", value: "XS", order: 1 },
+        { slug: "s", value: "S", order: 2 },
+        { slug: "m", value: "M", order: 3 },
+        { slug: "l", value: "L", order: 4 },
+        { slug: "xl", value: "XL", order: 5 },
+        { slug: "xxl", value: "XXL", order: 6 },
+      ],
+    },
+    {
+      slug: "color",
+      name: "Color",
+      type: "COLOR" as const,
+      order: 2,
+      values: [
+        { slug: "negro", value: "Negro", colorHex: "#000000", order: 1 },
+        { slug: "blanco", value: "Blanco", colorHex: "#FFFFFF", order: 2 },
+        { slug: "rojo", value: "Rojo", colorHex: "#FF0000", order: 3 },
+        { slug: "azul", value: "Azul", colorHex: "#0000FF", order: 4 },
+        { slug: "rosa", value: "Rosa", colorHex: "#FF69B4", order: 5 },
+      ],
+    },
+    {
+      slug: "material",
+      name: "Material",
+      type: "SELECT" as const,
+      order: 3,
+      values: [
+        { slug: "algodon", value: "Algodón 100%", order: 1 },
+        { slug: "poliester", value: "Poliéster", order: 2 },
+        { slug: "mixto", value: "Mixto (50/50)", order: 3 },
+      ],
+    },
+  ]
+
+  const attributeIdsBySlug: Record<string, string> = {}
+  const valueIdsBySlug: Record<string, string> = {}
+
+  for (const attr of attributesData) {
+    const createdAttr = await prisma.attribute.upsert({
+      where: { slug: attr.slug },
+      update: { name: attr.name, type: attr.type, order: attr.order },
+      create: { slug: attr.slug, name: attr.name, type: attr.type, order: attr.order },
+    })
+    attributeIdsBySlug[attr.slug] = createdAttr.id
+
+    for (const val of attr.values) {
+      const createdVal = await prisma.attributeValue.upsert({
+        where: { attributeId_slug: { attributeId: createdAttr.id, slug: val.slug } },
+        update: { value: val.value, colorHex: "colorHex" in val ? val.colorHex : null, order: val.order },
+        create: {
+          attributeId: createdAttr.id,
+          slug: val.slug,
+          value: val.value,
+          colorHex: "colorHex" in val ? val.colorHex : null,
+          order: val.order,
+        },
+      })
+      valueIdsBySlug[`${attr.slug}-${val.slug}`] = createdVal.id
+    }
+  }
+
+  // 11. Sample Product with Variants
+  console.log("👕 Creating sample product with variants...")
+
+  const ropaCategory = await prisma.shopCategory.findUnique({ where: { slug: "ropa" } })
+
+  // Create a variable product
+  const camiseta = await prisma.product.upsert({
+    where: { slug: "camiseta-bukkakery-classic" },
+    update: {},
+    create: {
+      slug: "camiseta-bukkakery-classic",
+      name: "Camiseta Bukkakery Classic",
+      description: "La camiseta oficial de Bukkakery. 100% algodón, corte clásico.\n\nDisponible en múltiples tallas y colores.",
+      productType: "VARIABLE",
+      price: 29.99,
+      compareAtPrice: 39.99,
+      sku: "CAM-CLASSIC",
+      stock: 0, // Variable products use variant stock
+      trackInventory: true,
+      images: ["/images/placeholder-product.jpg"],
+      status: "ACTIVE",
+    },
+  })
+
+  // Add product to category
+  if (ropaCategory) {
+    await prisma.productToCategory.upsert({
+      where: { productId_categoryId: { productId: camiseta.id, categoryId: ropaCategory.id } },
+      update: {},
+      create: { productId: camiseta.id, categoryId: ropaCategory.id },
+    })
+  }
+
+  // Associate attributes with product
+  await prisma.productAttribute.upsert({
+    where: { productId_attributeId: { productId: camiseta.id, attributeId: attributeIdsBySlug["talla"] } },
+    update: {},
+    create: { productId: camiseta.id, attributeId: attributeIdsBySlug["talla"], order: 1 },
+  })
+
+  await prisma.productAttribute.upsert({
+    where: { productId_attributeId: { productId: camiseta.id, attributeId: attributeIdsBySlug["color"] } },
+    update: {},
+    create: { productId: camiseta.id, attributeId: attributeIdsBySlug["color"], order: 2 },
+  })
+
+  // Create some variants (not all combinations, just a few for testing)
+  const variantsData = [
+    { talla: "s", color: "negro", price: 29.99, stock: 10 },
+    { talla: "m", color: "negro", price: 29.99, stock: 15 },
+    { talla: "l", color: "negro", price: 29.99, stock: 12 },
+    { talla: "s", color: "blanco", price: 29.99, stock: 8 },
+    { talla: "m", color: "blanco", price: 29.99, stock: 20 },
+    { talla: "l", color: "blanco", price: 29.99, stock: 10 },
+    { talla: "m", color: "rojo", price: 32.99, stock: 5 },
+    { talla: "l", color: "rojo", price: 32.99, stock: 3 },
+    { talla: "xl", color: "negro", price: 34.99, stock: 6 },
+    { talla: "xl", color: "blanco", price: 34.99, stock: 4 },
+  ]
+
+  for (const v of variantsData) {
+    const sku = `CAM-${v.talla.toUpperCase()}-${v.color.toUpperCase()}`
+
+    // Check if variant exists
+    const existingVariant = await prisma.productVariant.findUnique({ where: { sku } })
+
+    if (!existingVariant) {
+      const variant = await prisma.productVariant.create({
+        data: {
+          productId: camiseta.id,
+          sku,
+          price: v.price,
+          stock: v.stock,
+          isActive: true,
+        },
+      })
+
+      // Link attribute values
+      await prisma.variantAttributeValue.create({
+        data: {
+          variantId: variant.id,
+          attributeValueId: valueIdsBySlug[`talla-${v.talla}`],
+        },
+      })
+
+      await prisma.variantAttributeValue.create({
+        data: {
+          variantId: variant.id,
+          attributeValueId: valueIdsBySlug[`color-${v.color}`],
+        },
+      })
+    }
+  }
+
+  // 12. Shipping Zones and Rates
+  console.log("🚚 Creating shipping zones and rates...")
+
+  // Shipping Settings
+  await prisma.shippingSettings.upsert({
+    where: { id: "default-settings" },
+    update: {},
+    create: {
+      id: "default-settings",
+      freeShippingEnabled: true,
+      freeShippingThreshold: 50,
+      defaultWeight: 0.5,
+      enableWeightCalculation: false,
+    },
+  })
+
+  // Spain Zone
+  const spainZone = await prisma.shippingZone.upsert({
+    where: { id: "zone-spain" },
+    update: {},
+    create: {
+      id: "zone-spain",
+      name: "España Peninsular",
+      countries: ["ES"],
+      postalCodes: [], // All of Spain
+      isActive: true,
+      order: 1,
+    },
+  })
+
+  // Spain Rates
+  await prisma.shippingRate.upsert({
+    where: { id: "rate-spain-standard" },
+    update: {},
+    create: {
+      id: "rate-spain-standard",
+      zoneId: spainZone.id,
+      name: "Envío Estándar",
+      description: "Entrega en 3-5 días laborables",
+      price: 4.99,
+      freeShippingAmount: 50,
+      estimatedDays: 5,
+      isActive: true,
+      order: 1,
+    },
+  })
+
+  await prisma.shippingRate.upsert({
+    where: { id: "rate-spain-express" },
+    update: {},
+    create: {
+      id: "rate-spain-express",
+      zoneId: spainZone.id,
+      name: "Envío Express",
+      description: "Entrega en 24-48 horas",
+      price: 9.99,
+      estimatedDays: 2,
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  // Madrid Zone (more specific)
+  const madridZone = await prisma.shippingZone.upsert({
+    where: { id: "zone-madrid" },
+    update: {},
+    create: {
+      id: "zone-madrid",
+      name: "Madrid Capital",
+      countries: [],
+      postalCodes: ["28*"], // All Madrid postal codes
+      isActive: true,
+      order: 0, // Higher priority than Spain
+    },
+  })
+
+  await prisma.shippingRate.upsert({
+    where: { id: "rate-madrid-sameday" },
+    update: {},
+    create: {
+      id: "rate-madrid-sameday",
+      zoneId: madridZone.id,
+      name: "Envío Mismo Día",
+      description: "Recíbelo hoy (pedidos antes de las 14h)",
+      price: 7.99,
+      estimatedDays: 0,
+      isActive: true,
+      order: 1,
+    },
+  })
+
+  await prisma.shippingRate.upsert({
+    where: { id: "rate-madrid-standard" },
+    update: {},
+    create: {
+      id: "rate-madrid-standard",
+      zoneId: madridZone.id,
+      name: "Envío Estándar",
+      description: "Entrega en 1-2 días laborables",
+      price: 3.99,
+      freeShippingAmount: 40,
+      estimatedDays: 2,
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  // Europe Zone
+  const europeZone = await prisma.shippingZone.upsert({
+    where: { id: "zone-europe" },
+    update: {},
+    create: {
+      id: "zone-europe",
+      name: "Europa",
+      countries: ["PT", "FR", "DE", "IT", "UK", "NL", "BE"],
+      postalCodes: [],
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  await prisma.shippingRate.upsert({
+    where: { id: "rate-europe-standard" },
+    update: {},
+    create: {
+      id: "rate-europe-standard",
+      zoneId: europeZone.id,
+      name: "Envío Internacional",
+      description: "Entrega en 5-10 días laborables",
+      price: 14.99,
+      freeShippingAmount: 100,
+      estimatedDays: 10,
+      isActive: true,
+      order: 1,
+    },
+  })
+
+  // Update shipping settings with fallback zone
+  await prisma.shippingSettings.update({
+    where: { id: "default-settings" },
+    data: { fallbackZoneId: spainZone.id },
+  })
 
   console.log("✅ Seeding completed!")
 }

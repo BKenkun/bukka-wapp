@@ -5,7 +5,7 @@ import { IconArrowLeft } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 
 export default async function NewProductPage() {
-  const [performers, categories] = await Promise.all([
+  const [performers, categories, attributes] = await Promise.all([
     prisma.performer.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
@@ -13,6 +13,17 @@ export default async function NewProductPage() {
     prisma.shopCategory.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
+    }),
+    prisma.attribute.findMany({
+      where: { isActive: true },
+      orderBy: { order: "asc" },
+      include: {
+        values: {
+          where: { isActive: true },
+          orderBy: { order: "asc" },
+          select: { id: true, value: true, slug: true, colorHex: true },
+        },
+      },
     }),
   ])
 
@@ -31,7 +42,7 @@ export default async function NewProductPage() {
         </p>
       </div>
 
-      <ProductForm performers={performers} categories={categories} />
+      <ProductForm performers={performers} categories={categories} attributes={attributes} />
     </div>
   )
 }
