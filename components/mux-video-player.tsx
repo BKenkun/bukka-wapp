@@ -3,6 +3,7 @@
 import MuxPlayer from "@mux/mux-player-react"
 import { useEffect, useState, useCallback } from "react"
 import { Loader2, Lock, AlertCircle } from "lucide-react"
+import type { VideoAccessLockConfig } from "@/lib/get-video-access-settings"
 
 interface Subtitle {
   language: string
@@ -29,6 +30,7 @@ interface MuxVideoPlayerProps {
   lockedMessage?: string
   requiredTier?: string
   viewerId?: string
+  lockConfig?: VideoAccessLockConfig
 }
 
 interface PlaybackTokenResponse {
@@ -52,10 +54,36 @@ export function MuxVideoPlayer({
   previewMode = false,
   previewDuration = 30,
   locked = false,
-  lockedMessage = "Este contenido requiere una suscripción",
+  lockedMessage,
   requiredTier,
   viewerId,
+  lockConfig,
 }: MuxVideoPlayerProps) {
+  const [isHovering, setIsHovering] = useState(false)
+
+  // Use config values with fallbacks
+  const config = {
+    title: lockConfig?.title ?? "Acceso Denegado",
+    description: lockedMessage ?? lockConfig?.description ?? "Este contenido requiere una suscripción",
+    buttonText: lockConfig?.buttonText ?? "Ver Planes",
+    buttonUrl: lockConfig?.buttonUrl ?? "/suscripciones",
+    backgroundImage: lockConfig?.backgroundImage ?? null,
+    overlaySize: lockConfig?.overlaySize ?? "normal",
+    showTierBadge: lockConfig?.showTierBadge ?? true,
+    // Title styling
+    titleFontSize: lockConfig?.titleFontSize ?? "text-xl",
+    titleFontWeight: lockConfig?.titleFontWeight ?? "font-bold",
+    // Description styling
+    descriptionFontSize: lockConfig?.descriptionFontSize ?? "text-base",
+    descriptionFontWeight: lockConfig?.descriptionFontWeight ?? "font-normal",
+    // Button styling
+    buttonBgColor: lockConfig?.buttonBgColor ?? "#FA4860",
+    buttonHoverBgColor: lockConfig?.buttonHoverBgColor ?? "#e03d53",
+    buttonTextColor: lockConfig?.buttonTextColor ?? "#FFFFFF",
+    buttonBorderRadius: lockConfig?.buttonBorderRadius ?? "rounded-none",
+    buttonPaddingX: lockConfig?.buttonPaddingX ?? "px-6",
+    buttonPaddingY: lockConfig?.buttonPaddingY ?? "py-3",
+  }
   const [playbackToken, setPlaybackToken] = useState<string>()
   const [thumbnailToken, setThumbnailToken] = useState<string>()
   const [loading, setLoading] = useState(true)
@@ -125,30 +153,46 @@ export function MuxVideoPlayer({
 
   // Locked state
   if (locked) {
+    const bgImage = config.backgroundImage || thumbnailUrl
     return (
       <div className="relative aspect-video bg-black">
-        {thumbnailUrl && (
+        {bgImage && (
           <div
             className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${thumbnailUrl})` }}
+            style={{ backgroundImage: `url(${bgImage})` }}
           />
         )}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
           <div className="w-16 h-16 rounded-full bg-[#FA4860]/20 flex items-center justify-center">
             <Lock className="w-8 h-8 text-[#FA4860]" />
           </div>
-          <h3 className="text-xl font-bold text-white">{lockedMessage}</h3>
-          {requiredTier && (
-            <p className="text-gray-400">
-              Requiere suscripción <span className="text-[#FA4860] font-semibold">{requiredTier}</span> o superior
+          <div className="max-w-md space-y-4">
+            <h3 className={`text-white ${config.titleFontSize} ${config.titleFontWeight}`}>
+              {config.title}
+            </h3>
+            <p className={`text-white/80 ${config.descriptionFontSize} ${config.descriptionFontWeight}`}>
+              {config.description}
             </p>
-          )}
-          <a
-            href="/suscripcion"
-            className="mt-4 px-6 py-3 bg-[#FA4860] text-white font-bold uppercase hover:bg-[#FA4860]/90 transition-colors"
-          >
-            Ver Planes
-          </a>
+            {config.showTierBadge && requiredTier && (
+              <p className="text-gray-400 text-sm">
+                Requiere suscripción{" "}
+                <span className="text-[#FA4860] font-semibold">{requiredTier}</span> o
+                superior
+              </p>
+            )}
+            <a
+              href={config.buttonUrl}
+              className={`inline-block mt-4 font-semibold transition-colors cursor-pointer ${config.buttonPaddingX} ${config.buttonPaddingY} ${config.buttonBorderRadius}`}
+              style={{
+                backgroundColor: isHovering ? config.buttonHoverBgColor : config.buttonBgColor,
+                color: config.buttonTextColor,
+              }}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+            >
+              {config.buttonText}
+            </a>
+          </div>
         </div>
       </div>
     )

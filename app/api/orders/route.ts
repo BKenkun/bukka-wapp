@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { sendTemplateEmail, OrderConfirmationTemplate } from "@/lib/email"
 
 // GET - Listar órdenes del usuario
 export async function GET(request: NextRequest) {
@@ -324,6 +325,44 @@ export async function POST(request: NextRequest) {
       })
 
       return newOrder
+    })
+
+    // Send order confirmation email
+    const shippingAddr = shippingAddress as {
+      firstName: string
+      lastName: string
+      address: string
+      city: string
+      postalCode: string
+      country: string
+    }
+
+    await sendTemplateEmail({
+      to: user!.email,
+      template: "orders/confirmation",
+      subjectVariables: { orderNumber: order.orderNumber },
+      react: OrderConfirmationTemplate({
+        customerName: user!.name || shippingAddr.firstName,
+        orderNumber: order.orderNumber,
+        items: order.items.map((item) => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          price: Number(item.price),
+          imageUrl: item.product.images[0],
+        })),
+        subtotal: Number(order.subtotal),
+        shipping: Number(order.shipping),
+        discount: Number(order.discount),
+        total: Number(order.total),
+        shippingAddress: {
+          name: `${shippingAddr.firstName} ${shippingAddr.lastName}`,
+          address: shippingAddr.address,
+          city: shippingAddr.city,
+          postalCode: shippingAddr.postalCode,
+          country: shippingAddr.country,
+        },
+      }),
+      metadata: { orderId: order.id, orderNumber: order.orderNumber },
     })
 
     return NextResponse.json({

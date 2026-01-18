@@ -3,10 +3,10 @@
 import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useState } from "react"
 
-const VISITOR_TRAILER_LIMIT = 3
-const VISITOR_TRAILERS_KEY = "bukka_visitor_trailers"
+const TRAILER_LIMIT = 3
+const TRAILERS_KEY = "bukka_trailers_viewed"
 
-interface VisitorTrailerData {
+interface TrailerData {
   viewedIds: string[]
   lastReset: number
 }
@@ -16,28 +16,28 @@ interface VisitorTrailerData {
  */
 export function useSubscription() {
   const { data: session, status } = useSession()
-  const [visitorTrailers, setVisitorTrailers] = useState<string[]>([])
+  const [viewedTrailers, setViewedTrailers] = useState<string[]>([])
 
-  // Load visitor trailers from localStorage
+  // Load trailer views from localStorage
   useEffect(() => {
     if (typeof window === "undefined") return
 
     try {
-      const stored = localStorage.getItem(VISITOR_TRAILERS_KEY)
+      const stored = localStorage.getItem(TRAILERS_KEY)
       if (stored) {
-        const data: VisitorTrailerData = JSON.parse(stored)
+        const data: TrailerData = JSON.parse(stored)
         // Reset if older than 24 hours
         const dayInMs = 24 * 60 * 60 * 1000
         if (Date.now() - data.lastReset > dayInMs) {
-          localStorage.removeItem(VISITOR_TRAILERS_KEY)
-          setVisitorTrailers([])
+          localStorage.removeItem(TRAILERS_KEY)
+          setViewedTrailers([])
         } else {
-          setVisitorTrailers(data.viewedIds)
+          setViewedTrailers(data.viewedIds)
         }
       }
     } catch {
       // Invalid data, clear it
-      localStorage.removeItem(VISITOR_TRAILERS_KEY)
+      localStorage.removeItem(TRAILERS_KEY)
     }
   }, [])
 
@@ -46,50 +46,57 @@ export function useSubscription() {
   const plan = session?.user?.SubscriptionPlan
 
   /**
-   * Track a trailer view for visitors
+   * Check if user should have limited trailers
+   * Visitante (L0) and Free (L1) have the 3 trailer limit
+   * Premium+ (L2+) have unlimited trailers
+   */
+  const shouldLimitTrailers = !isAuthenticated || (plan?.level ?? 0) <= 1
+
+  /**
+   * Track a trailer view for limited users (Visitante/Free)
    */
   const trackTrailerView = useCallback((videoId: string) => {
-    if (isAuthenticated) return true // Authenticated users can view unlimited trailers
+    if (!shouldLimitTrailers) return true // Premium+ users can view unlimited trailers
 
-    if (visitorTrailers.includes(videoId)) return true // Already viewed
+    if (viewedTrailers.includes(videoId)) return true // Already viewed
 
-    if (visitorTrailers.length >= VISITOR_TRAILER_LIMIT) {
+    if (viewedTrailers.length >= TRAILER_LIMIT) {
       return false // Limit reached
     }
 
-    const newTrailers = [...visitorTrailers, videoId]
-    setVisitorTrailers(newTrailers)
+    const newTrailers = [...viewedTrailers, videoId]
+    setViewedTrailers(newTrailers)
 
     try {
       localStorage.setItem(
-        VISITOR_TRAILERS_KEY,
+        TRAILERS_KEY,
         JSON.stringify({
           viewedIds: newTrailers,
           lastReset: Date.now(),
-        } as VisitorTrailerData)
+        } as TrailerData)
       )
     } catch {
       // localStorage might be full or disabled
     }
 
     return true
-  }, [isAuthenticated, visitorTrailers])
+  }, [shouldLimitTrailers, viewedTrailers])
 
   /**
-   * Check if visitor can view more trailers
+   * Check if user can view more trailers
    */
   const canViewTrailer = useCallback((videoId: string): boolean => {
-    if (isAuthenticated) return true
-    if (visitorTrailers.includes(videoId)) return true
-    return visitorTrailers.length < VISITOR_TRAILER_LIMIT
-  }, [isAuthenticated, visitorTrailers])
+    if (!shouldLimitTrailers) return true
+    if (viewedTrailers.includes(videoId)) return true
+    return viewedTrailers.length < TRAILER_LIMIT
+  }, [shouldLimitTrailers, viewedTrailers])
 
   /**
-   * Get remaining trailer views for visitors
+   * Get remaining trailer views for limited users
    */
-  const remainingTrailers = isAuthenticated
-    ? Infinity
-    : Math.max(0, VISITOR_TRAILER_LIMIT - visitorTrailers.length)
+  const remainingTrailers = shouldLimitTrailers
+    ? Math.max(0, TRAILER_LIMIT - viewedTrailers.length)
+    : Infinity
 
   /**
    * Check if user can comment
@@ -168,12 +175,13 @@ export function useSubscription() {
     planSlug,
     planLevel,
 
-    // Visitor trailer limits
-    visitorTrailers,
+    // Trailer limits (applies to Visitante and Free users)
+    viewedTrailers,
     remainingTrailers,
     canViewTrailer,
     trackTrailerView,
-    trailerLimit: VISITOR_TRAILER_LIMIT,
+    shouldLimitTrailers,
+    trailerLimit: TRAILER_LIMIT,
 
     // Plan capabilities
     canComment,

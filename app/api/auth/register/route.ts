@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
 import { hash } from "bcryptjs"
+import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
+import { sendTemplateEmail, VerifyEmailTemplate } from "@/lib/email"
 import { z } from "zod"
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
 const registerSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -45,9 +49,34 @@ export async function POST(request: Request) {
       },
     })
 
+    // Generate email verification token
+    const token = randomBytes(32).toString("hex")
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+    await prisma.emailVerificationToken.create({
+      data: {
+        token,
+        userId: user.id,
+        expiresAt,
+      },
+    })
+
+    // Send verification email
+    const verificationUrl = `${APP_URL}/api/auth/verify-email?token=${token}`
+
+    await sendTemplateEmail({
+      to: user.email,
+      template: "auth/verify-email",
+      react: VerifyEmailTemplate({
+        name: user.name || "usuario",
+        verificationUrl,
+      }),
+      metadata: { userId: user.id },
+    })
+
     return NextResponse.json(
       {
-        message: "Usuario creado correctamente",
+        message: "Usuario creado correctamente. Por favor verifica tu email.",
         user: {
           id: user.id,
           name: user.name,

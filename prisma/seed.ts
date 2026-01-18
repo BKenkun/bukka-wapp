@@ -880,6 +880,48 @@ async function main() {
     data: { fallbackZoneId: spainZone.id },
   })
 
+  // 13. Email Settings
+  console.log("📧 Creating email settings...")
+
+  const emailSettings = {
+    fromName: "BUKKAKERY",
+    fromEmail: "noreply@bukkakery.com",
+    replyTo: "soporte@bukkakery.com",
+    logoUrl: null,
+    primaryColor: "#FA4860",
+    templates: {
+      "auth/verify-email": { subject: "Verifica tu email", enabled: true },
+      "auth/welcome": { subject: "Bienvenido a BUKKAKERY", enabled: true },
+      "auth/reset-password": { subject: "Recupera tu contraseña", enabled: true },
+      "auth/password-changed": { subject: "Tu contraseña ha sido cambiada", enabled: true },
+      "orders/confirmation": { subject: "Confirmación de pedido #{orderNumber}", enabled: true },
+      "orders/payment-received": { subject: "Pago recibido - Pedido #{orderNumber}", enabled: true },
+      "orders/processing": { subject: "Tu pedido está siendo procesado", enabled: true },
+      "orders/shipped": { subject: "Tu pedido ha sido enviado", enabled: true },
+      "orders/delivered": { subject: "Tu pedido ha sido entregado", enabled: true },
+      "orders/cancelled": { subject: "Pedido cancelado", enabled: true },
+      "orders/payment-failed": { subject: "Problema con tu pago", enabled: true },
+      "subscriptions/activated": { subject: "Tu suscripción está activa", enabled: true },
+      "subscriptions/renewal-reminder": { subject: "Tu suscripción expira pronto", enabled: true },
+      "subscriptions/renewed": { subject: "Suscripción renovada", enabled: true },
+      "subscriptions/cancelled": { subject: "Suscripción cancelada", enabled: true },
+      "subscriptions/expired": { subject: "Tu suscripción ha expirado", enabled: true },
+      "subscriptions/upgrade": { subject: "Upgrade confirmado", enabled: true },
+      "subscriptions/downgrade": { subject: "Cambio de plan confirmado", enabled: true },
+      "subscriptions/payment-failed": { subject: "Problema con el pago de tu suscripción", enabled: true },
+      "casting/received": { subject: "Hemos recibido tu solicitud", enabled: true },
+      "casting/reviewing": { subject: "Tu solicitud está en revisión", enabled: true },
+      "casting/accepted": { subject: "Tu solicitud ha sido aceptada", enabled: true },
+      "casting/rejected": { subject: "Actualización de tu solicitud", enabled: true },
+    },
+  }
+
+  await prisma.siteSettings.upsert({
+    where: { key: "email_settings" },
+    update: { value: emailSettings },
+    create: { key: "email_settings", value: emailSettings },
+  })
+
   console.log("✅ Seeding completed!")
 }
 

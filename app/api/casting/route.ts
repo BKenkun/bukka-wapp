@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { castingApiSchema } from "@/lib/validations/casting"
+import { sendTemplateEmail, CastingReceivedTemplate } from "@/lib/email"
 
 // GET - Obtener todas las solicitudes de casting (admin only)
 export async function GET(request: NextRequest) {
@@ -140,6 +141,18 @@ export async function POST(request: NextRequest) {
         videoUrl,
         status: "PENDING",
       },
+    })
+
+    // Send confirmation email
+    await sendTemplateEmail({
+      to: email,
+      template: "casting/received",
+      react: CastingReceivedTemplate({
+        applicantName: name,
+        submissionId: submission.id,
+        submittedAt: submission.createdAt,
+      }),
+      metadata: { submissionId: submission.id },
     })
 
     return NextResponse.json(submission, { status: 201 })

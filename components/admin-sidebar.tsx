@@ -130,12 +130,6 @@ const navCMS: NavItem[] = [
     icon: IconMenu2,
     permission: "menus",
   },
-  {
-    title: "Banners",
-    url: "/admin/banners",
-    icon: IconPhoto,
-    permission: "banners",
-  },
 ]
 
 // Tienda

@@ -46,21 +46,6 @@ model Badge {
   UserBadge   UserBadge[]
 }
 
-model Banner {
-  id           String  @id @default(cuid())
-  title        String
-  subtitle     String?
-  imageUrl     String
-  linkUrl      String?
-  placement    BannerPlacement
-  startDate    DateTime?
-  endDate      DateTime?
-  hasCountdown Boolean         @default(false)
-  isActive     Boolean         @default(true)
-  order        Int             @default(0)
-  createdAt    DateTime        @default(now())
-}
-
 model BlogCategory {
   id          String  @id @default(cuid())
   slug        String     @unique
@@ -588,6 +573,8 @@ model User {
   SubscriptionPlan                             SubscriptionPlan?     @relation(fields: [subscriptionPlanId], references: [id])
   UserBadge                                    UserBadge[]
   WatchHistory                                 WatchHistory[]
+  EmailVerificationToken                       EmailVerificationToken[]
+  PasswordResetToken                           PasswordResetToken[]
 }
 
 model UserBadge {
@@ -731,14 +718,6 @@ enum BadgeType {
   ACHIEVEMENT
   ROLE
   COMMUNITY
-}
-
-enum BannerPlacement {
-  HOME_HERO
-  HOME_PROMO
-  NAVBAR_TOP
-  VIDEO_DETAIL
-  SUBSCRIPTION_PAGE
 }
 
 enum BlogPostType {
@@ -985,4 +964,45 @@ model ShippingSettings {
   fallbackZoneId         String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+// ============================================
+// SISTEMA DE EMAIL
+// ============================================
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  template  String
+  status    String   // sent, failed, bounced
+  resendId  String?
+  error     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([to])
+  @@index([template])
 }

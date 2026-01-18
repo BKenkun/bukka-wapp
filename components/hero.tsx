@@ -3,21 +3,22 @@ import Link from "next/link"
 
 interface HeroProps {
   backgroundImage?: string
-  videoId?: string | null
+  videoUrl?: string | null
   linkUrl?: string | null
+  openInNewTab?: boolean
 }
 
 export function Hero({
   backgroundImage = "/images/background.png",
-  videoId,
+  videoUrl,
   linkUrl,
+  openInNewTab = false,
 }: HeroProps) {
   const content = (
     <div className="relative w-full h-[calc(100vh-40px)] overflow-hidden bg-black">
-      {videoId ? (
-        // Render Mux video if videoId is provided
+      {videoUrl ? (
         <video
-          src={`https://stream.mux.com/${videoId}.m3u8`}
+          src={videoUrl}
           autoPlay
           muted
           loop
@@ -25,7 +26,6 @@ export function Hero({
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        // Render image if no videoId
         <Image
           src={backgroundImage}
           alt="Background"
@@ -38,6 +38,13 @@ export function Hero({
   )
 
   if (linkUrl) {
+    if (openInNewTab) {
+      return (
+        <a href={linkUrl} target="_blank" rel="noopener noreferrer">
+          {content}
+        </a>
+      )
+    }
     return <Link href={linkUrl}>{content}</Link>
   }
 

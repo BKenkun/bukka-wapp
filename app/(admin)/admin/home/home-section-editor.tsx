@@ -20,6 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { FileDropzone } from "@/components/ui/file-dropzone"
+import { IconLink, IconFileText } from "@tabler/icons-react"
 
 interface HomeSection {
   id: string
@@ -30,13 +33,27 @@ interface HomeSection {
   config: Record<string, unknown> | null
 }
 
+interface Page {
+  id: string
+  title: string
+  slug: string
+}
+
+interface Tag {
+  id: string
+  name: string
+  slug: string
+}
+
 interface HomeSectionEditorProps {
   section: HomeSection
+  pages: Page[]
+  tags: Tag[]
   onSave: (id: string, data: Partial<HomeSection>) => Promise<void>
   onClose: () => void
 }
 
-export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEditorProps) {
+export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: HomeSectionEditorProps) {
   const [title, setTitle] = useState(section.title || "")
   const [config, setConfig] = useState<Record<string, unknown>>(
     (section.config as Record<string, unknown>) || {}
@@ -54,6 +71,10 @@ export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEdito
 
   const updateConfig = (key: string, value: unknown) => {
     setConfig((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const updateMultipleConfig = (updates: Record<string, unknown>) => {
+    setConfig((prev) => ({ ...prev, ...updates }))
   }
 
   return (
@@ -81,34 +102,123 @@ export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEdito
           {section.type === "HERO" && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="backgroundImage">Imagen de fondo</Label>
-                <Input
-                  id="backgroundImage"
-                  value={(config.backgroundImage as string) || ""}
-                  onChange={(e) => updateConfig("backgroundImage", e.target.value)}
-                  placeholder="/images/background.png"
+                <Label>Imagen de fondo</Label>
+                <FileDropzone
+                  value={(config.backgroundImage as string) || null}
+                  onChange={(url) => updateConfig("backgroundImage", url || "")}
+                  accept="image"
+                  folder="hero"
+                  placeholder="Arrastra una imagen de fondo aquí"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="videoId">ID de Video Mux (opcional)</Label>
-                <Input
-                  id="videoId"
-                  value={(config.videoId as string) || ""}
-                  onChange={(e) => updateConfig("videoId", e.target.value)}
-                  placeholder="Dejar vacío para usar imagen"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Si se proporciona un ID de video, se mostrará el video en lugar de la imagen
+                <p className="text-xs text-muted-foreground">
+                  Se usará como fondo si no hay video configurado
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="linkUrl">URL de enlace (opcional)</Label>
-                <Input
-                  id="linkUrl"
-                  value={(config.linkUrl as string) || ""}
-                  onChange={(e) => updateConfig("linkUrl", e.target.value)}
-                  placeholder="/videos/destacado"
+                <Label>Video de fondo (opcional)</Label>
+                <FileDropzone
+                  value={(config.videoUrl as string) || null}
+                  onChange={(url) => updateConfig("videoUrl", url || "")}
+                  accept="video"
+                  folder="hero"
+                  placeholder="Arrastra un video aquí para usarlo como fondo"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Si se sube un video, se mostrará en lugar de la imagen
+                </p>
+              </div>
+
+              {/* Link Configuration */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="text-base font-medium">Enlace (opcional)</Label>
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Tipo de enlace</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={config.linkType === "page" ? "outline" : "secondary"}
+                      className="justify-start"
+                      onClick={() => {
+                        updateMultipleConfig({
+                          linkType: "url",
+                          linkPageId: null,
+                        })
+                      }}
+                    >
+                      <IconLink className="mr-2 size-4" />
+                      URL personalizada
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={config.linkType === "page" ? "secondary" : "outline"}
+                      className="justify-start"
+                      onClick={() => {
+                        updateMultipleConfig({
+                          linkType: "page",
+                          linkUrl: null,
+                        })
+                      }}
+                    >
+                      <IconFileText className="mr-2 size-4" />
+                      Página interna
+                    </Button>
+                  </div>
+                </div>
+
+                {config.linkType === "page" ? (
+                  <div className="space-y-2">
+                    <Label>Página</Label>
+                    {pages.length > 0 ? (
+                      <Select
+                        value={(config.linkPageId as string) || ""}
+                        onValueChange={(value) => updateConfig("linkPageId", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una página" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {pages.map((page) => (
+                            <SelectItem key={page.id} value={page.id}>
+                              {page.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No hay páginas publicadas disponibles
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="linkUrl">URL</Label>
+                    <Input
+                      id="linkUrl"
+                      value={(config.linkUrl as string) || ""}
+                      onChange={(e) => updateConfig("linkUrl", e.target.value)}
+                      placeholder="https://... o /ruta-interna"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Introduce una URL externa (https://...) o una ruta interna (/videos)
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="openInNewTab">Abrir en nueva pestaña</Label>
+                    <p className="text-xs text-muted-foreground">
+                      El enlace se abrirá en una nueva ventana
+                    </p>
+                  </div>
+                  <Switch
+                    id="openInNewTab"
+                    checked={(config.openInNewTab as boolean) || false}
+                    onCheckedChange={(checked) => updateConfig("openInNewTab", checked)}
+                  />
+                </div>
               </div>
             </>
           )}
@@ -131,12 +241,14 @@ export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEdito
                     <SelectItem value="popular_weekly">Más vistos de la semana</SelectItem>
                     <SelectItem value="trending">Tendencias</SelectItem>
                     <SelectItem value="category">Por categoría</SelectItem>
+                    <SelectItem value="tag">Por tag</SelectItem>
                     <SelectItem value="manual">Selección manual</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   {config.source === "popular_weekly" && "Videos más vistos en los últimos 7 días"}
                   {config.source === "trending" && "Videos con mayor crecimiento de vistas reciente"}
+                  {config.source === "tag" && "Videos que tengan el tag seleccionado"}
                 </p>
               </div>
 
@@ -149,6 +261,33 @@ export function HomeSectionEditor({ section, onSave, onClose }: HomeSectionEdito
                     onChange={(e) => updateConfig("categorySlug", e.target.value)}
                     placeholder="bukkake"
                   />
+                </div>
+              )}
+
+              {config.source === "tag" && (
+                <div className="space-y-2">
+                  <Label>Tag</Label>
+                  {tags.length > 0 ? (
+                    <Select
+                      value={(config.tagSlug as string) || ""}
+                      onValueChange={(value) => updateConfig("tagSlug", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un tag" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tags.map((tag) => (
+                          <SelectItem key={tag.id} value={tag.slug}>
+                            {tag.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No hay tags disponibles. Crea tags en Admin → Tags
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -93,7 +93,7 @@ export function VideoCard({
       <h4 className="text-white font-bold text-lg mb-2">Límite de trailers alcanzado</h4>
       <p className="text-gray-400 text-sm mb-4">
         {isAuthenticated
-          ? "Has visto el límite de trailers."
+          ? "Has alcanzado tu límite diario de trailers. Mejora tu plan para ver más."
           : "Los visitantes pueden ver 3 trailers. Regístrate para ver más."}
       </p>
       <Link

@@ -4,9 +4,20 @@ import { IconHome } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function AdminHomePage() {
-  const sections = await prisma.homeSection.findMany({
-    orderBy: { order: "asc" },
-  })
+  const [sections, pages, tags] = await Promise.all([
+    prisma.homeSection.findMany({
+      orderBy: { order: "asc" },
+    }),
+    prisma.page.findMany({
+      where: { status: "PUBLISHED" },
+      select: { id: true, title: true, slug: true },
+      orderBy: { title: "asc" },
+    }),
+    prisma.tag.findMany({
+      select: { id: true, name: true, slug: true },
+      orderBy: { name: "asc" },
+    }),
+  ])
 
   const enabledCount = sections.filter((s) => s.enabled).length
   const disabledCount = sections.filter((s) => !s.enabled).length
@@ -73,6 +84,8 @@ export default async function AdminHomePage() {
               ...s,
               config: s.config as Record<string, unknown> | null,
             }))}
+            pages={pages}
+            tags={tags}
           />
         </CardContent>
       </Card>

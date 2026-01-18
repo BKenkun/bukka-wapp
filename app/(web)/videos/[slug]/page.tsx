@@ -11,6 +11,7 @@ import { ActressesGrid } from "@/components/actresses-grid"
 import { RelatedContentTabs } from "@/components/related-content-tabs"
 import { MuxVideoPlayer } from "@/components/mux-video-player"
 import { VideoPlayer } from "@/components/video-player"
+import { getVideoAccessSettings } from "@/lib/get-video-access-settings"
 
 interface VideoDetailPageProps {
   params: Promise<{
@@ -275,6 +276,10 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
   // Determinar si tenemos video de Mux disponible
   const hasMuxVideo = !!video.muxPlaybackId
 
+  // Obtener configuración de pantalla de acceso denegado
+  const videoAccessSettings = await getVideoAccessSettings()
+  const lockConfig = videoAccessSettings.lockScreen
+
   return (
     <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
       <div>
@@ -286,7 +291,7 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
             <div className="lg:col-span-8">
               {/* Video Player */}
-              {hasMuxVideo && !isLocked ? (
+              {hasMuxVideo ? (
                 <MuxVideoPlayer
                   videoId={video.id}
                   videoSlug={video.slug}
@@ -294,6 +299,10 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                   title={video.title}
                   thumbnailUrl={video.thumbnailUrl}
                   viewerId={userId || undefined}
+                  locked={isLocked}
+                  lockedMessage={lockReason}
+                  requiredTier={requiredTier}
+                  lockConfig={lockConfig}
                 />
               ) : (
                 <VideoPlayer
@@ -302,6 +311,7 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                   isLocked={isLocked}
                   lockMessage={lockReason}
                   requiredTier={requiredTier}
+                  lockConfig={lockConfig}
                 />
               )}
 

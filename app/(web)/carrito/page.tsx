@@ -123,7 +123,7 @@ export default function CarritoPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white">
+      <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
         <DiscountBanner />
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
           <div className="text-center py-12">Cargando...</div>
@@ -133,7 +133,7 @@ export default function CarritoPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
       <DiscountBanner />
 
       <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">

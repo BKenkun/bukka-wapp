@@ -120,7 +120,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const isVariable = product.productType === "VARIABLE"
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
       <div>
         <DiscountBanner />
       </div>

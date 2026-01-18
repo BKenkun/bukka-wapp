@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import {
+  sendTemplateEmail,
+  CastingReviewingTemplate,
+  CastingAcceptedTemplate,
+  CastingRejectedTemplate,
+} from "@/lib/email"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -90,6 +96,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    const previousStatus = existingSubmission.status
+
     const submission = await prisma.castingSubmission.update({
       where: { id },
       data: {
@@ -97,6 +105,49 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         notes: notes !== undefined ? notes : undefined,
       },
     })
+
+    // Send email based on status change
+    if (status && status !== previousStatus) {
+      switch (status) {
+        case "REVIEWING":
+          await sendTemplateEmail({
+            to: submission.email,
+            template: "casting/reviewing",
+            react: CastingReviewingTemplate({
+              applicantName: submission.name,
+              submissionId: submission.id,
+            }),
+            metadata: { submissionId: submission.id },
+          })
+          break
+
+        case "ACCEPTED":
+          await sendTemplateEmail({
+            to: submission.email,
+            template: "casting/accepted",
+            react: CastingAcceptedTemplate({
+              applicantName: submission.name,
+              submissionId: submission.id,
+              nextSteps: notes || undefined,
+            }),
+            metadata: { submissionId: submission.id },
+          })
+          break
+
+        case "REJECTED":
+          await sendTemplateEmail({
+            to: submission.email,
+            template: "casting/rejected",
+            react: CastingRejectedTemplate({
+              applicantName: submission.name,
+              submissionId: submission.id,
+              customMessage: notes || undefined,
+            }),
+            metadata: { submissionId: submission.id },
+          })
+          break
+      }
+    }
 
     return NextResponse.json(submission)
   } catch (error) {

@@ -43,11 +43,25 @@ const sectionTypeConfig: Record<string, TypeConfig> = {
   CATEGORY_FEATURED: { label: "Categoría Destacada", icon: IconLayoutGrid, color: "text-yellow-500" },
 }
 
-interface HomeSectionListProps {
-  sections: HomeSection[]
+interface Page {
+  id: string
+  title: string
+  slug: string
 }
 
-export function HomeSectionList({ sections }: HomeSectionListProps) {
+interface Tag {
+  id: string
+  name: string
+  slug: string
+}
+
+interface HomeSectionListProps {
+  sections: HomeSection[]
+  pages: Page[]
+  tags: Tag[]
+}
+
+export function HomeSectionList({ sections, pages, tags }: HomeSectionListProps) {
   const typeConfig = sectionTypeConfig
   const router = useRouter()
   const [editingSection, setEditingSection] = useState<HomeSection | null>(null)
@@ -212,6 +226,8 @@ export function HomeSectionList({ sections }: HomeSectionListProps) {
       {editingSection && (
         <HomeSectionEditor
           section={editingSection}
+          pages={pages}
+          tags={tags}
           onSave={handleSave}
           onClose={() => setEditingSection(null)}
         />

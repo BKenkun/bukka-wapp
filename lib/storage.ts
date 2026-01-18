@@ -77,6 +77,16 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
     requireAdmin: false, // Public casting form
   },
+  hero: {
+    maxSize: 100 * 1024 * 1024, // 100MB (para videos)
+    allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
+    requireAdmin: true,
+  },
+  settings: {
+    maxSize: 4 * 1024 * 1024, // 4MB
+    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+    requireAdmin: true,
+  },
 }
 
 interface UploadResult {
@@ -111,8 +121,8 @@ export async function uploadFile(
       type: file.type,
     }
   } else {
-    // Upload to local storage
-    const uploadDir = path.join(process.cwd(), "private", folder)
+    // Upload to local storage (public folder for direct access)
+    const uploadDir = path.join(process.cwd(), "public", "uploads", folder)
     await mkdir(uploadDir, { recursive: true })
 
     const filePath = path.join(uploadDir, filename)
@@ -121,7 +131,7 @@ export async function uploadFile(
     await writeFile(filePath, buffer)
 
     return {
-      url: `/api/files/${folder}/${filename}`,
+      url: `/uploads/${folder}/${filename}`,
       filename,
       size: file.size,
       type: file.type,
@@ -147,22 +157,26 @@ export async function deleteFile(url: string): Promise<boolean> {
     }
   }
 
-  // Check if it's a local file URL
-  const match = url.match(/^\/api\/files\/([^/]+)\/([^/]+)$/)
+  // Check if it's a local file URL (new format: /uploads/... or old format: /api/files/...)
+  const newMatch = url.match(/^\/uploads\/([^/]+)\/([^/]+)$/)
+  const oldMatch = url.match(/^\/api\/files\/([^/]+)\/([^/]+)$/)
+  const match = newMatch || oldMatch
+
   if (!match) {
     return false
   }
 
   const [, folder, filename] = match
 
-  // Construct file path
-  const filePath = path.join(process.cwd(), "private", folder, filename)
+  // Construct file path based on which format was matched
+  const basePath = newMatch ? "public/uploads" : "private"
+  const filePath = path.join(process.cwd(), basePath, folder, filename)
 
-  // Security: ensure the path is within the private directory
-  const privatePath = path.join(process.cwd(), "private")
+  // Security: ensure the path is within the allowed directory
+  const allowedPath = path.join(process.cwd(), basePath)
   const resolvedPath = path.resolve(filePath)
-  if (!resolvedPath.startsWith(privatePath)) {
-    console.warn(`Attempted to delete file outside private directory: ${filePath}`)
+  if (!resolvedPath.startsWith(allowedPath)) {
+    console.warn(`Attempted to delete file outside allowed directory: ${filePath}`)
     return false
   }
 
@@ -183,7 +197,7 @@ export async function deleteFile(url: string): Promise<boolean> {
  */
 export function isLocalFileUrl(url: string | null | undefined): boolean {
   if (!url) return false
-  return /^\/api\/files\/[^/]+\/[^/]+$/.test(url)
+  return /^\/uploads\/[^/]+\/[^/]+$/.test(url) || /^\/api\/files\/[^/]+\/[^/]+$/.test(url)
 }
 
 /**

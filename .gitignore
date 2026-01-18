@@ -29,3 +29,6 @@ next-env.d.ts
 # private uploads (keep structure, ignore files)
 /private/**/*
 !/private/**/.gitkeep
+
+# public uploads (development only)
+/public/uploads/

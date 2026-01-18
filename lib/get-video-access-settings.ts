@@ -1,0 +1,85 @@
+import { prisma } from "@/lib/prisma"
+
+export interface VideoAccessLockConfig {
+  title: string
+  description: string
+  buttonText: string
+  buttonUrl: string
+  backgroundImage: string | null
+  overlaySize: "compact" | "normal" | "large"
+  showTierBadge: boolean
+  // Title styling
+  titleFontSize: string
+  titleFontWeight: string
+  // Description styling
+  descriptionFontSize: string
+  descriptionFontWeight: string
+  // Button styling
+  buttonBgColor: string
+  buttonHoverBgColor: string
+  buttonTextColor: string
+  buttonBorderRadius: string
+  buttonPaddingX: string
+  buttonPaddingY: string
+}
+
+export interface VideoAccessSettings {
+  lockScreen: VideoAccessLockConfig
+}
+
+const SETTINGS_KEY = "video_access_settings"
+
+export const defaultVideoAccessSettings: VideoAccessSettings = {
+  lockScreen: {
+    title: "Acceso Denegado",
+    description: "Este contenido requiere una suscripción",
+    buttonText: "Ver Planes",
+    buttonUrl: "/suscripciones",
+    backgroundImage: null,
+    overlaySize: "normal",
+    showTierBadge: true,
+    // Title styling defaults
+    titleFontSize: "text-xl",
+    titleFontWeight: "font-bold",
+    // Description styling defaults
+    descriptionFontSize: "text-base",
+    descriptionFontWeight: "font-normal",
+    // Button styling defaults
+    buttonBgColor: "#FA4860",
+    buttonHoverBgColor: "#e03d53",
+    buttonTextColor: "#FFFFFF",
+    buttonBorderRadius: "rounded-none",
+    buttonPaddingX: "px-6",
+    buttonPaddingY: "py-3",
+  },
+}
+
+export async function getVideoAccessSettings(): Promise<VideoAccessSettings> {
+  try {
+    const settings = await prisma.siteSettings.findUnique({
+      where: { key: SETTINGS_KEY },
+    })
+
+    if (!settings?.value) {
+      return defaultVideoAccessSettings
+    }
+
+    const value = settings.value as Partial<VideoAccessSettings>
+
+    return {
+      lockScreen: {
+        ...defaultVideoAccessSettings.lockScreen,
+        ...value.lockScreen,
+      },
+    }
+  } catch (error) {
+    console.error("Error fetching video access settings:", error)
+    return defaultVideoAccessSettings
+  }
+}
+
+export function getLockScreenConfig(
+  settings: VideoAccessSettings | null
+): VideoAccessLockConfig {
+  return settings?.lockScreen ?? defaultVideoAccessSettings.lockScreen
+}

@@ -23,6 +23,7 @@ interface HomeSectionRendererProps {
 interface VideoGridConfig {
   source?: string
   categorySlug?: string
+  tagSlug?: string
   videoIds?: string[]
   limit?: number
   columns?: 2 | 3
@@ -36,8 +37,10 @@ interface ActressGridConfig {
 
 interface HeroConfig {
   backgroundImage?: string
-  videoId?: string
+  videoUrl?: string
   linkUrl?: string
+  linkPageId?: string
+  openInNewTab?: boolean
 }
 
 interface CtaBannerConfig {
@@ -197,6 +200,26 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
         }
         break
 
+      case "tag":
+        if (config.tagSlug) {
+          videos = await prisma.video.findMany({
+            where: {
+              status: "PUBLISHED",
+              tags: {
+                some: {
+                  tag: { slug: config.tagSlug },
+                },
+              },
+            },
+            orderBy: { publishedAt: "desc" },
+            take: limit,
+            select: videoSelect,
+          })
+        } else {
+          videos = []
+        }
+        break
+
       case "manual":
         if (config.videoIds && config.videoIds.length > 0) {
           videos = await prisma.video.findMany({
@@ -325,11 +348,25 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
   switch (section.type) {
     case "HERO": {
       const heroConfig = config as HeroConfig
+      let linkUrl = heroConfig.linkUrl
+
+      // If linkPageId is set, resolve the page URL
+      if (heroConfig.linkPageId) {
+        const page = await prisma.page.findUnique({
+          where: { id: heroConfig.linkPageId },
+          select: { slug: true },
+        })
+        if (page) {
+          linkUrl = `/${page.slug}`
+        }
+      }
+
       return (
         <Hero
           backgroundImage={heroConfig.backgroundImage}
-          videoId={heroConfig.videoId}
-          linkUrl={heroConfig.linkUrl}
+          videoUrl={heroConfig.videoUrl}
+          linkUrl={linkUrl}
+          openInNewTab={heroConfig.openInNewTab}
         />
       )
     }

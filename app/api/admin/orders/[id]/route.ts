@@ -2,6 +2,15 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import {
+  sendTemplateEmail,
+  OrderProcessingTemplate,
+  OrderShippedTemplate,
+  OrderDeliveredTemplate,
+  OrderCancelledTemplate,
+  PaymentReceivedTemplate,
+  PaymentFailedTemplate,
+} from "@/lib/email"
 
 const updateOrderSchema = z.object({
   status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]).optional(),
@@ -73,6 +82,12 @@ export async function PATCH(
     const body = await request.json()
     const data = updateOrderSchema.parse(body)
 
+    // Get current order state before update
+    const currentOrder = await prisma.order.findUnique({
+      where: { id },
+      select: { status: true, paymentStatus: true },
+    })
+
     const order = await prisma.order.update({
       where: { id },
       data,
@@ -83,12 +98,114 @@ export async function PATCH(
         items: {
           include: {
             product: {
-              select: { id: true, name: true, slug: true },
+              select: { id: true, name: true, slug: true, price: true },
             },
           },
         },
       },
     })
+
+    // Send emails based on status changes
+    const userEmail = order.user.email
+    const userName = order.user.name || "Cliente"
+
+    // Order status changed
+    if (data.status && currentOrder?.status !== data.status) {
+      switch (data.status) {
+        case "PROCESSING":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/processing",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: OrderProcessingTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+
+        case "SHIPPED":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/shipped",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: OrderShippedTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+              trackingNumber: order.trackingNumber || undefined,
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+
+        case "DELIVERED":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/delivered",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: OrderDeliveredTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+              deliveredAt: new Date(),
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+
+        case "CANCELLED":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/cancelled",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: OrderCancelledTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+              items: order.items.map((item) => ({
+                name: item.product.name,
+                quantity: item.quantity,
+                price: Number(item.price),
+              })),
+              refundAmount: Number(order.total),
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+      }
+    }
+
+    // Payment status changed
+    if (data.paymentStatus && currentOrder?.paymentStatus !== data.paymentStatus) {
+      switch (data.paymentStatus) {
+        case "PAID":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/payment-received",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: PaymentReceivedTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+              amount: Number(order.total),
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+
+        case "FAILED":
+          await sendTemplateEmail({
+            to: userEmail,
+            template: "orders/payment-failed",
+            subjectVariables: { orderNumber: order.orderNumber },
+            react: PaymentFailedTemplate({
+              customerName: userName,
+              orderNumber: order.orderNumber,
+              amount: Number(order.total),
+            }),
+            metadata: { orderId: order.id },
+          })
+          break
+      }
+    }
 
     return NextResponse.json({ order })
   } catch (error) {
