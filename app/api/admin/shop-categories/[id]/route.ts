@@ -27,14 +27,14 @@ export async function GET(
     const category = await prisma.shopCategory.findUnique({
       where: { id },
       include: {
-        parent: {
+        ShopCategory: {
           select: { id: true, name: true },
         },
-        children: {
+        other_ShopCategory: {
           select: { id: true, name: true, slug: true },
         },
         _count: {
-          select: { products: true },
+          select: { ProductToCategory: true },
         },
       },
     })
@@ -43,7 +43,16 @@ export async function GET(
       return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 })
     }
 
-    return NextResponse.json({ category })
+    const transformedCategory = {
+      ...category,
+      parent: category.ShopCategory,
+      children: category.other_ShopCategory,
+      _count: {
+        products: category._count.ProductToCategory,
+      },
+    }
+
+    return NextResponse.json({ category: transformedCategory })
   } catch (error) {
     console.error("Error fetching shop category:", error)
     return NextResponse.json({ error: "Error al obtener categoría" }, { status: 500 })

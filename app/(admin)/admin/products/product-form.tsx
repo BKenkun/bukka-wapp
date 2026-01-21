@@ -14,6 +14,7 @@ import {
   IconEdit,
   IconTrash,
   IconWand,
+  IconUpload,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,6 +55,9 @@ import {
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
+import Image from "next/image"
+import { ProductImageGallery } from "@/components/admin/product-image-gallery"
+import { PerformerSearch } from "@/components/admin/performer-search"
 
 const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -69,7 +73,6 @@ const productSchema = z.object({
   trackInventory: z.boolean(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
   riskLevel: z.enum(["LOW_RISK", "HIGH_RISK"]),
-  performerId: z.string().optional(),
   productType: z.enum(["SIMPLE", "VARIABLE"]),
   weight: z.string().optional(),
 })
@@ -80,6 +83,7 @@ interface Performer {
   id: string
   name: string
   slug: string
+  profileImage?: string | null
 }
 
 interface Category {
@@ -135,7 +139,7 @@ interface ProductFormProps {
     images: string[]
     status: string
     riskLevel: string
-    performerId: string | null
+    performers: Performer[]
     productType: string
     weight: number | null
     categories: { category: Category }[]
@@ -143,6 +147,117 @@ interface ProductFormProps {
   performers: Performer[]
   categories: Category[]
   attributes?: Attribute[]
+}
+
+// Variant Image Upload Component
+function VariantImageUpload({
+  imageUrl,
+  onImageChange,
+}: {
+  imageUrl: string
+  onImageChange: (url: string) => void
+}) {
+  const [isUploading, setIsUploading] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Tipo no válido. Solo JPG, PNG, WebP")
+      return
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Imagen demasiado grande. Máximo 4MB")
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "products")
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        onImageChange(data.url)
+        toast.success("Imagen subida")
+      } else {
+        const error = await res.json()
+        toast.error(`Error: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Upload error:", error)
+      toast.error("Error al subir imagen")
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label>Imagen de la variante</Label>
+      <div className="flex items-start gap-4">
+        {imageUrl ? (
+          <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
+            <Image
+              src={imageUrl}
+              alt="Variante"
+              fill
+              className="object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => onImageChange("")}
+              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+            >
+              <IconX className="size-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="w-24 h-24 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
+            <span className="text-xs text-muted-foreground">Sin imagen</span>
+          </div>
+        )}
+        <div className="flex-1">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <IconLoader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <IconUpload className="mr-2 size-4" />
+            )}
+            {isUploading ? "Subiendo..." : "Subir imagen"}
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2">
+            Si no tiene imagen, se usará la imagen principal del producto.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function ProductForm({
@@ -156,8 +271,10 @@ export function ProductForm({
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
     product?.categories.map((pc) => pc.category.id) || []
   )
+  const [selectedPerformerIds, setSelectedPerformerIds] = React.useState<string[]>(
+    product?.performers.map((p) => p.id) || []
+  )
   const [images, setImages] = React.useState<string[]>(product?.images || [])
-  const [newImageUrl, setNewImageUrl] = React.useState("")
 
   // Variants state
   const [variants, setVariants] = React.useState<Variant[]>([])
@@ -166,6 +283,12 @@ export function ProductForm({
   const [isGenerating, setIsGenerating] = React.useState(false)
   const [editingVariant, setEditingVariant] = React.useState<Variant | null>(null)
   const [isVariantDialogOpen, setIsVariantDialogOpen] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState(
+    product?.productType === "VARIABLE" ? "variants" : "general"
+  )
+  const [selectedVariantIds, setSelectedVariantIds] = React.useState<string[]>([])
+  const [editingStockId, setEditingStockId] = React.useState<string | null>(null)
+  const [editingStockValue, setEditingStockValue] = React.useState<number>(0)
   const [variantFormData, setVariantFormData] = React.useState({
     sku: "",
     price: "",
@@ -195,7 +318,6 @@ export function ProductForm({
       trackInventory: product?.trackInventory ?? true,
       status: (product?.status as ProductFormData["status"]) || "DRAFT",
       riskLevel: (product?.riskLevel as ProductFormData["riskLevel"]) || "LOW_RISK",
-      performerId: product?.performerId || "",
       productType: (product?.productType as ProductFormData["productType"]) || "SIMPLE",
       weight: product?.weight?.toString() || "",
     },
@@ -252,7 +374,7 @@ export function ProductForm({
         weight: data.weight ? parseFloat(data.weight) : null,
         images,
         categoryIds: selectedCategories,
-        performerId: data.performerId || null,
+        performerIds: selectedPerformerIds,
       }
 
       const url = product ? `/api/products/${product.slug}` : "/api/products"
@@ -282,17 +404,6 @@ export function ProductForm({
     setSelectedCategories((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     )
-  }
-
-  const addImage = () => {
-    if (newImageUrl && !images.includes(newImageUrl)) {
-      setImages([...images, newImageUrl])
-      setNewImageUrl("")
-    }
-  }
-
-  const removeImage = (url: string) => {
-    setImages(images.filter((img) => img !== url))
   }
 
   // Variant functions
@@ -403,9 +514,101 @@ export function ProductForm({
       }
 
       toast.success("Variante eliminada")
+      setSelectedVariantIds((prev) => prev.filter((id) => id !== variantId))
       fetchVariants()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar")
+    }
+  }
+
+  // Bulk selection functions
+  function toggleVariantSelection(variantId: string) {
+    setSelectedVariantIds((prev) =>
+      prev.includes(variantId)
+        ? prev.filter((id) => id !== variantId)
+        : [...prev, variantId]
+    )
+  }
+
+  function toggleAllVariants() {
+    if (selectedVariantIds.length === variants.length) {
+      setSelectedVariantIds([])
+    } else {
+      setSelectedVariantIds(variants.map((v) => v.id))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!product?.id || selectedVariantIds.length === 0) return
+    if (!confirm(`¿Eliminar ${selectedVariantIds.length} variantes seleccionadas?`)) return
+
+    try {
+      const deletePromises = selectedVariantIds.map((id) =>
+        fetch(`/api/admin/products/${product.id}/variants/${id}`, { method: "DELETE" })
+      )
+      await Promise.all(deletePromises)
+      toast.success(`${selectedVariantIds.length} variantes eliminadas`)
+      setSelectedVariantIds([])
+      fetchVariants()
+    } catch (error) {
+      toast.error("Error al eliminar variantes")
+    }
+  }
+
+  async function handleBulkStatusChange(isActive: boolean) {
+    if (!product?.id || selectedVariantIds.length === 0) return
+
+    try {
+      const updatePromises = selectedVariantIds.map((id) =>
+        fetch(`/api/admin/products/${product.id}/variants/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive }),
+        })
+      )
+      await Promise.all(updatePromises)
+      toast.success(`${selectedVariantIds.length} variantes ${isActive ? "activadas" : "desactivadas"}`)
+      setSelectedVariantIds([])
+      fetchVariants()
+    } catch (error) {
+      toast.error("Error al actualizar variantes")
+    }
+  }
+
+  // Inline stock editing
+  function startEditingStock(variant: Variant) {
+    setEditingStockId(variant.id)
+    setEditingStockValue(variant.stock)
+  }
+
+  async function saveStock(variantId: string) {
+    if (!product?.id) return
+
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/variants/${variantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: editingStockValue }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error)
+      }
+
+      setEditingStockId(null)
+      fetchVariants()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al actualizar stock")
+    }
+  }
+
+  function handleStockKeyDown(e: React.KeyboardEvent, variantId: string) {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      saveStock(variantId)
+    } else if (e.key === "Escape") {
+      setEditingStockId(null)
     }
   }
 
@@ -418,7 +621,7 @@ export function ProductForm({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          <Tabs defaultValue="general">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="variants" disabled={watchProductType !== "VARIABLE"}>
@@ -583,45 +786,16 @@ export function ProductForm({
               {/* Images */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Imagenes</CardTitle>
-                  <CardDescription>Fotos del producto</CardDescription>
+                  <CardTitle>Imagenes del Producto</CardTitle>
+                  <CardDescription>
+                    Sube fotos del producto. La primera imagen sera la principal.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="flex-1"
-                    />
-                    <Button type="button" onClick={addImage} variant="secondary">
-                      Anadir
-                    </Button>
-                  </div>
-
-                  {images.length > 0 && (
-                    <div className="grid grid-cols-4 gap-4">
-                      {images.map((url, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Imagen ${index + 1}`}
-                            className="w-full aspect-square object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(url)}
-                            className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <IconX className="size-4" />
-                          </button>
-                          {index === 0 && (
-                            <Badge className="absolute bottom-1 left-1 text-xs">Principal</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <CardContent>
+                  <ProductImageGallery
+                    images={images}
+                    onChange={setImages}
+                  />
                 </CardContent>
               </Card>
 
@@ -655,49 +829,58 @@ export function ProductForm({
             </TabsContent>
 
             <TabsContent value="variants" className="space-y-6 mt-6">
+              {/* Warning for new products */}
+              {!product?.id && (
+                <Alert className="border-orange-500/50 bg-orange-500/10">
+                  <IconAlertTriangle className="size-4 text-orange-500" />
+                  <AlertDescription className="text-orange-200">
+                    <strong>Paso 1:</strong> Guarda el producto primero haciendo clic en &quot;Crear Producto&quot;.
+                    <br />
+                    <strong>Paso 2:</strong> Después de guardar, edita el producto para generar las variantes de atributos (talla, color, etc.).
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Generate Variants */}
               <Card>
                 <CardHeader>
                   <CardTitle>Generar Variantes</CardTitle>
                   <CardDescription>
-                    Selecciona atributos para generar todas las combinaciones posibles
+                    Selecciona atributos para generar todas las combinaciones posibles.
+                    {!product?.id && " (Disponible después de guardar el producto)"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {!product?.id && (
-                    <Alert>
-                      <AlertDescription>
-                        Guarda el producto primero para poder generar variantes.
-                      </AlertDescription>
-                    </Alert>
-                  )}
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className={`flex flex-wrap gap-2 ${!product?.id ? "opacity-50 pointer-events-none" : ""}`}>
                     {attributes.map((attr) => (
-                      <div
+                      <label
                         key={attr.id}
                         className={`flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors ${
                           selectedAttributes.includes(attr.id)
                             ? "bg-primary text-primary-foreground border-primary"
                             : "hover:bg-muted"
                         }`}
-                        onClick={() => toggleAttributeSelection(attr.id)}
                       >
                         <Checkbox
                           checked={selectedAttributes.includes(attr.id)}
-                          onCheckedChange={() => toggleAttributeSelection(attr.id)}
+                          onCheckedChange={() => product?.id && toggleAttributeSelection(attr.id)}
+                          disabled={!product?.id}
                         />
                         <span className="font-medium">{attr.name}</span>
                         <span className="text-xs opacity-70">({attr.values.length} valores)</span>
-                      </div>
+                      </label>
                     ))}
                     {attributes.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        No hay atributos disponibles. Crea atributos en{" "}
-                        <a href="/admin/attributes" className="underline">
-                          Tienda &gt; Atributos
-                        </a>
-                      </p>
+                      <Alert className="border-yellow-500/50 bg-yellow-500/10">
+                        <IconAlertTriangle className="size-4 text-yellow-500" />
+                        <AlertDescription className="text-yellow-200">
+                          <strong>No hay atributos creados.</strong> Para generar variantes, primero debes crear atributos (ej: Talla, Color) en{" "}
+                          <a href="/admin/attributes" className="underline font-medium hover:text-yellow-100">
+                            Tienda → Atributos
+                          </a>
+                        </AlertDescription>
+                      </Alert>
                     )}
                   </div>
 
@@ -731,8 +914,44 @@ export function ProductForm({
               {/* Variants List */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Variantes ({variants.length})</CardTitle>
-                  <CardDescription>Edita precio, stock y SKU de cada variante</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Variantes ({variants.length})</CardTitle>
+                      <CardDescription>Edita precio, stock y SKU de cada variante</CardDescription>
+                    </div>
+                    {selectedVariantIds.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedVariantIds.length} seleccionadas
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkStatusChange(true)}
+                        >
+                          Activar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkStatusChange(false)}
+                        >
+                          Desactivar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleBulkDelete}
+                        >
+                          <IconTrash className="size-4 mr-1" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {isLoadingVariants ? (
@@ -747,6 +966,13 @@ export function ProductForm({
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-10">
+                            <Checkbox
+                              checked={selectedVariantIds.length === variants.length && variants.length > 0}
+                              onCheckedChange={toggleAllVariants}
+                            />
+                          </TableHead>
+                          <TableHead className="w-16">Imagen</TableHead>
                           <TableHead>Variante</TableHead>
                           <TableHead>SKU</TableHead>
                           <TableHead>Precio</TableHead>
@@ -757,7 +983,36 @@ export function ProductForm({
                       </TableHeader>
                       <TableBody>
                         {variants.map((variant) => (
-                          <TableRow key={variant.id}>
+                          <TableRow key={variant.id} className={selectedVariantIds.includes(variant.id) ? "bg-muted/50" : ""}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedVariantIds.includes(variant.id)}
+                                onCheckedChange={() => toggleVariantSelection(variant.id)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted">
+                                {variant.imageUrl ? (
+                                  <Image
+                                    src={variant.imageUrl}
+                                    alt={getVariantLabel(variant)}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                ) : images[0] ? (
+                                  <Image
+                                    src={images[0]}
+                                    alt={getVariantLabel(variant)}
+                                    fill
+                                    className="object-cover opacity-50"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                                    -
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 {variant.attributes.map((attr) => (
@@ -773,11 +1028,33 @@ export function ProductForm({
                                 ))}
                               </div>
                             </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {variant.sku || "-"}
+                            <TableCell>
+                              <span className="text-sm text-muted-foreground">
+                                {variant.sku || "-"}
+                              </span>
                             </TableCell>
-                            <TableCell>{Number(variant.price).toFixed(2)} EUR</TableCell>
-                            <TableCell>{variant.stock}</TableCell>
+                            <TableCell className="font-medium">{Number(variant.price).toFixed(2)}€</TableCell>
+                            <TableCell>
+                              {editingStockId === variant.id ? (
+                                <Input
+                                  type="number"
+                                  value={editingStockValue}
+                                  onChange={(e) => setEditingStockValue(parseInt(e.target.value) || 0)}
+                                  onBlur={() => saveStock(variant.id)}
+                                  onKeyDown={(e) => handleStockKeyDown(e, variant.id)}
+                                  className="w-20 h-8"
+                                  autoFocus
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => startEditingStock(variant)}
+                                  className="text-left hover:bg-muted px-2 py-1 rounded cursor-pointer transition-colors"
+                                >
+                                  {variant.stock}
+                                </button>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <Badge variant={variant.isActive ? "default" : "secondary"}>
                                 {variant.isActive ? "Activa" : "Inactiva"}
@@ -824,9 +1101,15 @@ export function ProductForm({
             <CardContent className="space-y-4">
               <Select
                 value={watchProductType}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
                   setValue("productType", value as ProductFormData["productType"])
-                }
+                  // Cambiar automáticamente a la pestaña de variantes cuando se selecciona VARIABLE
+                  if (value === "VARIABLE") {
+                    setActiveTab("variants")
+                  } else {
+                    setActiveTab("general")
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -919,29 +1202,18 @@ export function ProductForm({
             </CardContent>
           </Card>
 
-          {/* Performer */}
+          {/* Performers */}
           <Card>
             <CardHeader>
-              <CardTitle>Actriz Asociada</CardTitle>
-              <CardDescription>Para productos de coleccion</CardDescription>
+              <CardTitle>Actrices Asociadas</CardTitle>
+              <CardDescription>Un producto puede pertenecer a varias actrices</CardDescription>
             </CardHeader>
             <CardContent>
-              <Select
-                defaultValue={product?.performerId || "none"}
-                onValueChange={(value) => setValue("performerId", value === "none" ? "" : value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Ninguna" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ninguna</SelectItem>
-                  {performers.map((performer) => (
-                    <SelectItem key={performer.id} value={performer.id}>
-                      {performer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <PerformerSearch
+                performers={performers}
+                selectedIds={selectedPerformerIds}
+                onChange={setSelectedPerformerIds}
+              />
             </CardContent>
           </Card>
 
@@ -1017,29 +1289,23 @@ export function ProductForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Peso (kg)</Label>
-                <Input
-                  type="number"
-                  step="0.001"
-                  value={variantFormData.weight}
-                  onChange={(e) =>
-                    setVariantFormData({ ...variantFormData, weight: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>URL de imagen</Label>
-                <Input
-                  value={variantFormData.imageUrl}
-                  onChange={(e) =>
-                    setVariantFormData({ ...variantFormData, imageUrl: e.target.value })
-                  }
-                  placeholder="https://..."
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Peso (kg)</Label>
+              <Input
+                type="number"
+                step="0.001"
+                value={variantFormData.weight}
+                onChange={(e) =>
+                  setVariantFormData({ ...variantFormData, weight: e.target.value })
+                }
+                className="w-40"
+              />
             </div>
+
+            <VariantImageUpload
+              imageUrl={variantFormData.imageUrl}
+              onImageChange={(url) => setVariantFormData({ ...variantFormData, imageUrl: url })}
+            />
             <div className="flex items-center gap-2">
               <Switch
                 checked={variantFormData.isActive}

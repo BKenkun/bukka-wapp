@@ -32,7 +32,7 @@ export async function GET() {
     }
 
     // Merge with defaults to ensure all fields exist
-    const value = settings.value as typeof defaultVideoAccessSettings
+    const value = settings.value as unknown as typeof defaultVideoAccessSettings
     return NextResponse.json({
       lockScreen: {
         ...defaultVideoAccessSettings.lockScreen,

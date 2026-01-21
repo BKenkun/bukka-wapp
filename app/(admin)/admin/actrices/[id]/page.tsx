@@ -22,7 +22,7 @@ export default async function EditPerformerPage({ params }: Props) {
         select: {
           VideoPerformer: true,
           favorites: true,
-          Product: true,
+          products: true,
         },
       },
       User: {
@@ -121,7 +121,7 @@ export default async function EditPerformerPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{performer._count.Product}</p>
+            <p className="text-2xl font-bold">{performer._count.products}</p>
           </CardContent>
         </Card>
         <Card>

@@ -1,6 +1,7 @@
 import type React from "react"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
 
 interface NavLinkProps {
   href: string
@@ -43,7 +44,7 @@ function NavLink({ href, children, openInNewTab, highlight, highlightColor }: Na
   )
 }
 
-async function getHeaderMenuItems(): Promise<NavItem[] | null> {
+async function getHeaderMenuItems(userTierLevel: number | null): Promise<NavItem[] | null> {
   try {
     const menu = await prisma.menu.findUnique({
       where: { slug: "header-main" },
@@ -59,6 +60,7 @@ async function getHeaderMenuItems(): Promise<NavItem[] | null> {
             openInNewTab: true,
             highlight: true,
             highlightColor: true,
+            minTierLevel: true,
           },
         },
       },
@@ -68,9 +70,23 @@ async function getHeaderMenuItems(): Promise<NavItem[] | null> {
       return null // Usar defaults
     }
 
+    // Filtrar items por nivel de suscripción del usuario
+    const filteredItems = menu.items.filter((item) => {
+      // Si el item no tiene restricción de tier, es visible para todos
+      if (item.minTierLevel === null) return true
+      // Si el usuario no tiene suscripción, solo ve items sin restricción
+      if (userTierLevel === null) return false
+      // El usuario ve el item si su nivel es >= al mínimo requerido
+      return userTierLevel >= item.minTierLevel
+    })
+
+    if (filteredItems.length === 0) {
+      return null // Usar defaults
+    }
+
     // Resolver URLs de páginas internas
     const itemsWithUrls: NavItem[] = await Promise.all(
-      menu.items.map(async (item): Promise<NavItem> => {
+      filteredItems.map(async (item): Promise<NavItem> => {
         if (item.pageId) {
           const page = await prisma.page.findUnique({
             where: { id: item.pageId, status: "PUBLISHED" },
@@ -104,7 +120,11 @@ async function getHeaderMenuItems(): Promise<NavItem[] | null> {
 }
 
 export async function HeaderNav() {
-  const menuItems = await getHeaderMenuItems()
+  // Obtener sesión del usuario para filtrar menús por suscripción
+  const session = await auth()
+  const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
+
+  const menuItems = await getHeaderMenuItems(userTierLevel)
   const links = menuItems || DEFAULT_NAV_LINKS
 
   return (

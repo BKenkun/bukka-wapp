@@ -113,14 +113,12 @@ export function BlogForm({ post, categories }: BlogFormProps) {
     }
   }, [watchTitle, post, form])
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+  const uploadFile = async (file: File) => {
     setIsUploading(true)
 
     try {
       const formData = new FormData()
-      formData.append("file", files[0])
+      formData.append("file", file)
       formData.append("folder", "blog")
 
       const response = await fetch("/api/upload", {
@@ -146,12 +144,17 @@ export function BlogForm({ post, categories }: BlogFormProps) {
     }
   }
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    await uploadFile(files[0])
+  }
+
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     const files = e.dataTransfer.files
     if (!files || files.length === 0) return
-    setIsUploading(true)
-    await startUpload(Array.from(files))
+    await uploadFile(files[0])
   }
 
   const preventDefault = (e: React.DragEvent) => {

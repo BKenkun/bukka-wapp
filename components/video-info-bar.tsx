@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface VideoInfoBarProps {
   title: string
@@ -15,27 +16,95 @@ interface VideoInfoBarProps {
   userId?: string | null
 }
 
-function WaterDropIcon({ className }: { className?: string }) {
+function WaterDropIcon({ className, filled = false }: { className?: string; filled?: boolean }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="22"
       height="29"
       viewBox="0 0 22 29"
-      fill="none"
+      fill={filled ? "#FA4860" : "none"}
       className={className}
     >
       <path
         d="M16.75 5.14597C15.206 3.29906 13.4682 1.63596 11.5688 0.187435C11.4006 0.0654404 11.2003 0 10.995 0C10.7897 0 10.5894 0.0654404 10.4213 0.187435C8.52531 1.63657 6.7909 3.29964 5.25 5.14597C1.81375 9.23319 0 13.5418 0 17.607C0 20.6286 1.15893 23.5265 3.22183 25.6631C5.28473 27.7997 8.08262 29 11 29C13.9174 29 16.7153 27.7997 18.7782 25.6631C20.8411 23.5265 22 20.6286 22 17.607C22 13.5418 20.1863 9.23319 16.75 5.14597ZM11 26.9286C8.61386 26.9258 6.32622 25.9428 4.63896 24.1953C2.95171 22.4478 2.00265 20.0784 2 17.607C2 10.1977 8.93375 4.01314 11 2.33009C13.0662 4.01314 20 10.1951 20 17.607C19.9974 20.0784 19.0483 22.4478 17.361 24.1953C15.6738 25.9428 13.3861 26.9258 11 26.9286ZM17.9862 18.8162C17.7269 20.3164 17.0301 21.6982 15.9896 22.7757C14.949 23.8532 13.6147 24.5746 12.1663 24.8429C12.1113 24.852 12.0557 24.8567 12 24.8571C11.7492 24.857 11.5075 24.7593 11.323 24.5834C11.1384 24.4074 11.0245 24.166 11.0037 23.9071C10.9829 23.6482 11.0569 23.3907 11.2108 23.1856C11.3648 22.9805 11.5876 22.8428 11.835 22.7999C13.9062 22.4387 15.6637 20.6184 16.015 18.4693C16.0594 18.1984 16.2059 17.9568 16.4223 17.7978C16.6387 17.6388 16.9072 17.5753 17.1688 17.6213C17.4303 17.6673 17.6635 17.819 17.8171 18.0431C17.9706 18.2672 18.0319 18.5453 17.9875 18.8162H17.9862Z"
-        fill="white"
+        fill={filled ? "#FA4860" : "white"}
       />
     </svg>
   )
 }
 
 export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCount, viewCount, videoSlug, videoId, canDownload = false, userId }: VideoInfoBarProps) {
-  const [isSubscribed, setIsSubscribed] = useState(false)
+  const router = useRouter()
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [favoriteCount, setFavoriteCount] = useState(parseInt(subscriberCount.replace(/,/g, "")) || 0)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
+
+  // Check if video is in favorites on mount
+  useEffect(() => {
+    if (!videoId || !userId) return
+
+    async function checkFavorite() {
+      try {
+        const res = await fetch(`/api/favorites/check?videoId=${videoId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setIsFavorite(data.isFavorite)
+        }
+      } catch (error) {
+        console.error("Error checking favorite:", error)
+      }
+    }
+
+    checkFavorite()
+  }, [videoId, userId])
+
+  async function handleToggleFavorite() {
+    if (!videoId) return
+
+    if (!userId) {
+      toast.error("Inicia sesión para guardar en favoritos")
+      router.push("/login")
+      return
+    }
+
+    setIsTogglingFavorite(true)
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        const res = await fetch(`/api/favorites?videoId=${videoId}`, {
+          method: "DELETE",
+        })
+        if (res.ok) {
+          setIsFavorite(false)
+          setFavoriteCount((prev) => Math.max(0, prev - 1))
+          toast.success("Eliminado de favoritos")
+        } else {
+          throw new Error("Error al eliminar de favoritos")
+        }
+      } else {
+        // Add to favorites
+        const res = await fetch("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videoId }),
+        })
+        if (res.ok) {
+          setIsFavorite(true)
+          setFavoriteCount((prev) => prev + 1)
+          toast.success("Añadido a favoritos")
+        } else {
+          const data = await res.json()
+          throw new Error(data.error || "Error al añadir a favoritos")
+        }
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al actualizar favoritos")
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }
 
   async function handleDownload() {
     if (!canDownload) {
@@ -136,10 +205,17 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
             <div className="hidden md:block" style={{ height: "15px" }} />
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap md:flex-nowrap items-start sm:items-center md:items-center gap-4 sm:gap-6 md:gap-10 text-white">
-              <div className="flex items-center gap-4">
-                <WaterDropIcon className="w-[22px] h-[29px]" />
-                <span style={{ fontSize: "16px", fontWeight: 400, lineHeight: "24px" }}>{commentCount}</span>
-              </div>
+              <button
+                onClick={handleToggleFavorite}
+                disabled={isTogglingFavorite}
+                className="flex items-center gap-4 hover:opacity-80 transition-opacity disabled:opacity-50"
+                title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+              >
+                <WaterDropIcon className="w-[22px] h-[29px]" filled={isFavorite} />
+                <span style={{ fontSize: "16px", fontWeight: 400, lineHeight: "24px", color: isFavorite ? "#FA4860" : "white" }}>
+                  {favoriteCount.toLocaleString()}
+                </span>
+              </button>
 
               <span style={{ fontSize: "16px", fontWeight: 400, lineHeight: "24px" }}>{viewCount} views</span>
             </div>

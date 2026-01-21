@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       prisma.favorite.findMany({
         where: { ...where, ...typeFilter },
         include: {
-          video: {
+          Video: {
             select: {
               id: true,
               slug: true,
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          performer: {
+          Performer: {
             select: {
               id: true,
               slug: true,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
               videoCount: true,
             },
           },
-          product: {
+          Product: {
             select: {
               id: true,
               slug: true,
@@ -78,48 +78,48 @@ export async function GET(request: NextRequest) {
 
     // Transform favorites based on type
     const transformedFavorites = favorites.map((fav) => {
-      if (fav.video) {
+      if (fav.Video) {
         return {
           id: fav.id,
           type: "video" as const,
           createdAt: fav.createdAt.toISOString(),
           item: {
-            id: fav.video.id,
-            slug: fav.video.slug,
-            title: fav.video.title,
-            thumbnailUrl: fav.video.thumbnailUrl,
-            viewCount: fav.video.viewCount,
-            likeCount: fav.video.likeCount,
-            duration: fav.video.duration,
-            performerName: fav.video.performers[0]?.performer?.name || null,
+            id: fav.Video.id,
+            slug: fav.Video.slug,
+            title: fav.Video.title,
+            thumbnailUrl: fav.Video.thumbnailUrl,
+            viewCount: fav.Video.viewCount,
+            likeCount: fav.Video.likeCount,
+            duration: fav.Video.duration,
+            performerName: fav.Video.performers[0]?.performer?.name || null,
           },
         }
       }
-      if (fav.performer) {
+      if (fav.Performer) {
         return {
           id: fav.id,
           type: "performer" as const,
           createdAt: fav.createdAt.toISOString(),
           item: {
-            id: fav.performer.id,
-            slug: fav.performer.slug,
-            name: fav.performer.name,
-            profileImage: fav.performer.profileImage,
-            videoCount: fav.performer.videoCount,
+            id: fav.Performer.id,
+            slug: fav.Performer.slug,
+            name: fav.Performer.name,
+            profileImage: fav.Performer.profileImage,
+            videoCount: fav.Performer.videoCount,
           },
         }
       }
-      if (fav.product) {
+      if (fav.Product) {
         return {
           id: fav.id,
           type: "product" as const,
           createdAt: fav.createdAt.toISOString(),
           item: {
-            id: fav.product.id,
-            slug: fav.product.slug,
-            name: fav.product.name,
-            price: Number(fav.product.price),
-            imageUrl: fav.product.images[0] || null,
+            id: fav.Product.id,
+            slug: fav.Product.slug,
+            name: fav.Product.name,
+            price: Number(fav.Product.price),
+            imageUrl: fav.Product.images[0] || null,
           },
         }
       }

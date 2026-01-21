@@ -28,8 +28,13 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     requireAdmin: true,
   },
   previews: {
-    maxSize: 50 * 1024 * 1024, // 50MB
-    allowedTypes: ["video/mp4", "video/webm"],
+    maxSize: 512 * 1024 * 1024, // 512MB
+    allowedTypes: ["video/mp4", "video/webm", "video/quicktime"],
+    requireAdmin: true,
+  },
+  videos: {
+    maxSize: 5 * 1024 * 1024 * 1024, // 5GB
+    allowedTypes: ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska", "video/avi", "video/x-msvideo"],
     requireAdmin: true,
   },
   gallery: {

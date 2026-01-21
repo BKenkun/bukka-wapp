@@ -86,10 +86,10 @@ export function SubscriptionPlanCard({
 
       {showButton && (
         <button
-          className={`mt-6 w-full py-3 font-montserrat text-[14px] font-medium ${
+          className={`mt-6 w-full ${
             isCurrentPlan
-              ? "bg-[#FA4860] text-white"
-              : "border border-[#FA4860] text-[#FA4860] hover:bg-[#FA4860] hover:text-white transition-colors"
+              ? "btn-primary"
+              : "btn-secondary"
           }`}
         >
           {buttonText}

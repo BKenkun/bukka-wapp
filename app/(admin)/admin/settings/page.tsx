@@ -1,11 +1,13 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { IconSettings, IconShieldCheck, IconLock, IconMail } from "@tabler/icons-react"
+import { IconSettings, IconShieldCheck, IconLock, IconMail, IconLayoutBottombar, IconPalette } from "@tabler/icons-react"
 import { GeneralSettings } from "./general-settings"
 import { AgeVerificationSettings } from "./age-verification-settings"
 import { VideoAccessSettings } from "./video-access-settings"
 import { EmailSettings } from "./email-settings"
+import { FooterSettings } from "./footer-settings"
+import { DesignSettings } from "./design-settings"
 
 export default function SettingsPage() {
   return (
@@ -18,10 +20,14 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="general" className="gap-2">
             <IconSettings className="size-4" />
             General
+          </TabsTrigger>
+          <TabsTrigger value="design" className="gap-2">
+            <IconPalette className="size-4" />
+            Diseño
           </TabsTrigger>
           <TabsTrigger value="age-verification" className="gap-2">
             <IconShieldCheck className="size-4" />
@@ -35,10 +41,18 @@ export default function SettingsPage() {
             <IconMail className="size-4" />
             Email
           </TabsTrigger>
+          <TabsTrigger value="footer" className="gap-2">
+            <IconLayoutBottombar className="size-4" />
+            Footer
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
           <GeneralSettings />
+        </TabsContent>
+
+        <TabsContent value="design">
+          <DesignSettings />
         </TabsContent>
 
         <TabsContent value="age-verification">
@@ -51,6 +65,10 @@ export default function SettingsPage() {
 
         <TabsContent value="email">
           <EmailSettings />
+        </TabsContent>
+
+        <TabsContent value="footer">
+          <FooterSettings />
         </TabsContent>
       </Tabs>
     </div>

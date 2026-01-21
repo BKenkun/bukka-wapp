@@ -55,8 +55,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       status: "PUBLISHED",
       id: { not: post.id },
       OR: [
-        { categoryId: post.BlogCategoryId },
-        { authorId: post.userId },
+        { categoryId: post.categoryId },
+        { authorId: post.authorId },
       ],
     },
     orderBy: { publishedAt: "desc" },

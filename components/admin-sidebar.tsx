@@ -153,6 +153,12 @@ const navShop: NavItem[] = [
     permission: "attributes",
   },
   {
+    title: "Códigos Promo",
+    url: "/admin/promo-codes",
+    icon: IconTag,
+    permission: "promo_codes",
+  },
+  {
     title: "Envío",
     url: "/admin/shipping",
     icon: IconTruck,
@@ -189,12 +195,6 @@ const navBusiness: NavItem[] = [
     url: "/admin/subscriptions",
     icon: IconReceipt,
     permission: "subscriptions",
-  },
-  {
-    title: "Códigos Promo",
-    url: "/admin/promo-codes",
-    icon: IconTag,
-    permission: "promo_codes",
   },
   {
     title: "Casting",

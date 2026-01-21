@@ -39,7 +39,7 @@ export async function GET(request: Request) {
           user: {
             select: { id: true, name: true, email: true },
           },
-          items: {
+          OrderItem: {
             include: {
               product: {
                 select: { id: true, name: true, slug: true },
@@ -53,8 +53,15 @@ export async function GET(request: Request) {
 
     const totalPages = Math.ceil(totalCount / pageSize)
 
+    // Transform OrderItem to items for frontend compatibility
+    const transformedOrders = orders.map((order) => ({
+      ...order,
+      items: order.OrderItem,
+      OrderItem: undefined,
+    }))
+
     return NextResponse.json({
-      orders,
+      orders: transformedOrders,
       pagination: {
         page,
         pageSize,

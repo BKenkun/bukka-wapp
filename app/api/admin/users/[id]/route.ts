@@ -111,14 +111,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        subscriptionPlan: true,
-        badges: {
-          include: { badge: true },
+        SubscriptionPlan: true,
+        UserBadge: {
+          include: { Badge: true },
         },
-        orders: {
+        Order: {
           orderBy: { createdAt: "desc" },
           include: {
-            items: {
+            OrderItem: {
               include: {
                 product: {
                   select: { id: true, name: true, images: true },
@@ -127,21 +127,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             },
           },
         },
-        subscriptionHistory: {
+        SubscriptionHistory: {
           orderBy: { startDate: "desc" },
           include: {
-            plan: {
+            SubscriptionPlan: {
               select: { id: true, slug: true, name: true },
             },
           },
         },
         _count: {
           select: {
-            orders: true,
+            Order: true,
             favorites: true,
-            comments: true,
-            forumPosts: true,
-            forumReplies: true,
+            Comment: true,
+            ForumPost: true,
+            ForumReply: true,
           },
         },
       },
@@ -151,7 +151,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json(user)
+    const transformedUser = {
+      ...user,
+      subscriptionPlan: user.SubscriptionPlan,
+      badges: user.UserBadge.map((b) => ({ ...b, badge: b.Badge })),
+      orders: user.Order.map((o) => ({ ...o, items: o.OrderItem })),
+      subscriptionHistory: user.SubscriptionHistory.map((h) => ({ ...h, plan: h.SubscriptionPlan })),
+      _count: {
+        ...user._count,
+        orders: user._count.Order,
+        forumPosts: user._count.ForumPost,
+        forumReplies: user._count.ForumReply,
+        comments: user._count.Comment,
+      },
+    }
+
+    return NextResponse.json(transformedUser)
   } catch (error) {
     console.error("Error fetching user:", error)
     return NextResponse.json(

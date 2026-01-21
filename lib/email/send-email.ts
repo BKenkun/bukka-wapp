@@ -10,7 +10,7 @@ async function getEmailSettings(): Promise<EmailSettings> {
       where: { key: "email_settings" },
     })
     if (settings?.value) {
-      return { ...DEFAULT_EMAIL_SETTINGS, ...(settings.value as EmailSettings) }
+      return { ...DEFAULT_EMAIL_SETTINGS, ...(settings.value as unknown as EmailSettings) }
     }
   } catch (error) {
     console.error("Error fetching email settings:", error)

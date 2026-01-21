@@ -15,7 +15,7 @@ export async function GET() {
     })
 
     const emailSettings = settings?.value
-      ? { ...DEFAULT_EMAIL_SETTINGS, ...(settings.value as EmailSettings) }
+      ? { ...DEFAULT_EMAIL_SETTINGS, ...(settings.value as unknown as EmailSettings) }
       : DEFAULT_EMAIL_SETTINGS
 
     return NextResponse.json(emailSettings)

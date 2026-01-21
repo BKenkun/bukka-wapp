@@ -282,10 +282,10 @@ export function canWatchInQuality(
 export async function getUserPlan(userId: string): Promise<SubscriptionPlan | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { subscriptionPlan: true },
+    include: { SubscriptionPlan: true },
   })
-  if (!user?.subscriptionPlan) return null
-  const plan = user.subscriptionPlan
+  if (!user?.SubscriptionPlan) return null
+  const plan = user.SubscriptionPlan
   return {
     id: plan.id,
     slug: plan.slug,

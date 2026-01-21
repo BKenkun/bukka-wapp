@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -53,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params
     const body = await request.json()
-    const { title, content, isPinned, isLocked } = body
+    const { title, content, categoryId, isPinned, isLocked } = body
 
     const existingPost = await prisma.forumPost.findUnique({
       where: { id },
@@ -78,12 +79,29 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 })
     }
 
+    // Check forum access for non-mod users
+    if (!isMod) {
+      const userPlan = await getUserPlan(session.user.id)
+      if (!canUserAccessForum(userPlan)) {
+        return NextResponse.json(
+          { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+          { status: 403 }
+        )
+      }
+    }
+
     const updateData: Record<string, unknown> = {}
 
-    // Owner can edit content
+    // Owner can edit content and category
     if (isOwner && !existingPost.isLocked) {
       if (title !== undefined) updateData.title = title
       if (content !== undefined) updateData.content = content
+      if (categoryId !== undefined) updateData.categoryId = categoryId
+    }
+
+    // Mods can also change category
+    if (isMod && categoryId !== undefined) {
+      updateData.categoryId = categoryId
     }
 
     // Mod can pin/lock
@@ -142,6 +160,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!isOwner && !isMod) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    // Check forum access for non-mod users
+    if (!isMod) {
+      const userPlan = await getUserPlan(session.user.id)
+      if (!canUserAccessForum(userPlan)) {
+        return NextResponse.json(
+          { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+          { status: 403 }
+        )
+      }
     }
 
     await prisma.forumPost.delete({ where: { id } })

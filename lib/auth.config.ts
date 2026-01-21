@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import { type JWT } from "next-auth/jwt"
 
 /**
  * Auth config for Edge runtime (proxy/middleware)

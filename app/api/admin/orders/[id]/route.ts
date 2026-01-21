@@ -16,7 +16,6 @@ const updateOrderSchema = z.object({
   status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]).optional(),
   paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "REFUNDED"]).optional(),
   trackingNumber: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
 })
 
 export async function GET(
@@ -39,7 +38,7 @@ export async function GET(
             id: true,
             name: true,
             email: true,
-            subscriptionPlan: {
+            SubscriptionPlan: {
               select: {
                 slug: true,
                 name: true,
@@ -47,7 +46,7 @@ export async function GET(
             },
           },
         },
-        items: {
+        OrderItem: {
           include: {
             product: {
               select: { id: true, name: true, slug: true, images: true },
@@ -61,7 +60,14 @@ export async function GET(
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json({ order })
+    // Transform OrderItem to items for frontend compatibility
+    const transformedOrder = {
+      ...order,
+      items: order.OrderItem,
+      OrderItem: undefined,
+    }
+
+    return NextResponse.json({ order: transformedOrder })
   } catch (error) {
     console.error("Error fetching order:", error)
     return NextResponse.json({ error: "Error al obtener pedido" }, { status: 500 })
@@ -95,7 +101,7 @@ export async function PATCH(
         user: {
           select: { id: true, name: true, email: true },
         },
-        items: {
+        OrderItem: {
           include: {
             product: {
               select: { id: true, name: true, slug: true, price: true },
@@ -161,7 +167,7 @@ export async function PATCH(
             react: OrderCancelledTemplate({
               customerName: userName,
               orderNumber: order.orderNumber,
-              items: order.items.map((item) => ({
+              items: order.OrderItem.map((item) => ({
                 name: item.product.name,
                 quantity: item.quantity,
                 price: Number(item.price),
@@ -207,7 +213,14 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({ order })
+    // Transform OrderItem to items for frontend compatibility
+    const transformedOrder = {
+      ...order,
+      items: order.OrderItem,
+      OrderItem: undefined,
+    }
+
+    return NextResponse.json({ order: transformedOrder })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 })

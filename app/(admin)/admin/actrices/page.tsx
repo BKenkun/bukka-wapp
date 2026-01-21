@@ -40,7 +40,7 @@ export default async function AdminPerformersPage({
           select: {
             VideoPerformer: true,
             favorites: true,
-            Product: true,
+            products: true,
           },
         },
         User: {

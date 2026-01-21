@@ -128,6 +128,7 @@ export default async function HistorialDePagosPage() {
     prisma.subscriptionHistory.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
+      include: { SubscriptionPlan: { select: { name: true } } },
     }),
     prisma.order.findMany({
       where: { userId: session.user.id },
@@ -140,7 +141,7 @@ export default async function HistorialDePagosPage() {
     ...subscriptionHistory.map((item) => ({
       id: item.id,
       type: "subscription" as const,
-      name: `Suscripcion ${getTierDisplayName(item.tier)}`,
+      name: `Suscripcion ${getTierDisplayName(item.SubscriptionPlan.name)}`,
       date: item.createdAt.toLocaleDateString("es-ES", {
         day: "numeric",
         month: "long",

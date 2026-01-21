@@ -1,5 +1,6 @@
 "use client"
 
+import { useId } from "react"
 import Link from "next/link"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
@@ -19,10 +20,12 @@ interface FooterAccordionProps {
 }
 
 export function FooterAccordion({ sections }: FooterAccordionProps) {
+  const baseId = useId()
+
   return (
     <Accordion type="single" collapsible className="w-full">
       {sections.map((section, index) => (
-        <AccordionItem key={index} value={`item-${index}`} className="border-white/10">
+        <AccordionItem key={`${baseId}-${index}`} value={`${baseId}-item-${index}`} className="border-white/10">
           <AccordionTrigger
             className="text-white font-bold hover:no-underline"
             style={{

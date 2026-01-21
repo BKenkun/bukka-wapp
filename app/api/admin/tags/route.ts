@@ -20,14 +20,22 @@ export async function GET() {
       include: {
         _count: {
           select: {
-            videos: true,
-            products: true,
+            VideoTag: true,
+            ProductTag: true,
           },
         },
       },
     })
 
-    return NextResponse.json({ tags })
+    const transformedTags = tags.map((tag) => ({
+      ...tag,
+      _count: {
+        videos: tag._count.VideoTag,
+        products: tag._count.ProductTag,
+      },
+    }))
+
+    return NextResponse.json({ tags: transformedTags })
   } catch (error) {
     console.error("Error fetching tags:", error)
     return NextResponse.json({ error: "Error al obtener tags" }, { status: 500 })

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       prisma.order.findMany({
         where,
         include: {
-          items: {
+          OrderItem: {
             include: {
               product: {
                 select: {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       tierDiscountPercent: order.tierDiscountPercent,
       trackingNumber: order.trackingNumber,
       createdAt: order.createdAt.toISOString(),
-      items: order.items.map((item) => ({
+      items: order.OrderItem.map((item) => ({
         id: item.id,
         quantity: item.quantity,
         price: Number(item.price),
@@ -109,6 +109,8 @@ const createOrderSchema = z.object({
   shippingRateId: z.string().optional(),
   shippingMethod: z.string().optional(),
   shippingCost: z.number().min(0).default(0),
+  promoCode: z.string().nullable().optional(),
+  promoDiscount: z.number().min(0).default(0),
 })
 
 // POST - Crear orden desde el carrito
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost } = validatedData.data
+    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount } = validatedData.data
 
     // Get cart with items
     const cart = await prisma.cart.findUnique({
@@ -233,10 +235,25 @@ export async function POST(request: NextRequest) {
       const itemPrice = item.variant ? Number(item.variant.price) : Number(item.product.price)
       return sum + itemPrice * item.quantity
     }, 0)
-    const discount = (subtotal * discountPercent) / 100
+    const tierDiscount = (subtotal * discountPercent) / 100
+    const discount = tierDiscount + (promoDiscount || 0) // Combine tier and promo discounts
     const tax = 0 // Could calculate based on shipping address
     const shipping = shippingCost // Use shipping cost from request
-    const total = subtotal - discount + tax + shipping
+    const total = Math.max(0, subtotal - discount + tax + shipping)
+
+    // Validate and update promo code usage if provided
+    if (promoCode) {
+      const validPromo = await prisma.promoCode.findUnique({
+        where: { code: promoCode },
+      })
+
+      if (validPromo && validPromo.isActive) {
+        await prisma.promoCode.update({
+          where: { id: validPromo.id },
+          data: { usedCount: { increment: 1 } },
+        })
+      }
+    }
 
     // Determine order risk level (highest risk of any product)
     const hasHighRisk = cart.items.some(
@@ -264,7 +281,7 @@ export async function POST(request: NextRequest) {
           shippingAddress: shippingAddress as object,
           billingAddress: (sameAsBilling ? shippingAddress : billingAddress) as object,
           shippingMethod: shippingMethod || null,
-          items: {
+          OrderItem: {
             create: cart.items.map((item) => {
               // Build variant snapshot for variable products
               const variantSnapshot = item.variant
@@ -280,17 +297,17 @@ export async function POST(request: NextRequest) {
               const itemPrice = item.variant ? item.variant.price : item.product.price
 
               return {
-                productId: item.product.id,
-                variantId: item.variantId || null,
+                product: { connect: { id: item.product.id } },
+                variant: item.variantId ? { connect: { id: item.variantId } } : undefined,
                 quantity: item.quantity,
                 price: itemPrice,
-                variantSnapshot: variantSnapshot,
+                variantSnapshot: variantSnapshot as any,
               }
             }),
           },
         },
         include: {
-          items: {
+          OrderItem: {
             include: {
               product: {
                 select: { id: true, name: true, images: true },
@@ -344,7 +361,7 @@ export async function POST(request: NextRequest) {
       react: OrderConfirmationTemplate({
         customerName: user!.name || shippingAddr.firstName,
         orderNumber: order.orderNumber,
-        items: order.items.map((item) => ({
+        items: order.OrderItem.map((item) => ({
           name: item.product.name,
           quantity: item.quantity,
           price: Number(item.price),

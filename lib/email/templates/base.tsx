@@ -104,13 +104,25 @@ export function EmailButton({
 }
 
 // Heading component
-export function EmailHeading({ children }: { children: React.ReactNode }) {
-  return <Text style={heading}>{children}</Text>
+export function EmailHeading({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style?: React.CSSProperties
+}) {
+  return <Text style={{ ...heading, ...style }}>{children}</Text>
 }
 
 // Paragraph component
-export function EmailText({ children }: { children: React.ReactNode }) {
-  return <Text style={text}>{children}</Text>
+export function EmailText({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style?: React.CSSProperties
+}) {
+  return <Text style={{ ...text, ...style }}>{children}</Text>
 }
 
 // Info box component

@@ -18,13 +18,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Card,
   CardContent,
   CardDescription,
@@ -39,13 +32,7 @@ const performerSchema = z.object({
   bio: z.string().optional(),
   profileImage: z.string().optional(),
   coverImage: z.string().optional(),
-  nationality: z.string().optional(),
-  birthDate: z.string().optional(),
-  height: z.string().optional(),
-  measurements: z.string().optional(),
-  hairColor: z.string().optional(),
-  eyeColor: z.string().optional(),
-  skinTone: z.string().optional(),
+  location: z.string().optional(),
 })
 
 type PerformerFormData = z.infer<typeof performerSchema>
@@ -66,13 +53,7 @@ interface PerformerFormProps {
     bio: string | null
     profileImage: string | null
     coverImage: string | null
-    nationality: string | null
-    birthDate: Date | null
-    height: number | null
-    measurements: string | null
-    hairColor: string | null
-    eyeColor: string | null
-    skinTone: string | null
+    location: string | null
     PerformerPhoto?: {
       id: string
       imageUrl: string
@@ -81,18 +62,6 @@ interface PerformerFormProps {
     }[]
   }
 }
-
-const hairColors = [
-  "Rubio", "Castaño", "Negro", "Pelirrojo", "Moreno", "Gris", "Otro"
-]
-
-const eyeColors = [
-  "Azul", "Verde", "Marrón", "Negro", "Avellana", "Gris", "Otro"
-]
-
-const skinTones = [
-  "Clara", "Media", "Morena", "Oscura"
-]
 
 export function PerformerForm({ performer }: PerformerFormProps) {
   const router = useRouter()
@@ -231,15 +200,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       bio: performer?.bio || "",
       profileImage: performer?.profileImage || "",
       coverImage: performer?.coverImage || "",
-      nationality: performer?.nationality || "",
-      birthDate: performer?.birthDate
-        ? new Date(performer.birthDate).toISOString().split("T")[0]
-        : "",
-      height: performer?.height?.toString() || "",
-      measurements: performer?.measurements || "",
-      hairColor: performer?.hairColor || "",
-      eyeColor: performer?.eyeColor || "",
-      skinTone: performer?.skinTone || "",
+      location: performer?.location || "",
     },
   })
 
@@ -354,8 +315,6 @@ export function PerformerForm({ performer }: PerformerFormProps) {
         ...data,
         profileImage: profileImage || null,
         coverImage: coverImage || null,
-        height: data.height ? parseInt(data.height) : null,
-        birthDate: data.birthDate || null,
         galleryPhotos: galleryPhotos.map((photo, index) => ({
           id: photo.id,
           imageUrl: photo.imageUrl,
@@ -441,113 +400,16 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nationality">Nacionalidad</Label>
-                  <Input
-                    id="nationality"
-                    {...register("nationality")}
-                    placeholder="España"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Fecha de nacimiento</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    {...register("birthDate")}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Physical Attributes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Atributos Físicos</CardTitle>
-              <CardDescription>Características físicas para filtros</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="height">Altura (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    {...register("height")}
-                    placeholder="165"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="measurements">Medidas</Label>
-                  <Input
-                    id="measurements"
-                    {...register("measurements")}
-                    placeholder="90-60-90"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hairColor">Color de pelo</Label>
-                  <Select
-                    defaultValue={performer?.hairColor || ""}
-                    onValueChange={(value) => setValue("hairColor", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hairColors.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          {color}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="eyeColor">Color de ojos</Label>
-                  <Select
-                    defaultValue={performer?.eyeColor || ""}
-                    onValueChange={(value) => setValue("eyeColor", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eyeColors.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          {color}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="skinTone">Tono de piel</Label>
-                  <Select
-                    defaultValue={performer?.skinTone || ""}
-                    onValueChange={(value) => setValue("skinTone", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {skinTones.map((tone) => (
-                        <SelectItem key={tone} value={tone}>
-                          {tone}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Ubicación</Label>
+                <Input
+                  id="location"
+                  {...register("location")}
+                  placeholder="Los Angeles, California"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ej: Madrid, España o Los Angeles, California
+                </p>
               </div>
             </CardContent>
           </Card>

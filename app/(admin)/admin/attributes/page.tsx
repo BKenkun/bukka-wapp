@@ -27,11 +27,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { toast } from "sonner"
 import {
   IconPlus,
@@ -506,25 +501,22 @@ export default function AttributesPage() {
               </TableRow>
             ) : (
               attributes.map((attr) => (
-                <Collapsible key={attr.id} asChild open={expandedId === attr.id}>
-                  <>
-                    <TableRow className="border-b-0">
-                      <TableCell>
-                        <CollapsibleTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-6"
-                            onClick={() => setExpandedId(expandedId === attr.id ? null : attr.id)}
-                          >
-                            {expandedId === attr.id ? (
-                              <IconChevronDown className="size-4" />
-                            ) : (
-                              <IconChevronRight className="size-4" />
-                            )}
-                          </Button>
-                        </CollapsibleTrigger>
-                      </TableCell>
+                <React.Fragment key={attr.id}>
+                  <TableRow className="border-b-0">
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        onClick={() => setExpandedId(expandedId === attr.id ? null : attr.id)}
+                      >
+                        {expandedId === attr.id ? (
+                          <IconChevronDown className="size-4" />
+                        ) : (
+                          <IconChevronRight className="size-4" />
+                        )}
+                      </Button>
+                    </TableCell>
                       <TableCell>{attr.order}</TableCell>
                       <TableCell className="font-medium">{attr.name}</TableCell>
                       <TableCell className="text-muted-foreground">{attr.slug}</TableCell>
@@ -550,10 +542,10 @@ export default function AttributesPage() {
                             <IconTrash className="size-4" />
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                    <CollapsibleContent asChild>
-                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    </TableCell>
+                  </TableRow>
+                  {expandedId === attr.id && (
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
                         <TableCell colSpan={9} className="py-4">
                           <div className="ml-6 space-y-3">
                             <div className="flex items-center justify-between">
@@ -624,11 +616,10 @@ export default function AttributesPage() {
                               </div>
                             )}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    </CollapsibleContent>
-                  </>
-                </Collapsible>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))
             )}
           </TableBody>

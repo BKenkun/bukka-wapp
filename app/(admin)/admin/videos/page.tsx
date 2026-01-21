@@ -59,6 +59,9 @@ export default async function AdminVideosPage({
             favorites: true,
           },
         },
+        minTierPlan: {
+          select: { name: true },
+        },
       },
     }),
     prisma.video.count({ where }),
@@ -66,6 +69,11 @@ export default async function AdminVideosPage({
       orderBy: { name: "asc" },
     }),
   ])
+
+  const mappedVideos = videos.map((video) => ({
+    ...video,
+    minTier: video.minTierPlan?.name || "N/A",
+  }))
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -87,7 +95,7 @@ export default async function AdminVideosPage({
       </div>
 
       <VideosDataTable
-        videos={videos}
+        videos={mappedVideos}
         categories={categories}
         currentPage={page}
         totalPages={totalPages}

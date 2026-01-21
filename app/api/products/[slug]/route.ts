@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       images,
       status,
       riskLevel,
-      performerId,
+      performerIds,
       categoryIds,
       productType,
       weight,
@@ -95,6 +95,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Actualizar performers (many-to-many)
+    if (performerIds !== undefined) {
+      await prisma.productPerformer.deleteMany({
+        where: { productId: existingProduct.id },
+      })
+
+      if (performerIds.length > 0) {
+        await prisma.productPerformer.createMany({
+          data: performerIds.map((performerId: string) => ({
+            productId: existingProduct.id,
+            performerId,
+          })),
+        })
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id: existingProduct.id },
       data: {
@@ -109,13 +125,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         images,
         status,
         riskLevel,
-        performerId: performerId || null,
         productType: productType || undefined,
         weight: weight !== undefined ? weight : undefined,
       },
       include: {
-        performer: true,
-        categories: { include: { category: true } },
+        performers: {
+          include: {
+            performer: {
+              select: { id: true, slug: true, name: true, profileImage: true },
+            },
+          },
+        },
+        ProductToCategory: { include: { ShopCategory: true } },
       },
     })
 
@@ -179,17 +200,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const product = await prisma.product.findUnique({
       where: { slug },
       include: {
-        performer: {
-          select: { id: true, slug: true, name: true, profileImage: true },
-        },
-        categories: {
+        performers: {
           include: {
-            category: {
+            performer: {
+              select: { id: true, slug: true, name: true, profileImage: true },
+            },
+          },
+        },
+        ProductToCategory: {
+          include: {
+            ShopCategory: {
               select: { id: true, slug: true, name: true },
             },
           },
         },
-        videos: {
+        VideoProduct: {
           include: {
             video: {
               select: {
@@ -221,9 +246,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       images: product.images,
       riskLevel: product.riskLevel,
       status: product.status,
-      performer: product.performer,
-      categories: product.categories.map((pc) => pc.category),
-      relatedVideos: product.videos.map((pv) => pv.video),
+      performers: product.performers.map((pp) => pp.performer),
+      categories: product.ProductToCategory.map((pc) => pc.ShopCategory),
+      relatedVideos: product.VideoProduct.map((pv) => pv.video),
     })
   } catch (error) {
     console.error("Error fetching product:", error)

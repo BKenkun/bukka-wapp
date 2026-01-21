@@ -26,14 +26,14 @@ export async function GET(
     const category = await prisma.videoCategory.findUnique({
       where: { id },
       include: {
-        parent: {
+        VideoCategory: {
           select: { id: true, name: true },
         },
-        children: {
+        other_VideoCategory: {
           select: { id: true, name: true, slug: true },
         },
         _count: {
-          select: { videos: true },
+          select: { VideoToCategory: true },
         },
       },
     })
@@ -42,7 +42,14 @@ export async function GET(
       return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 })
     }
 
-    return NextResponse.json({ category })
+    const transformedCategory = {
+      ...category,
+      parent: category.VideoCategory,
+      children: category.other_VideoCategory,
+      _count: { videos: category._count.VideoToCategory },
+    }
+
+    return NextResponse.json({ category: transformedCategory })
   } catch (error) {
     console.error("Error fetching video category:", error)
     return NextResponse.json({ error: "Error al obtener categoría" }, { status: 500 })

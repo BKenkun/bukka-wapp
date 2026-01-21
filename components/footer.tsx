@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { FooterAccordion } from "@/components/footer/footer-accordion"
+import { getFooterSettings, type FooterSocialLink } from "@/lib/get-footer-settings"
+import { auth } from "@/auth"
 
 interface FooterLink {
   label: string
@@ -70,7 +72,12 @@ const DEFAULT_SOCIAL_LINKS: SocialLink[] = [
   { platform: "TikTok", url: "#", icon: "tiktok" },
 ]
 
-async function getFooterMenuItems(slug: string): Promise<FooterLink[] | null> {
+interface FooterMenuResult {
+  title: string | null
+  links: FooterLink[]
+}
+
+async function getFooterMenuItems(slug: string, userTierLevel: number | null): Promise<FooterMenuResult | null> {
   try {
     const menu = await prisma.menu.findUnique({
       where: { slug },
@@ -84,6 +91,7 @@ async function getFooterMenuItems(slug: string): Promise<FooterLink[] | null> {
             url: true,
             pageId: true,
             openInNewTab: true,
+            minTierLevel: true,
           },
         },
       },
@@ -93,9 +101,23 @@ async function getFooterMenuItems(slug: string): Promise<FooterLink[] | null> {
       return null
     }
 
+    // Filtrar items por nivel de suscripción del usuario
+    const filteredItems = menu.items.filter((item) => {
+      // Si el item no tiene restricción de tier, es visible para todos
+      if (item.minTierLevel === null) return true
+      // Si el usuario no tiene suscripción, solo ve items sin restricción
+      if (userTierLevel === null) return false
+      // El usuario ve el item si su nivel es >= al mínimo requerido
+      return userTierLevel >= item.minTierLevel
+    })
+
+    if (filteredItems.length === 0) {
+      return null
+    }
+
     // Resolver URLs de páginas internas
     const itemsWithUrls = await Promise.all(
-      menu.items.map(async (item) => {
+      filteredItems.map(async (item) => {
         if (item.pageId) {
           const page = await prisma.page.findUnique({
             where: { id: item.pageId, status: "PUBLISHED" },
@@ -115,7 +137,10 @@ async function getFooterMenuItems(slug: string): Promise<FooterLink[] | null> {
       })
     )
 
-    return itemsWithUrls
+    return {
+      title: menu.title,
+      links: itemsWithUrls,
+    }
   } catch (error) {
     console.error(`Error fetching footer menu ${slug}:`, error)
     return null
@@ -235,6 +260,46 @@ function SocialIcon({ icon }: { icon: string }) {
   }
 }
 
+// Componente para renderizar iconos SVG personalizados de redes sociales
+function CustomSocialIcon({ svg, label }: { svg: string; label: string }) {
+  return (
+    <span
+      className="size-6 [&>svg]:size-6 [&>svg]:fill-white text-white"
+      dangerouslySetInnerHTML={{ __html: svg }}
+      title={label}
+    />
+  )
+}
+
+// Componente para el logo del footer
+function FooterLogo({
+  type,
+  imageUrl,
+  text,
+}: {
+  type: "image" | "text"
+  imageUrl: string | null
+  text: string
+}) {
+  if (type === "image" && imageUrl) {
+    return <img src={imageUrl} alt={text || "Logo"} className="h-[40px] object-contain" />
+  }
+
+  return (
+    <span
+      className="text-[#FA4860] font-black"
+      style={{
+        fontFamily: "Montserrat",
+        fontSize: "33.029px",
+        fontWeight: 900,
+        lineHeight: "normal",
+      }}
+    >
+      {text || "LOGO"}
+    </span>
+  )
+}
+
 function FooterLinkItem({ link }: { link: FooterLink }) {
   return (
     <li className="flex items-center gap-2">
@@ -283,45 +348,92 @@ function FooterColumn({ title, links }: FooterSection) {
 export async function Footer() {
   const currentYear = new Date().getFullYear()
 
+  // Obtener sesión del usuario para filtrar menús por suscripción
+  const session = await auth()
+  const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
+
   // Fetch all footer data in parallel
   const [
     serviciosMenu,
     contactoMenu,
     informacionMenu,
     facturacionMenu,
-    socialLinks,
+    menuSocialLinks,
     informacionPages,
+    footerSettings,
   ] = await Promise.all([
-    getFooterMenuItems("footer-col-1"),
-    getFooterMenuItems("footer-col-2"),
-    getFooterMenuItems("footer-col-3"),
-    getFooterMenuItems("footer-col-4"),
+    getFooterMenuItems("footer-col-1", userTierLevel),
+    getFooterMenuItems("footer-col-2", userTierLevel),
+    getFooterMenuItems("footer-col-3", userTierLevel),
+    getFooterMenuItems("footer-col-4", userTierLevel),
     getSocialLinks(),
     getFooterPages(3), // Column 3 = INFORMACIÓN
+    getFooterSettings(),
   ])
 
   // Build sections with DB data or defaults
   const sections: FooterSection[] = [
     {
-      title: "SERVICIOS",
-      links: serviciosMenu || DEFAULT_SECTIONS[0].links,
+      title: serviciosMenu?.title || "SERVICIOS",
+      links: serviciosMenu?.links || DEFAULT_SECTIONS[0].links,
     },
     {
-      title: "CONTACTO",
-      links: contactoMenu || DEFAULT_SECTIONS[1].links,
+      title: contactoMenu?.title || "CONTACTO",
+      links: contactoMenu?.links || DEFAULT_SECTIONS[1].links,
     },
     {
-      title: "INFORMACIÓN",
+      title: informacionMenu?.title || "INFORMACIÓN",
       links: [
-        ...(informacionMenu || DEFAULT_SECTIONS[2].links),
+        ...(informacionMenu?.links || DEFAULT_SECTIONS[2].links),
         ...informacionPages, // Añadir páginas CMS configuradas para footer
       ],
     },
     {
-      title: "FACTURACIÓN",
-      links: facturacionMenu || DEFAULT_SECTIONS[3].links,
+      title: facturacionMenu?.title || "FACTURACIÓN",
+      links: facturacionMenu?.links || DEFAULT_SECTIONS[3].links,
     },
   ]
+
+  // Usar las redes sociales de la configuración del footer si existen, sino del menú
+  const socialLinksToUse =
+    footerSettings.followUs.socialLinks.length > 0
+      ? footerSettings.followUs.socialLinks
+      : null
+
+  // Copyright con el año actual
+  const copyrightText = footerSettings.copyright.text.replace("{year}", currentYear.toString())
+
+  // Función para renderizar el título del newsletter (con o sin enlace)
+  const renderNewsletterTitle = () => {
+    const title = (
+      <h3
+        className="text-white font-bold mb-4"
+        style={{
+          fontFamily: "Montserrat",
+          fontSize: "18px",
+          fontWeight: 700,
+          lineHeight: "71px",
+        }}
+      >
+        {footerSettings.newsletter.title}
+      </h3>
+    )
+
+    if (footerSettings.newsletter.titleUrl) {
+      return (
+        <Link
+          href={footerSettings.newsletter.titleUrl}
+          target={footerSettings.newsletter.openInNewTab ? "_blank" : undefined}
+          rel={footerSettings.newsletter.openInNewTab ? "noopener noreferrer" : undefined}
+          className="hover:opacity-80 transition-opacity"
+        >
+          {title}
+        </Link>
+      )
+    }
+
+    return title
+  }
 
   return (
     <footer className="bg-black text-white px-4 md:px-8 py-12">
@@ -331,19 +443,59 @@ export async function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {/* Logo and Casting Form Section */}
             <div className="flex flex-col">
-              <h2
-                className="text-[#FA4860] font-black mb-8"
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "33.029px",
-                  fontWeight: 900,
-                  lineHeight: "normal",
-                }}
-              >
-                BUKKAKERY
-              </h2>
+              <div className="mb-8">
+                <FooterLogo
+                  type={footerSettings.logo.type}
+                  imageUrl={footerSettings.logo.imageUrl}
+                  text={footerSettings.logo.text}
+                />
+              </div>
 
               <div className="mb-8">
+                {renderNewsletterTitle()}
+
+                {footerSettings.newsletter.customHtml ? (
+                  <div
+                    className="newsletter-custom-html"
+                    dangerouslySetInnerHTML={{ __html: footerSettings.newsletter.customHtml }}
+                  />
+                ) : (
+                  <div className="flex w-full">
+                    <input
+                      type="email"
+                      placeholder="Introduce tu mail"
+                      className="flex-1 px-4 text-white placeholder-white min-w-0"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.15)",
+                        fontFamily: "Montserrat",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        lineHeight: "37px",
+                        border: "none",
+                        outline: "none",
+                        paddingTop: "10px",
+                        paddingBottom: "10px",
+                      }}
+                    />
+                    <button
+                      className="px-4 text-white font-bold whitespace-nowrap"
+                      style={{
+                        background: "#FA4860",
+                        fontFamily: "Montserrat",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        lineHeight: "37px",
+                        paddingTop: "10px",
+                        paddingBottom: "10px",
+                      }}
+                    >
+                      Enviar
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
                 <h3
                   className="text-white font-bold mb-4"
                   style={{
@@ -353,9 +505,58 @@ export async function Footer() {
                     lineHeight: "71px",
                   }}
                 >
-                  CASTINGS
+                  {footerSettings.followUs.title}
                 </h3>
 
+                <div className="flex items-center gap-[15px]">
+                  {socialLinksToUse
+                    ? socialLinksToUse.map((social) => (
+                        <a
+                          key={social.id}
+                          href={social.url}
+                          aria-label={social.label}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:opacity-80 transition-opacity"
+                        >
+                          <CustomSocialIcon svg={social.svg} label={social.label} />
+                        </a>
+                      ))
+                    : menuSocialLinks.map((social) => (
+                        <a key={social.platform} href={social.url} aria-label={social.platform}>
+                          <SocialIcon icon={social.icon} />
+                        </a>
+                      ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-1">
+              <FooterAccordion sections={sections} />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Full grid layout */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-[40px] mb-12">
+          <div className="flex flex-col lg:col-span-4">
+            <div className="mb-8">
+              <FooterLogo
+                type={footerSettings.logo.type}
+                imageUrl={footerSettings.logo.imageUrl}
+                text={footerSettings.logo.text}
+              />
+            </div>
+
+            <div className="mb-8">
+              {renderNewsletterTitle()}
+
+              {footerSettings.newsletter.customHtml ? (
+                <div
+                  className="newsletter-custom-html"
+                  dangerouslySetInnerHTML={{ __html: footerSettings.newsletter.customHtml }}
+                />
+              ) : (
                 <div className="flex w-full">
                   <input
                     type="email"
@@ -374,7 +575,7 @@ export async function Footer() {
                     }}
                   />
                   <button
-                    className="px-4 text-white font-bold whitespace-nowrap"
+                    className="px-6 text-white font-bold whitespace-nowrap"
                     style={{
                       background: "#FA4860",
                       fontFamily: "Montserrat",
@@ -388,97 +589,7 @@ export async function Footer() {
                     Enviar
                   </button>
                 </div>
-              </div>
-
-              <div>
-                <h3
-                  className="text-white font-bold mb-4"
-                  style={{
-                    fontFamily: "Montserrat",
-                    fontSize: "18px",
-                    fontWeight: 700,
-                    lineHeight: "71px",
-                  }}
-                >
-                  SÍGUENOS
-                </h3>
-
-                <div className="flex items-center gap-[15px]">
-                  {socialLinks.map((social) => (
-                    <a key={social.platform} href={social.url} aria-label={social.platform}>
-                      <SocialIcon icon={social.icon} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="md:col-span-1">
-              <FooterAccordion sections={sections} />
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop: Full grid layout */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-[40px] mb-12">
-          <div className="flex flex-col lg:col-span-4">
-            <h2
-              className="text-[#FA4860] font-black mb-8"
-              style={{
-                fontFamily: "Montserrat",
-                fontSize: "33.029px",
-                fontWeight: 900,
-                lineHeight: "normal",
-              }}
-            >
-              BUKKAKERY
-            </h2>
-
-            <div className="mb-8">
-              <h3
-                className="text-white font-bold mb-4"
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "18px",
-                  fontWeight: 700,
-                  lineHeight: "71px",
-                }}
-              >
-                CASTINGS
-              </h3>
-
-              <div className="flex w-full">
-                <input
-                  type="email"
-                  placeholder="Introduce tu mail"
-                  className="flex-1 px-4 text-white placeholder-white min-w-0"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.15)",
-                    fontFamily: "Montserrat",
-                    fontSize: "18px",
-                    fontWeight: 700,
-                    lineHeight: "37px",
-                    border: "none",
-                    outline: "none",
-                    paddingTop: "10px",
-                    paddingBottom: "10px",
-                  }}
-                />
-                <button
-                  className="px-6 text-white font-bold whitespace-nowrap"
-                  style={{
-                    background: "#FA4860",
-                    fontFamily: "Montserrat",
-                    fontSize: "18px",
-                    fontWeight: 700,
-                    lineHeight: "37px",
-                    paddingTop: "10px",
-                    paddingBottom: "10px",
-                  }}
-                >
-                  Enviar
-                </button>
-              </div>
+              )}
             </div>
 
             <div>
@@ -491,15 +602,28 @@ export async function Footer() {
                   lineHeight: "71px",
                 }}
               >
-                SÍGUENOS
+                {footerSettings.followUs.title}
               </h3>
 
               <div className="flex items-center gap-[15px]">
-                {socialLinks.map((social) => (
-                  <a key={social.platform} href={social.url} aria-label={social.platform}>
-                    <SocialIcon icon={social.icon} />
-                  </a>
-                ))}
+                {socialLinksToUse
+                  ? socialLinksToUse.map((social) => (
+                      <a
+                        key={social.id}
+                        href={social.url}
+                        aria-label={social.label}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:opacity-80 transition-opacity"
+                      >
+                        <CustomSocialIcon svg={social.svg} label={social.label} />
+                      </a>
+                    ))
+                  : menuSocialLinks.map((social) => (
+                      <a key={social.platform} href={social.url} aria-label={social.platform}>
+                        <SocialIcon icon={social.icon} />
+                      </a>
+                    ))}
               </div>
             </div>
           </div>
@@ -519,7 +643,7 @@ export async function Footer() {
               lineHeight: "71px",
             }}
           >
-            © {currentYear} . All Rights Reserved.
+            {copyrightText}
           </p>
           <p
             className="text-white max-w-4xl mx-auto px-4"
@@ -530,10 +654,7 @@ export async function Footer() {
               lineHeight: "28px",
             }}
           >
-            All performers appearing on this website are 18 years or older. All video, images, design, graphics are
-            copyright. For inquiries or to cancel your membership, please visit [Tu URL de Contacto/Soporte] or contact
-            our authorized sales agents. 18 U.S.C. §§ 2257–2257A Record-Keeping Compliance Statement (Link a
-            /declaracion-2257)
+            {footerSettings.disclaimer.text}
           </p>
         </div>
       </div>

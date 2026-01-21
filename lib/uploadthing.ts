@@ -13,7 +13,7 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Image uploaded by:", metadata.userId)
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de imagen de perfil (single)
@@ -25,7 +25,7 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Profile image uploaded by:", metadata.userId)
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de thumbnails de video (admin)
@@ -37,7 +37,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de preview/trailer personalizado (admin)
@@ -49,7 +49,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de galería de video (admin)
@@ -61,7 +61,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de subtítulos SRT (admin)
@@ -73,7 +73,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de imágenes de productos (admin)
@@ -85,7 +85,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de imágenes de performer (admin)
@@ -97,7 +97,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de banners (admin)
@@ -109,7 +109,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload para casting (público con validación)
@@ -121,7 +121,7 @@ export const ourFileRouter = {
       return {}
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de video para casting (público)
@@ -133,7 +133,7 @@ export const ourFileRouter = {
       return {}
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de DNI para casting (público pero sensible)
@@ -144,7 +144,7 @@ export const ourFileRouter = {
       return {}
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de imágenes para blog (admin)
@@ -156,7 +156,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de categoría imagen (admin)
@@ -168,7 +168,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 
   // Upload de favicon (admin)
@@ -180,7 +180,7 @@ export const ourFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.ufsUrl }
+      return { url: file.url }
     }),
 } satisfies FileRouter
 

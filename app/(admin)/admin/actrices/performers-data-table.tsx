@@ -73,14 +73,11 @@ interface PerformerRow {
   name: string
   bio: string | null
   profileImage: string | null
-  nationality: string | null
-  birthDate: Date | null
-  height: number | null
   createdAt: Date
   _count: {
     VideoPerformer: number
     favorites: number
-    Product: number
+    products: number
   }
   User: {
     id: string
@@ -172,26 +169,6 @@ export function PerformersDataTable({
               </p>
             </div>
           </div>
-        )
-      },
-    },
-    {
-      accessorKey: "nationality",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="-ml-4"
-        >
-          Nacionalidad
-          <IconArrowsSort className="ml-2 size-4" />
-        </Button>
-      ),
-      cell: ({ row }) => {
-        return (
-          <span className="text-sm">
-            {row.original.nationality || "-"}
-          </span>
         )
       },
     },

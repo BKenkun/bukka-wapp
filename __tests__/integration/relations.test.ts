@@ -202,8 +202,8 @@ describe('Entity Relationships', () => {
         subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       })
 
-      expect(user.subscriptionPlan?.name).toBe('Premium')
-      expect(user.subscriptionPlan?.level).toBe(2)
+      expect(user.SubscriptionPlan?.name).toBe('Premium')
+      expect(user.SubscriptionPlan?.level).toBe(2)
     })
 
     it('should track subscription history', async () => {

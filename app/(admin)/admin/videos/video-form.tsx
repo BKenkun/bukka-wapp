@@ -173,6 +173,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   )
   const [isDraggingVideo, setIsDraggingVideo] = React.useState(false)
   const [isDraggingThumbnail, setIsDraggingThumbnail] = React.useState(false)
+  const [isDraggingPreview, setIsDraggingPreview] = React.useState(false)
   const dragCounterRef = React.useRef(0)
   const [playbackToken, setPlaybackToken] = React.useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = React.useState(false)
@@ -184,6 +185,18 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
   // Local upload function for thumbnails
   const uploadThumbnail = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen (PNG, JPG, WEBP)")
+      return
+    }
+
+    // Validate file size (4MB max)
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("La imagen es demasiado grande. Máximo 4MB")
+      return
+    }
+
     setIsUploading(true)
     try {
       const formData = new FormData()
@@ -197,7 +210,8 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Error al subir thumbnail")
+        console.error("Upload error:", response.status, errorData)
+        throw new Error(errorData.error || `Error al subir (${response.status})`)
       }
 
       const result = await response.json()
@@ -205,6 +219,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
       setThumbnailPreview(result.url)
       toast.success("Thumbnail subido correctamente")
     } catch (error) {
+      console.error("Upload error:", error)
       const message = error instanceof Error ? error.message : "Error al subir thumbnail"
       toast.error(message)
     } finally {
@@ -214,6 +229,18 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
   // Local upload function for preview videos
   const uploadPreview = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith("video/")) {
+      toast.error("Solo se permiten archivos de video (MP4, WebM, MOV)")
+      return
+    }
+
+    // Validate file size (512MB max)
+    if (file.size > 512 * 1024 * 1024) {
+      toast.error("El video es demasiado grande. Máximo 512MB")
+      return
+    }
+
     setIsUploadingPreview(true)
     try {
       const formData = new FormData()
@@ -227,7 +254,8 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Error al subir preview")
+        console.error("Upload error:", response.status, errorData)
+        throw new Error(errorData.error || `Error al subir (${response.status})`)
       }
 
       const result = await response.json()
@@ -235,6 +263,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
       setCustomPreviewUrl(result.url)
       toast.success("Preview personalizado subido correctamente")
     } catch (error) {
+      console.error("Upload error:", error)
       const message = error instanceof Error ? error.message : "Error al subir preview"
       toast.error(message)
     } finally {
@@ -437,6 +466,40 @@ export function VideoForm({ video, performers, categories, products, subscriptio
     await uploadPreview(files[0])
     if (previewInputRef.current) {
       previewInputRef.current.value = ""
+    }
+  }
+
+  // Preview drag and drop handlers
+  const handlePreviewDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingPreview(true)
+  }
+
+  const handlePreviewDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingPreview(false)
+  }
+
+  const handlePreviewDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handlePreviewDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingPreview(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      if (file.type.startsWith("video/")) {
+        await uploadPreview(file)
+      } else {
+        toast.error("Solo se permiten archivos de video")
+      }
     }
   }
 
@@ -784,61 +847,64 @@ export function VideoForm({ video, performers, categories, products, subscriptio
               {/* Thumbnail Upload */}
               <div className="space-y-2">
                 <Label>Thumbnail *</Label>
-                <div className="flex gap-4">
-                  {/* Preview */}
-                  <div className="relative w-48 aspect-video bg-muted rounded-lg overflow-hidden border flex-shrink-0">
-                    {thumbnailPreview ? (
+                <div
+                  onDragEnter={handleThumbnailDragEnter}
+                  onDragLeave={handleThumbnailDragLeave}
+                  onDragOver={handleThumbnailDragOver}
+                  onDrop={handleThumbnailDrop}
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className={cn(
+                    "relative border-2 border-dashed rounded-lg cursor-pointer transition-all overflow-hidden",
+                    isDraggingThumbnail && "border-[#f9495f] bg-[#f9495f]/10",
+                    !isDraggingThumbnail && "border-muted-foreground/25 hover:border-muted-foreground/50",
+                    isUploading && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailUpload}
+                    className="hidden"
+                  />
+
+                  {thumbnailPreview ? (
+                    <div className="relative aspect-video">
                       <Image
                         src={thumbnailPreview}
                         alt="Thumbnail preview"
                         fill
                         className="object-cover"
                       />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <IconPhoto className="size-8 text-muted-foreground" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-white text-sm font-medium">Clic o arrastra para cambiar</p>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Dropzone */}
-                  <div
-                    onDragEnter={handleThumbnailDragEnter}
-                    onDragLeave={handleThumbnailDragLeave}
-                    onDragOver={handleThumbnailDragOver}
-                    onDrop={handleThumbnailDrop}
-                    onClick={() => !isUploading && fileInputRef.current?.click()}
-                    className={cn(
-                      "flex-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors flex flex-col items-center justify-center gap-2",
-                      isDraggingThumbnail && "border-primary bg-primary/5",
-                      !isDraggingThumbnail && "border-muted-foreground/25 hover:border-muted-foreground/50",
-                      isUploading && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleThumbnailUpload}
-                      className="hidden"
-                    />
-                    {isUploading ? (
-                      <>
-                        <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Subiendo...</p>
-                      </>
-                    ) : (
-                      <>
-                        <IconUpload className="size-8 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground text-center">
-                          Arrastra una imagen aquí o haz clic para seleccionar
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          PNG, JPG, WEBP (max 4MB)
-                        </p>
-                      </>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="aspect-video flex flex-col items-center justify-center gap-2 p-6">
+                      {isUploading ? (
+                        <>
+                          <IconLoader2 className="size-10 animate-spin text-[#f9495f]" />
+                          <p className="text-sm text-muted-foreground">Subiendo...</p>
+                        </>
+                      ) : isDraggingThumbnail ? (
+                        <>
+                          <IconPhoto className="size-10 text-[#f9495f]" />
+                          <p className="text-sm font-medium text-[#f9495f]">Suelta la imagen aquí</p>
+                        </>
+                      ) : (
+                        <>
+                          <IconPhoto className="size-10 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground text-center">
+                            Arrastra una imagen o haz clic
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG, WEBP (max 4MB)
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {errors.thumbnailUrl && (
                   <p className="text-sm text-destructive">{errors.thumbnailUrl.message}</p>
@@ -905,24 +971,35 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                     </div>
                   ) : (
                     <div
-                      className={cn(
-                        "p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors",
-                        isUploadingPreview
-                          ? "border-[#f9495f] bg-[#f9495f]/10"
-                          : "border-border hover:border-muted-foreground/50"
-                      )}
+                      onDragEnter={handlePreviewDragEnter}
+                      onDragLeave={handlePreviewDragLeave}
+                      onDragOver={handlePreviewDragOver}
+                      onDrop={handlePreviewDrop}
                       onClick={() => !isUploadingPreview && previewInputRef.current?.click()}
+                      className={cn(
+                        "border-2 border-dashed rounded-lg text-center cursor-pointer transition-all",
+                        isDraggingPreview && "border-[#f9495f] bg-[#f9495f]/10",
+                        isUploadingPreview && "border-[#f9495f] bg-[#f9495f]/10",
+                        !isDraggingPreview && !isUploadingPreview && "border-muted-foreground/25 hover:border-muted-foreground/50"
+                      )}
                     >
                       {isUploadingPreview ? (
-                        <div className="flex items-center justify-center gap-2 py-2">
-                          <IconLoader2 className="size-5 text-[#f9495f] animate-spin" />
+                        <div className="flex items-center justify-center gap-2 p-6">
+                          <IconLoader2 className="size-6 text-[#f9495f] animate-spin" />
                           <span className="text-sm text-muted-foreground">Subiendo preview...</span>
                         </div>
+                      ) : isDraggingPreview ? (
+                        <div className="p-6">
+                          <IconPlayerPlay className="size-10 mx-auto text-[#f9495f]" />
+                          <p className="text-sm font-medium text-[#f9495f] mt-2">
+                            Suelta el video aquí
+                          </p>
+                        </div>
                       ) : (
-                        <div className="py-2">
-                          <IconUpload className="size-6 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            Arrastra o haz clic para subir un trailer/preview personalizado
+                        <div className="p-6">
+                          <IconPlayerPlay className="size-10 mx-auto text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Arrastra un trailer o haz clic
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             MP4, MOV, WebM (hasta 512MB)
@@ -1066,21 +1143,21 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
                 <div
                   className={cn(
-                    "p-4 border-2 border-dashed rounded-lg text-center transition-all duration-200 cursor-pointer",
+                    "border-2 border-dashed rounded-lg text-center transition-all duration-200 cursor-pointer overflow-hidden",
                     isDraggingVideo
                       ? "border-[#f9495f] bg-[#f9495f]/10"
-                      : "border-border hover:border-muted-foreground/50"
+                      : "border-muted-foreground/25 hover:border-muted-foreground/50"
                   )}
                   onDragEnter={handleVideoDragEnter}
                   onDragLeave={handleVideoDragLeave}
                   onDragOver={handleVideoDragOver}
                   onDrop={handleVideoDrop}
-                  onClick={() => !isVideoUploading && !muxAssetId && !video?.muxAssetId && videoInputRef.current?.click()}
+                  onClick={() => !isVideoUploading && videoInputRef.current?.click()}
                 >
                   {isVideoUploading ? (
-                    <div className="space-y-3">
-                      <IconLoader2 className="size-8 mx-auto text-[#f9495f] animate-spin" />
-                      <div className="w-full bg-muted rounded-full h-2">
+                    <div className="p-8 space-y-3">
+                      <IconLoader2 className="size-10 mx-auto text-[#f9495f] animate-spin" />
+                      <div className="w-full max-w-xs mx-auto bg-muted rounded-full h-2">
                         <div
                           className="bg-[#f9495f] h-2 rounded-full transition-all duration-300"
                           style={{ width: `${videoUploadProgress}%` }}
@@ -1091,54 +1168,34 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                       </p>
                     </div>
                   ) : muxAssetId || video?.muxAssetId ? (
-                    <div className="space-y-2">
-                      <IconCheck className="size-8 mx-auto text-green-500" />
-                      <p className="text-sm text-muted-foreground">
+                    <div className="p-6 space-y-2">
+                      <IconCheck className="size-10 mx-auto text-green-500" />
+                      <p className="text-sm font-medium text-green-600">
                         Video subido correctamente
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Asset ID: {muxAssetId || video?.muxAssetId}
+                        {muxAssetId || video?.muxAssetId}
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          videoInputRef.current?.click()
-                        }}
-                      >
-                        Reemplazar Video
-                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Clic o arrastra para reemplazar
+                      </p>
                     </div>
                   ) : isDraggingVideo ? (
-                    <div className="space-y-2 py-4">
+                    <div className="p-8">
                       <IconVideo className="size-12 mx-auto text-[#f9495f]" />
-                      <p className="text-sm font-medium text-[#f9495f]">
+                      <p className="text-sm font-medium text-[#f9495f] mt-2">
                         Suelta el video aquí
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <IconVideo className="size-8 mx-auto text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Arrastra un video o haz clic para seleccionar
+                    <div className="p-8">
+                      <IconVideo className="size-10 mx-auto text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Arrastra un video o haz clic
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-1">
                         MP4, MOV, MKV, WebM, AVI (hasta 10GB)
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          videoInputRef.current?.click()
-                        }}
-                      >
-                        <IconUpload className="mr-2 size-4" />
-                        Seleccionar Video
-                      </Button>
                     </div>
                   )}
                 </div>

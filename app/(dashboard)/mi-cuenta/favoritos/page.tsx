@@ -174,7 +174,7 @@ export default function FavoritosPage() {
                     )}
                     <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                       <span>{formatViews(fav.item.viewCount)} vistas</span>
-                      <span>{Math.round((fav.item.likeCount / Math.max(fav.item.viewCount, 1)) * 100)}% likes</span>
+                      {fav.item.likeCount > 0 && <span>{fav.item.likeCount} likes</span>}
                     </div>
                   </Link>
                   <button

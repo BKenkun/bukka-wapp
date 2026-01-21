@@ -30,7 +30,6 @@ describe('Admin Permissions', () => {
       expect(hasPermission('CONTENT_EDITOR', 'videos')).toBe(true)
       expect(hasPermission('CONTENT_EDITOR', 'performers')).toBe(true)
       expect(hasPermission('CONTENT_EDITOR', 'blog')).toBe(true)
-      expect(hasPermission('CONTENT_EDITOR', 'banners')).toBe(true)
       expect(hasPermission('CONTENT_EDITOR', 'pages')).toBe(true)
       expect(hasPermission('CONTENT_EDITOR', 'menus')).toBe(true)
 

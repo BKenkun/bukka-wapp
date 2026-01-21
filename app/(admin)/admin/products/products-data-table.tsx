@@ -65,15 +65,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
-import { Decimal } from "@prisma/client/runtime/library"
 
 interface ProductRow {
   id: string
   slug: string
   name: string
   description: string | null
-  price: Decimal
-  compareAtPrice: Decimal | null
+  price: any
+  compareAtPrice: any | null
   sku: string | null
   stock: number
   trackInventory: boolean
@@ -81,11 +80,11 @@ interface ProductRow {
   riskLevel: "LOW_RISK" | "HIGH_RISK"
   status: "DRAFT" | "ACTIVE" | "ARCHIVED"
   createdAt: Date
-  performer: {
+  performers: {
     id: string
     name: string
     slug: string
-  } | null
+  }[]
   categories: {
     category: {
       id: string
@@ -191,11 +190,11 @@ export function ProductsDataTable({
                 <p className="text-sm text-muted-foreground">
                   {product.sku || "Sin SKU"}
                 </p>
-                {product.performer && (
-                  <Badge variant="outline" className="text-xs">
-                    {product.performer.name}
+                {product.performers.map((performer) => (
+                  <Badge key={performer.id} variant="outline" className="text-xs">
+                    {performer.name}
                   </Badge>
-                )}
+                ))}
               </div>
             </div>
           </div>

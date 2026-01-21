@@ -46,7 +46,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       return DEFAULT_SETTINGS
     }
 
-    const value = settings.value as SiteSettings
+    const value = settings.value as unknown as SiteSettings
     return {
       site: { ...DEFAULT_SETTINGS.site, ...value.site },
       discountBanner: { ...DEFAULT_SETTINGS.discountBanner, ...value.discountBanner },

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       images,
       status,
       riskLevel,
-      performerId,
+      performerIds,
       categoryIds,
       productType,
       weight,
@@ -77,20 +77,32 @@ export async function POST(request: NextRequest) {
         images: images || [],
         status: status || "DRAFT",
         riskLevel: riskLevel || "LOW_RISK",
-        performerId: performerId || null,
         productType: productType || "SIMPLE",
         weight: weight || null,
-        categories: categoryIds?.length
+        performers: performerIds?.length
+          ? {
+              create: performerIds.map((performerId: string) => ({
+                performer: { connect: { id: performerId } },
+              })),
+            }
+          : undefined,
+        ProductToCategory: categoryIds?.length
           ? {
               create: categoryIds.map((categoryId: string) => ({
-                category: { connect: { id: categoryId } },
+                ShopCategory: { connect: { id: categoryId } },
               })),
             }
           : undefined,
       },
       include: {
-        performer: true,
-        categories: { include: { category: true } },
+        performers: {
+          include: {
+            performer: {
+              select: { id: true, slug: true, name: true, profileImage: true },
+            },
+          },
+        },
+        ProductToCategory: { include: { ShopCategory: true } },
       },
     })
 
@@ -125,15 +137,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (categorySlug) {
-      where.categories = {
+      where.ProductToCategory = {
         some: {
-          category: { slug: categorySlug },
+          ShopCategory: { slug: categorySlug },
         },
       }
     }
 
     if (performerSlug) {
-      where.performer = { slug: performerSlug }
+      where.performers = {
+        some: {
+          performer: { slug: performerSlug },
+        },
+      }
     }
 
     if (riskLevel) {
@@ -163,12 +179,16 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
         include: {
-          performer: {
-            select: { id: true, slug: true, name: true },
-          },
-          categories: {
+          performers: {
             include: {
-              category: {
+              performer: {
+                select: { id: true, slug: true, name: true, profileImage: true },
+              },
+            },
+          },
+          ProductToCategory: {
+            include: {
+              ShopCategory: {
                 select: { id: true, slug: true, name: true },
               },
             },
@@ -189,8 +209,8 @@ export async function GET(request: NextRequest) {
       stock: product.stock,
       trackInventory: product.trackInventory,
       riskLevel: product.riskLevel,
-      performer: product.performer,
-      categories: product.categories.map((pc) => pc.category),
+      performers: product.performers.map((pp) => pp.performer),
+      categories: product.ProductToCategory.map((pc) => pc.ShopCategory),
     }))
 
     return NextResponse.json({

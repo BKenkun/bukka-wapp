@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        items: {
+        OrderItem: {
           include: {
             product: {
               select: {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         paymentGateway: order.paymentGateway,
         createdAt: order.createdAt.toISOString(),
         updatedAt: order.updatedAt.toISOString(),
-        items: order.items.map((item) => ({
+        items: order.OrderItem.map((item) => ({
           id: item.id,
           quantity: item.quantity,
           price: Number(item.price),

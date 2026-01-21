@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         name,
         slug,
         description: description || null,
-        minTier,
+        minTierPlanId: minTier,
         order: order ?? existingCategory.order,
       },
     })

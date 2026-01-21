@@ -14,8 +14,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const post = await prisma.blogPost.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        BlogCategory: { select: { id: true, slug: true, name: true } },
       },
     })
 

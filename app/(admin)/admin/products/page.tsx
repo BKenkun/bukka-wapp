@@ -40,8 +40,12 @@ export default async function AdminProductsPage({
       take: pageSize,
       orderBy: { createdAt: "desc" },
       include: {
-        Performer: {
-          select: { id: true, name: true, slug: true },
+        performers: {
+          include: {
+            performer: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
         },
         ProductToCategory: {
           include: {
@@ -49,6 +53,10 @@ export default async function AdminProductsPage({
               select: { id: true, name: true, slug: true },
             },
           },
+        },
+        variants: {
+          where: { isActive: true },
+          select: { stock: true },
         },
         _count: {
           select: {
@@ -64,18 +72,28 @@ export default async function AdminProductsPage({
     }),
   ])
 
-  // Transformar para compatibilidad con el componente
-  const products = productsRaw.map((p) => ({
-    ...p,
-    performer: p.Performer,
-    categories: p.ProductToCategory.map((ptc) => ({
-      category: ptc.ShopCategory,
-    })),
-    _count: {
-      orderItems: p._count.OrderItem,
-      favorites: p._count.favorites,
-    },
-  }))
+  // Transformar para compatibilidad con el componente (convertir Decimals a números)
+  const products = productsRaw.map((p) => {
+    // For VARIABLE products, sum the stock from all active variants
+    const effectiveStock = p.productType === "VARIABLE"
+      ? p.variants.reduce((sum, v) => sum + v.stock, 0)
+      : p.stock
+
+    return {
+      ...p,
+      price: Number(p.price),
+      compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+      stock: effectiveStock,
+      performers: p.performers.map((pp) => pp.performer),
+      categories: p.ProductToCategory.map((ptc) => ({
+        category: ptc.ShopCategory,
+      })),
+      _count: {
+        orderItems: p._count.OrderItem,
+        favorites: p._count.favorites,
+      },
+    }
+  })
 
   const totalPages = Math.ceil(totalCount / pageSize)
 

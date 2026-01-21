@@ -99,12 +99,13 @@ export default async function MiCuentaPage() {
       orderBy: { createdAt: "desc" },
       take: 3,
     }),
-    // Interactions - comments with replies, forum posts, forum replies
+    // Interactions - forum posts with replies, forum posts, forum replies
     Promise.all([
-      prisma.comment.count({
+      // Forum posts that have received replies
+      prisma.forumPost.count({
         where: {
           authorId: session.user.id,
-          other_Comment: { some: {} },
+          replyCount: { gt: 0 },
         },
       }),
       prisma.forumPost.count({
@@ -186,24 +187,27 @@ export default async function MiCuentaPage() {
     },
   ]
 
-  const [commentsWithReplies, forumPostsCount, forumRepliesCount] = interactions
+  const [postsWithReplies, forumPostsCount, forumRepliesCount] = interactions
   const totalForumActivity = forumPostsCount + forumRepliesCount
 
   const interactionStats = [
     {
       id: 1,
-      title: "Comentarios con respuesta",
-      count: commentsWithReplies.toString().padStart(2, "0"),
+      title: "Temas con respuestas",
+      count: postsWithReplies.toString().padStart(2, "0"),
+      href: `/foro/perfil/${session.user.id}`,
     },
     {
       id: 2,
       title: "Actividad en el foro",
       count: totalForumActivity.toString().padStart(2, "0"),
+      href: `/foro/perfil/${session.user.id}`,
     },
     {
       id: 3,
       title: "Mensajes directos sin leer",
       count: unreadMessages.toString().padStart(2, "0"),
+      href: undefined,
     },
   ]
 
@@ -413,6 +417,7 @@ export default async function MiCuentaPage() {
                 title={interaction.title}
                 count={interaction.count}
                 icon={<ChatIcon />}
+                href={interaction.href}
               />
             ))}
           </div>

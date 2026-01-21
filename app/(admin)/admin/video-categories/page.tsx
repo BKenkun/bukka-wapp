@@ -4,6 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -171,34 +172,41 @@ export default function VideoCategoriesPage() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Nombre *</label>
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre *</Label>
               <Input
+                id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Nombre de la categoría"
                 required
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Slug</label>
-              <Input
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                placeholder="Se genera automáticamente"
-              />
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm">/videos/</span>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  placeholder="Se genera automáticamente"
+                  className="flex-1"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium">Descripción</label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descripción</Label>
               <Textarea
+                id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Descripción opcional"
                 rows={3}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Categoría Padre</label>
+            <div className="space-y-2">
+              <Label htmlFor="parentId">Categoría Padre</Label>
               <Select
                 value={formData.parentId || "__none__"}
                 onValueChange={(v) => setFormData({ ...formData, parentId: v === "__none__" ? "" : v })}
@@ -216,9 +224,10 @@ export default function VideoCategoriesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium">Orden</label>
+            <div className="space-y-2">
+              <Label htmlFor="order">Orden</Label>
               <Input
+                id="order"
                 type="number"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}

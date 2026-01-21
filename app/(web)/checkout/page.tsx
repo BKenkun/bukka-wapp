@@ -34,6 +34,13 @@ interface CartData {
   total: number
 }
 
+interface AppliedPromoCode {
+  code: string
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT"
+  discountValue: number
+  discountAmount: number
+}
+
 interface ShippingRate {
   id: string
   name: string
@@ -77,6 +84,18 @@ export default function CheckoutPage() {
 
   const [paymentMethod, setPaymentMethod] = useState<string>("card")
   const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null)
+
+  // Promo code state
+  const [promoCodeInput, setPromoCodeInput] = useState("")
+  const [appliedPromoCode, setAppliedPromoCode] = useState<AppliedPromoCode | null>(null)
+  const [promoCodeLoading, setPromoCodeLoading] = useState(false)
+  const [promoCodeError, setPromoCodeError] = useState<string | null>(null)
+
+  // Order confirmation state
+  const [confirmedOrder, setConfirmedOrder] = useState<{
+    orderNumber: string
+    total: number
+  } | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -139,9 +158,53 @@ export default function CheckoutPage() {
     setStep("payment")
   }
 
-  // Calculate totals with shipping
+  // Handle promo code application
+  const handleApplyPromoCode = async () => {
+    if (!promoCodeInput.trim()) return
+
+    setPromoCodeLoading(true)
+    setPromoCodeError(null)
+
+    try {
+      const res = await fetch("/api/promo-codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: promoCodeInput.trim(),
+          subtotal: cart?.total ?? 0,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.valid) {
+        setAppliedPromoCode({
+          code: data.code,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+          discountAmount: data.discountAmount,
+        })
+        toast.success(data.message)
+      } else {
+        setPromoCodeError(data.error || "Código no válido")
+      }
+    } catch (error) {
+      setPromoCodeError("Error al validar el código")
+    } finally {
+      setPromoCodeLoading(false)
+    }
+  }
+
+  const handleRemovePromoCode = () => {
+    setAppliedPromoCode(null)
+    setPromoCodeInput("")
+    setPromoCodeError(null)
+  }
+
+  // Calculate totals with shipping and promo code
   const shippingCost = selectedShippingRate?.price ?? 0
-  const grandTotal = (cart?.total ?? 0) + shippingCost
+  const promoDiscount = appliedPromoCode?.discountAmount ?? 0
+  const grandTotal = Math.max(0, (cart?.total ?? 0) - promoDiscount + shippingCost)
 
   const handlePlaceOrder = async () => {
     setSubmitting(true)
@@ -156,18 +219,20 @@ export default function CheckoutPage() {
           shippingRateId: selectedShippingRate?.id,
           shippingMethod: selectedShippingRate?.name,
           shippingCost: selectedShippingRate?.price ?? 0,
+          promoCode: appliedPromoCode?.code || null,
+          promoDiscount: promoDiscount,
           notes: "",
         }),
       })
 
       if (res.ok) {
         const data = await res.json()
+        setConfirmedOrder({
+          orderNumber: data.order.orderNumber,
+          total: data.order.total,
+        })
         setStep("confirmation")
-        toast.success("Pedido realizado con exito")
-        // Redirect to order confirmation after a delay
-        setTimeout(() => {
-          router.push(`/mi-cuenta/historial-de-pagos`)
-        }, 3000)
+        toast.success("¡Pedido realizado con éxito!")
       } else {
         const error = await res.json()
         toast.error(error.error || "Error al procesar el pedido")
@@ -192,14 +257,15 @@ export default function CheckoutPage() {
 
   if (step === "confirmation") {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white">
+      <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 py-12">
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="text-center py-8">
+            {/* Success Animation */}
+            <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="40"
-                height="40"
+                width="48"
+                height="48"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="white"
@@ -210,16 +276,52 @@ export default function CheckoutPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Pedido Confirmado</h1>
-            <p className="text-gray-400 mb-8">
-              Gracias por tu compra. Te hemos enviado un email con los detalles de tu pedido.
+
+            <h1 className="text-4xl font-bold text-white mb-4 font-montserrat">
+              ¡Gracias por tu compra!
+            </h1>
+
+            {confirmedOrder && (
+              <div className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-lg mb-8 text-left max-w-md mx-auto">
+                <p className="text-gray-400 text-sm mb-2">Número de pedido:</p>
+                <p className="text-white text-xl font-bold mb-4">{confirmedOrder.orderNumber}</p>
+                <p className="text-gray-400 text-sm mb-2">Total:</p>
+                <p className="text-[#FA4860] text-2xl font-bold">{confirmedOrder.total.toFixed(2)} €</p>
+              </div>
+            )}
+
+            <p className="text-gray-400 mb-4 max-w-md mx-auto">
+              Hemos enviado un email de confirmación con los detalles de tu pedido a tu correo electrónico.
             </p>
-            <Link
-              href="/mi-cuenta/historial-de-pagos"
-              className="inline-block bg-[#FA4860] text-white font-semibold px-8 py-3 hover:bg-[#e8415a] transition-colors"
-            >
-              Ver Mis Pedidos
-            </Link>
+
+            {paymentMethod === "transfer" && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg mb-8 max-w-md mx-auto">
+                <p className="text-yellow-400 font-medium mb-2">Pago por Transferencia Bancaria</p>
+                <p className="text-gray-300 text-sm mb-2">
+                  Realiza la transferencia a la siguiente cuenta:
+                </p>
+                <p className="text-white font-mono text-sm mb-1">IBAN: ES12 1234 5678 9012 3456 7890</p>
+                <p className="text-white font-mono text-sm mb-2">Concepto: {confirmedOrder?.orderNumber}</p>
+                <p className="text-gray-400 text-xs">
+                  Tu pedido se procesará una vez recibido el pago.
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/mi-cuenta/historial-de-pagos"
+                className="btn-primary inline-block"
+              >
+                Ver Mis Pedidos
+              </Link>
+              <Link
+                href="/tienda"
+                className="btn-secondary inline-block"
+              >
+                Seguir Comprando
+              </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -227,7 +329,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
       <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
         {/* Header */}
         <h1 className="font-montserrat font-bold text-[30px] leading-[36px] text-[#E5E7EB] mb-8">
@@ -604,6 +706,13 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {appliedPromoCode && (
+                  <div className="flex justify-between text-green-500">
+                    <span>Código {appliedPromoCode.code}</span>
+                    <span>-{appliedPromoCode.discountAmount.toFixed(2)} €</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-gray-400">
                   <span>Envio</span>
                   {selectedShippingRate ? (
@@ -621,6 +730,50 @@ export default function CheckoutPage() {
                     <span>{grandTotal.toFixed(2)} €</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Promo Code Section */}
+              <div className="border-t border-gray-700 pt-4 mt-4">
+                <p className="text-white font-medium mb-3">Código Promocional</p>
+                {appliedPromoCode ? (
+                  <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 p-3">
+                    <div>
+                      <p className="text-green-400 font-medium">{appliedPromoCode.code}</p>
+                      <p className="text-green-300 text-sm">
+                        -{appliedPromoCode.discountAmount.toFixed(2)} €
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleRemovePromoCode}
+                      className="text-gray-400 hover:text-white text-sm"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCodeInput}
+                      onChange={(e) => {
+                        setPromoCodeInput(e.target.value.toUpperCase())
+                        setPromoCodeError(null)
+                      }}
+                      placeholder="Introduce código"
+                      className="flex-1 bg-black border border-gray-700 text-white px-3 py-2 text-sm focus:border-[#FA4860] focus:outline-none"
+                    />
+                    <button
+                      onClick={handleApplyPromoCode}
+                      disabled={promoCodeLoading || !promoCodeInput.trim()}
+                      className="bg-[#00B1DE] text-white px-4 py-2 text-sm font-medium hover:bg-[#00B1DE]/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {promoCodeLoading ? "..." : "Aplicar"}
+                    </button>
+                  </div>
+                )}
+                {promoCodeError && (
+                  <p className="text-red-400 text-xs mt-2">{promoCodeError}</p>
+                )}
               </div>
 
               <Link

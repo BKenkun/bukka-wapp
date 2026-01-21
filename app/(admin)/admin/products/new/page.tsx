@@ -8,7 +8,7 @@ export default async function NewProductPage() {
   const [performers, categories, attributes] = await Promise.all([
     prisma.performer.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, profileImage: true },
     }),
     prisma.shopCategory.findMany({
       orderBy: { name: "asc" },

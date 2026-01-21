@@ -15,7 +15,7 @@ export async function GET() {
       return NextResponse.json(defaultVideoAccessSettings.lockScreen)
     }
 
-    const value = settings.value as typeof defaultVideoAccessSettings
+    const value = settings.value as unknown as typeof defaultVideoAccessSettings
     const lockScreen = value?.lockScreen
 
     return NextResponse.json({

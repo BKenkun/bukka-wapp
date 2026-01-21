@@ -70,12 +70,12 @@ export async function GET(
       return NextResponse.json({ error: "Variante no encontrada" }, { status: 404 })
     }
 
-    // Format response
+    // Format response - ensure Decimals are converted to numbers
     const response = {
       id: matchingVariant.id,
       sku: matchingVariant.sku,
-      price: matchingVariant.price,
-      compareAtPrice: matchingVariant.compareAtPrice,
+      price: Number(matchingVariant.price),
+      compareAtPrice: matchingVariant.compareAtPrice ? Number(matchingVariant.compareAtPrice) : null,
       stock: matchingVariant.stock,
       imageUrl: matchingVariant.imageUrl,
       isAvailable: matchingVariant.stock > 0,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
 
 // GET - List forum posts
 export async function GET(request: NextRequest) {
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          author: { select: { id: true, name: true, image: true } },
-          category: { select: { id: true, slug: true, name: true } },
+          user: { select: { id: true, name: true, image: true } },
+          ForumCategory: { select: { id: true, slug: true, name: true } },
         },
       }),
       prisma.forumPost.count({ where: whereClause }),
@@ -68,6 +69,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
+    // Check forum access
+    const userPlan = await getUserPlan(session.user.id)
+    if (!canUserAccessForum(userPlan)) {
+      return NextResponse.json(
+        { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
     const { title, content, categoryId } = body
 
@@ -81,6 +91,7 @@ export async function POST(request: NextRequest) {
     // Check if category exists and user has access
     const category = await prisma.forumCategory.findUnique({
       where: { id: categoryId },
+      include: { SubscriptionPlan: true },
     })
 
     if (!category) {
@@ -90,16 +101,17 @@ export async function POST(request: NextRequest) {
     // Check user tier for category access
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { tier: true },
+      include: { SubscriptionPlan: true },
     })
 
-    const tierOrder = ["VISITOR", "FREE", "SILVER", "GOLD", "PLATINUM", "DIAMOND"]
-    const userTierIndex = tierOrder.indexOf(user?.tier || "FREE")
-    const requiredTierIndex = tierOrder.indexOf(category.minTier)
+    const userLevel = user?.SubscriptionPlan?.level ?? 0
+    const requiredLevel = category.SubscriptionPlan?.level ?? 0
 
-    if (userTierIndex < requiredTierIndex) {
+    if (userLevel < requiredLevel) {
       return NextResponse.json(
-        { error: `Necesitas tier ${category.minTier} para publicar en esta categoría` },
+        {
+          error: `Necesitas un nivel de suscripción ${category.SubscriptionPlan?.name || requiredLevel} para publicar en esta categoría`,
+        },
         { status: 403 }
       )
     }
@@ -112,8 +124,8 @@ export async function POST(request: NextRequest) {
         categoryId,
       },
       include: {
-        author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, slug: true, name: true } },
+        user: { select: { id: true, name: true, image: true } },
+        ForumCategory: { select: { id: true, slug: true, name: true } },
       },
     })
 

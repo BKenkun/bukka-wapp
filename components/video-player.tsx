@@ -51,17 +51,15 @@ export function VideoPlayer({
   return (
     <div className="relative w-full aspect-video overflow-hidden bg-black">
       {/* Background image */}
-      {isLocked && config.backgroundImage ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: `url(${config.backgroundImage})` }}
-        />
-      ) : (
-        <img
-          src={thumbnailUrl || "/placeholder.svg?height=600&width=900"}
-          alt={title}
-          className={`w-full h-full object-cover ${isLocked ? "opacity-30" : ""}`}
-        />
+      <img
+        src={isLocked && config.backgroundImage ? config.backgroundImage : (thumbnailUrl || "/placeholder.svg?height=600&width=900")}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* Dark overlay when locked */}
+      {isLocked && (
+        <div className="absolute inset-0 bg-black/60" />
       )}
 
       {/* Access Denied Overlay */}

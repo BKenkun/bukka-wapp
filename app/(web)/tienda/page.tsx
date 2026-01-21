@@ -57,15 +57,23 @@ export default async function TiendaPage({
   }
 
   // Fetch productos y categorías en paralelo
-  const [products, totalCount, categories, selectedCategory] = await Promise.all([
+  const [productsRaw, totalCount, categories, selectedCategory] = await Promise.all([
     prisma.product.findMany({
       where: whereClause,
       skip,
       take: pageSize,
       orderBy,
       include: {
-        Performer: {
-          select: { name: true, slug: true },
+        performers: {
+          include: {
+            performer: {
+              select: { name: true, slug: true },
+            },
+          },
+        },
+        variants: {
+          where: { isActive: true },
+          select: { stock: true },
         },
       },
     }),
@@ -82,6 +90,18 @@ export default async function TiendaPage({
         })
       : null,
   ])
+
+  // Transform products to calculate correct stock for variable products
+  const products = productsRaw.map((p) => {
+    const effectiveStock = p.productType === "VARIABLE"
+      ? p.variants.reduce((sum, v) => sum + v.stock, 0)
+      : p.stock
+
+    return {
+      ...p,
+      stock: effectiveStock,
+    }
+  })
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -111,8 +131,8 @@ export default async function TiendaPage({
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
-      <div>
+    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
+      <div className="mt-[17px]">
         <DiscountBanner />
       </div>
 
@@ -226,7 +246,7 @@ export default async function TiendaPage({
                   images: product.images,
                   stock: product.stock,
                   trackInventory: product.trackInventory,
-                  performer: product.Performer,
+                  performers: product.performers.map((pp) => pp.performer),
                 }}
               />
             ))}

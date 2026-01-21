@@ -57,6 +57,12 @@ export function VariantSelector({
   const [currentVariant, setCurrentVariant] = React.useState<VariantInfo | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
 
+  // Use ref to store callback to avoid infinite loops
+  const onVariantChangeRef = React.useRef(onVariantChange)
+  React.useEffect(() => {
+    onVariantChangeRef.current = onVariantChange
+  }, [onVariantChange])
+
   // Initialize with first values
   React.useEffect(() => {
     const initial: Record<string, string> = {}
@@ -73,7 +79,7 @@ export function VariantSelector({
     const valueIds = Object.values(selectedValues).filter(Boolean)
     if (valueIds.length === 0 || valueIds.length !== attributes.length) {
       setCurrentVariant(null)
-      onVariantChange?.(null, selectedValues)
+      onVariantChangeRef.current?.(null, selectedValues)
       return
     }
 
@@ -86,21 +92,21 @@ export function VariantSelector({
         if (res.ok) {
           const data = await res.json()
           setCurrentVariant(data.variant)
-          onVariantChange?.(data.variant, selectedValues)
+          onVariantChangeRef.current?.(data.variant, selectedValues)
         } else {
           setCurrentVariant(null)
-          onVariantChange?.(null, selectedValues)
+          onVariantChangeRef.current?.(null, selectedValues)
         }
       } catch {
         setCurrentVariant(null)
-        onVariantChange?.(null, selectedValues)
+        onVariantChangeRef.current?.(null, selectedValues)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchVariant()
-  }, [selectedValues, productSlug, attributes.length, onVariantChange])
+  }, [selectedValues, productSlug, attributes.length])
 
   const handleValueChange = (attributeId: string, valueId: string) => {
     setSelectedValues((prev) => ({

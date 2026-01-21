@@ -27,26 +27,26 @@ const SYSTEM_MENUS = [
   },
   {
     slug: "footer-col-1",
-    name: "Footer - Columna 1 (Legal)",
-    description: "Enlaces legales: Términos, Privacidad, etc.",
+    name: "Footer - Columna 1 (Servicios)",
+    description: "Enlaces de servicios: Cursos, Tienda, Blog, etc.",
     location: "Footer",
   },
   {
     slug: "footer-col-2",
-    name: "Footer - Columna 2 (Soporte)",
-    description: "Enlaces de soporte: FAQ, Contacto, etc.",
+    name: "Footer - Columna 2 (Contacto)",
+    description: "Enlaces de contacto y soporte",
     location: "Footer",
   },
   {
     slug: "footer-col-3",
     name: "Footer - Columna 3 (Información)",
-    description: "Enlaces informativos: Sobre nosotros, Blog, etc.",
+    description: "Enlaces informativos: Términos, Privacidad, etc.",
     location: "Footer",
   },
   {
-    slug: "footer-social",
-    name: "Footer - Redes Sociales",
-    description: "Enlaces a redes sociales con iconos",
+    slug: "footer-col-4",
+    name: "Footer - Columna 4 (Facturación)",
+    description: "Enlaces de facturación y proveedores de pago",
     location: "Footer",
   },
 ]
@@ -211,10 +211,10 @@ export default async function AdminMenusPage() {
             <strong>Menú Usuario:</strong> Los enlaces que aparecen en el dropdown del usuario logueado.
           </p>
           <p>
-            <strong>Footer Columnas:</strong> Cada columna puede tener un título y enlaces. Usa iconos de Tabler Icons.
+            <strong>Footer Columnas:</strong> Cada columna puede tener un título y enlaces personalizado.
           </p>
           <p>
-            <strong>Redes Sociales:</strong> Configura los enlaces a tus redes sociales con sus iconos correspondientes.
+            <strong>Suscripción mínima:</strong> Puedes configurar cada enlace para que solo sea visible por usuarios con cierto nivel de suscripción.
           </p>
         </CardContent>
       </Card>

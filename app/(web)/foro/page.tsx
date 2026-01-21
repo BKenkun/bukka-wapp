@@ -1,7 +1,10 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
+import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
 import { ForumTopicCard } from "@/components/forum-topic-card"
 import { ForumSortSelect } from "./forum-sort-select"
+import { ForumAccessDenied } from "./forum-access-denied"
 
 interface ForoPageProps {
   searchParams: Promise<{ categoria?: string; page?: string; orden?: string }>
@@ -20,6 +23,19 @@ function formatTimeAgo(date: Date): string {
 }
 
 export default async function ForoPage({ searchParams }: ForoPageProps) {
+  // Check forum access
+  const session = await auth()
+  const userPlan = session?.user?.id ? await getUserPlan(session.user.id) : null
+
+  if (!canUserAccessForum(userPlan)) {
+    return (
+      <ForumAccessDenied
+        isLoggedIn={!!session?.user}
+        currentPlanName={userPlan?.name}
+      />
+    )
+  }
+
   const params = await searchParams
   const categorySlug = params.categoria
   const currentPage = Math.max(1, parseInt(params.page || "1"))
@@ -84,17 +100,54 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
 
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
-      <div className="px-4 md:px-8 pt-8">
-        <h1 className="font-montserrat text-white text-[30px] font-bold leading-[36px]">Foro</h1>
+      <div className="px-4 md:px-8 pt-24 md:pt-28">
+        <h1 className="font-montserrat text-white text-[24px] md:text-[30px] font-bold leading-[32px] md:leading-[36px]">Foro</h1>
       </div>
 
-      <div className="flex flex-1 px-4 md:px-8 py-12 gap-8">
-        {/* Sidebar - Categories */}
-        <div className="w-[280px] flex-shrink-0">
+      {/* Mobile: New Topic Button + Category Filter */}
+      <div className="lg:hidden px-4 md:px-8 pt-6">
+        <Link href="/foro/nuevo" className="block mb-4">
+          <button className="w-full btn-primary flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path
+                d="M7.5 1C7.5 0.446875 7.05312 0 6.5 0C5.94688 0 5.5 0.446875 5.5 1V5.5H1C0.446875 5.5 0 5.94688 0 6.5C0 7.05312 0.446875 7.5 1 7.5H5.5V12C5.5 12.5531 5.94688 13 6.5 13C7.05312 13 7.5 12.5531 7.5 12V7.5H12C12.5531 7.5 13 7.05312 13 6.5C13 5.94688 12.5531 5.5 12 5.5H7.5V1Z"
+                fill="white"
+              />
+            </svg>
+            Nuevo Tema
+          </button>
+        </Link>
+
+        {/* Mobile Category Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <Link
+            href="/foro"
+            className={`flex-shrink-0 px-4 py-2 font-montserrat text-[13px] font-medium transition-colors ${
+              !categorySlug ? "bg-[#FA4860] text-white" : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            Todos ({totalTopics})
+          </Link>
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/foro?categoria=${category.slug}`}
+              className={`flex-shrink-0 px-4 py-2 font-montserrat text-[13px] font-medium transition-colors ${
+                categorySlug === category.slug ? "bg-[#FA4860] text-white" : "bg-white/10 text-white/70 hover:bg-white/20"
+              }`}
+            >
+              {category.name} ({category._count.ForumPost})
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-1 px-4 md:px-8 py-6 lg:py-12 gap-8">
+        {/* Sidebar - Categories (hidden on mobile) */}
+        <div className="w-[280px] flex-shrink-0 hidden lg:block">
           <Link href="/foro/nuevo">
             <button
-              className="w-full font-montserrat text-white text-[16px] font-medium text-center bg-[#00B1DE] mb-6 flex items-center justify-center gap-2"
-              style={{ padding: "14px 52px" }}
+              className="w-full btn-primary mb-6 flex items-center justify-center gap-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
                 <path
@@ -173,15 +226,15 @@ export default async function ForoPage({ searchParams }: ForoPageProps) {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <h1 className="text-white text-[20px] font-semibold leading-[28px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
+            <div className="flex items-center gap-3 lg:gap-4">
+              <h2 className="text-white text-[18px] lg:text-[20px] font-semibold leading-[28px]">
                 {selectedCategory ? selectedCategory.name : "Temas"}
-              </h1>
+              </h2>
               <span className="w-2 h-2 rounded-full bg-[#FA4860]" />
-              <span className="font-montserrat text-white text-[16px] font-normal leading-[24px]">
+              <span className="font-montserrat text-white text-[14px] lg:text-[16px] font-normal leading-[24px]">
                 {totalCount} temas
               </span>
             </div>

@@ -18,8 +18,12 @@ export default async function EditProductPage({ params }: Props) {
     prisma.product.findUnique({
       where: { id },
       include: {
-        Performer: {
-          select: { id: true, name: true, slug: true },
+        performers: {
+          include: {
+            performer: {
+              select: { id: true, name: true, slug: true, profileImage: true },
+            },
+          },
         },
         ProductToCategory: {
           include: {
@@ -38,7 +42,7 @@ export default async function EditProductPage({ params }: Props) {
     }),
     prisma.performer.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, profileImage: true },
     }),
     prisma.shopCategory.findMany({
       orderBy: { name: "asc" },
@@ -64,7 +68,7 @@ export default async function EditProductPage({ params }: Props) {
   // Transformar para compatibilidad
   const product = {
     ...productRaw,
-    performer: productRaw.Performer,
+    performers: productRaw.performers.map((pp) => pp.performer),
     categories: productRaw.ProductToCategory.map((ptc) => ({
       category: ptc.ShopCategory,
     })),

@@ -72,6 +72,17 @@ export default async function EditVideoPage({ params }: Props) {
     notFound()
   }
 
+  const transformedVideo = {
+    ...video,
+    relatedProducts: video.relatedProducts.map((rp) => ({
+      ...rp,
+      product: {
+        ...rp.product,
+        price: Number(rp.product.price),
+      },
+    })),
+  }
+
   return (
     <div className="px-4 lg:px-6">
       <div className="mb-6">
@@ -146,7 +157,7 @@ export default async function EditVideoPage({ params }: Props) {
       </div>
 
       <VideoForm
-        video={video}
+        video={transformedVideo}
         performers={performers}
         categories={categories}
         products={products.map(p => ({ ...p, price: Number(p.price) }))}

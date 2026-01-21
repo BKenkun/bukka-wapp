@@ -41,13 +41,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       bio,
       profileImage,
       coverImage,
-      nationality,
-      birthDate,
-      height,
-      measurements,
-      hairColor,
-      eyeColor,
-      skinTone,
+      location,
       galleryPhotos,
     } = body
 
@@ -73,13 +67,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         bio,
         profileImage: profileImage || null,
         coverImage: coverImage || null,
-        nationality: nationality || null,
-        birthDate: birthDate ? new Date(birthDate) : null,
-        height: height || null,
-        measurements: measurements || null,
-        hairColor: hairColor || null,
-        eyeColor: eyeColor || null,
-        skinTone: skinTone || null,
+        location: location || null,
       },
     })
 
@@ -205,15 +193,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             },
           },
         },
-        Product: {
-          where: { status: "ACTIVE" },
+        products: {
+          where: {
+            product: { status: "ACTIVE" },
+          },
           take: 4,
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            price: true,
-            images: true,
+          include: {
+            product: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                price: true,
+                images: true,
+              },
+            },
           },
         },
       },
@@ -293,13 +287,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       profileImage: performer.profileImage,
       coverImage: performer.coverImage,
       galleryImages: performer.galleryImages,
-      nationality: performer.nationality,
-      birthDate: performer.birthDate,
-      height: performer.height,
-      measurements: performer.measurements,
-      hairColor: performer.hairColor,
-      eyeColor: performer.eyeColor,
-      skinTone: performer.skinTone,
+      location: performer.location,
       videoCount: performer.videoCount,
       isVerified: !!performer.User,
       verifiedUser: performer.User
@@ -312,7 +300,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             })),
           }
         : null,
-      products: performer.Product,
+      products: performer.products.map((pp) => pp.product),
       videos: {
         items: videos,
         pagination: {

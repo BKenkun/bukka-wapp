@@ -230,7 +230,7 @@ describe('Products API - CRUD Operations', () => {
 
     it('should return 400 for duplicate SKU', async () => {
       await prisma.product.create({
-        data: { name: 'Existing', slug: 'existing', price: 10, sku: 'SKU123', thumbnailUrl: '' },
+        data: { name: 'Existing', slug: 'existing', price: 10, sku: 'SKU123' },
       })
       const admin = await createAdminUser('GLOBAL_ADMIN')
       setMockSession(createAdminSession(admin.id, 'GLOBAL_ADMIN'))

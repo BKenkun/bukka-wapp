@@ -77,7 +77,7 @@ export async function POST(request: Request) {
             where: { id: video.id },
             data: {
               muxPlaybackId: playbackId,
-              duration: duration ? Math.round(duration) : null,
+              duration: duration ? Math.round(duration) : 0,
               status: "PUBLISHED",
             },
           })

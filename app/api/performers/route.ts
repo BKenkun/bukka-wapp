@@ -27,16 +27,7 @@ export async function POST(request: NextRequest) {
       bio,
       profileImage,
       coverImage,
-      nationality,
-      birthDate,
-      height,
-      measurements,
-      hairColor,
-      eyeColor,
-      skinTone,
-      instagram,
-      twitter,
-      onlyfans,
+      location,
     } = body
 
     // Verificar slug único
@@ -58,16 +49,7 @@ export async function POST(request: NextRequest) {
         bio,
         profileImage: profileImage || null,
         coverImage: coverImage || null,
-        nationality: nationality || null,
-        birthDate: birthDate ? new Date(birthDate) : null,
-        height: height || null,
-        measurements: measurements || null,
-        hairColor: hairColor || null,
-        eyeColor: eyeColor || null,
-        skinTone: skinTone || null,
-        instagram: instagram || null,
-        twitter: twitter || null,
-        onlyfans: onlyfans || null,
+        location: location || null,
       },
     })
 
@@ -92,8 +74,6 @@ export async function GET(request: NextRequest) {
 
     // Filtros
     const search = searchParams.get("search")
-    const nationality = searchParams.get("nationality")
-    const hairColor = searchParams.get("hairColor")
     const sortBy = searchParams.get("sort") || "name"
     const sortOrder = searchParams.get("order") || "asc"
 
@@ -106,15 +86,6 @@ export async function GET(request: NextRequest) {
         { name: { contains: search, mode: "insensitive" } },
         { bio: { contains: search, mode: "insensitive" } },
       ]
-    }
-
-    // Filtros
-    if (nationality) {
-      where.nationality = nationality
-    }
-
-    if (hairColor) {
-      where.hairColor = hairColor
     }
 
     // Ordenación
@@ -141,12 +112,8 @@ export async function GET(request: NextRequest) {
           bio: true,
           profileImage: true,
           coverImage: true,
-          nationality: true,
-          hairColor: true,
-          eyeColor: true,
+          location: true,
           videoCount: true,
-          instagram: true,
-          twitter: true,
         },
       }),
       prisma.performer.count({ where }),
@@ -173,23 +140,15 @@ export async function GET(request: NextRequest) {
 // GET filtros disponibles
 export async function OPTIONS() {
   try {
-    const [nationalities, hairColors] = await Promise.all([
-      prisma.performer.findMany({
-        where: { nationality: { not: null } },
-        select: { nationality: true },
-        distinct: ["nationality"],
-      }),
-      prisma.performer.findMany({
-        where: { hairColor: { not: null } },
-        select: { hairColor: true },
-        distinct: ["hairColor"],
-      }),
-    ])
+    const locations = await prisma.performer.findMany({
+      where: { location: { not: null } },
+      select: { location: true },
+      distinct: ["location"],
+    })
 
     return NextResponse.json({
       filters: {
-        nationalities: nationalities.map((p) => p.nationality).filter(Boolean),
-        hairColors: hairColors.map((p) => p.hairColor).filter(Boolean),
+        locations: locations.map((p) => p.location).filter(Boolean),
       },
     })
   } catch (error) {

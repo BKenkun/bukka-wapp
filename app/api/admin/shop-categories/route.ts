@@ -22,19 +22,28 @@ export async function GET() {
     const categories = await prisma.shopCategory.findMany({
       orderBy: [{ order: "asc" }, { name: "asc" }],
       include: {
-        parent: {
+        ShopCategory: {
           select: { id: true, name: true },
         },
-        children: {
-          select: { id: true, name: true, slug: true },
+        other_ShopCategory: {
+          select: { id: true },
         },
         _count: {
-          select: { products: true },
+          select: { ProductToCategory: true },
         },
       },
     })
 
-    return NextResponse.json({ categories })
+    const categoriesWithCount = categories.map((cat) => ({
+      ...cat,
+      parent: cat.ShopCategory,
+      children: cat.other_ShopCategory,
+      _count: {
+        products: cat._count.ProductToCategory,
+      },
+    }))
+
+    return NextResponse.json({ categories: categoriesWithCount })
   } catch (error) {
     console.error("Error fetching shop categories:", error)
     return NextResponse.json({ error: "Error al obtener categorías" }, { status: 500 })

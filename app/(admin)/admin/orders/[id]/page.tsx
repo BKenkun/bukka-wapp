@@ -6,7 +6,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -51,7 +50,6 @@ interface Order {
     country?: string
   } | null
   trackingNumber: string | null
-  notes: string | null
   createdAt: string
   user: {
     id: string
@@ -105,7 +103,6 @@ export default function OrderDetailPage() {
     status: "",
     paymentStatus: "",
     trackingNumber: "",
-    notes: "",
   })
 
   React.useEffect(() => {
@@ -122,7 +119,6 @@ export default function OrderDetailPage() {
         status: data.order.status,
         paymentStatus: data.order.paymentStatus,
         trackingNumber: data.order.trackingNumber || "",
-        notes: data.order.notes || "",
       })
     } catch (error) {
       toast.error("Error al cargar pedido")
@@ -144,7 +140,6 @@ export default function OrderDetailPage() {
           status: formData.status,
           paymentStatus: formData.paymentStatus,
           trackingNumber: formData.trackingNumber || null,
-          notes: formData.notes || null,
         }),
       })
 
@@ -305,15 +300,6 @@ export default function OrderDetailPage() {
                     value={formData.trackingNumber}
                     onChange={(e) => setFormData({ ...formData, trackingNumber: e.target.value })}
                     placeholder="Numero de tracking"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Notas Internas</label>
-                  <Textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Notas sobre el pedido..."
-                    rows={3}
                   />
                 </div>
                 <Button type="submit" disabled={isSaving}>

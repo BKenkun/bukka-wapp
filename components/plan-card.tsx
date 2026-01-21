@@ -35,7 +35,7 @@ export function PlanCard({ name, price, features, buttonText }: PlanCardProps) {
         </div>
 
         <div className="flex items-center">
-          <button className="bg-[#FA4860] text-white text-center font-[family-name:var(--font-montserrat)] text-[14px] font-medium leading-normal px-[17px] py-[11px] flex items-center justify-center gap-[10px]">
+          <button className="btn-primary flex items-center justify-center gap-[10px]">
             {buttonText}
           </button>
         </div>

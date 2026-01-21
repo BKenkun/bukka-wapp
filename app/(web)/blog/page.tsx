@@ -322,7 +322,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 placeholder="Tu email"
                 className="w-full bg-white border-0 text-[#ADAEBC] font-['Montserrat'] text-base px-4 py-2 mb-3 placeholder:text-[#ADAEBC]"
               />
-              <button className="w-full bg-[#FA4860] text-white font-['Montserrat'] text-base py-3 hover:bg-[#e63d53] transition-colors">
+              <button className="w-full btn-primary">
                 Suscribirse
               </button>
             </div>

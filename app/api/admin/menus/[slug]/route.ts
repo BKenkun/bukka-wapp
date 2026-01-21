@@ -72,13 +72,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { slug } = await params
     const body = await request.json()
-    const { name, items } = body
+    const { name, title, items } = body
 
     // Crear el menú con sus items
     const menu = await prisma.menu.create({
       data: {
         name,
         slug,
+        title,
         items: {
           create: items.map((item: {
             label: string
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             isVisible: boolean
             highlight: boolean
             highlightColor: string | null
+            minTierLevel: number | null
           }) => ({
             label: item.label,
             url: item.url,
@@ -102,6 +104,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             isVisible: item.isVisible,
             highlight: item.highlight,
             highlightColor: item.highlightColor,
+            minTierLevel: item.minTierLevel,
           })),
         },
       },
@@ -142,7 +145,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const { slug } = await params
     const body = await request.json()
-    const { name, items } = body
+    const { name, title, items } = body
 
     const existingMenu = await prisma.menu.findUnique({
       where: { slug },
@@ -164,6 +167,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { slug },
       data: {
         name: name || undefined,
+        title: title !== undefined ? title : undefined,
         items: {
           create: items.map((item: {
             label: string
@@ -176,6 +180,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             isVisible: boolean
             highlight: boolean
             highlightColor: string | null
+            minTierLevel: number | null
           }) => ({
             label: item.label,
             url: item.url,
@@ -187,6 +192,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             isVisible: item.isVisible,
             highlight: item.highlight,
             highlightColor: item.highlightColor,
+            minTierLevel: item.minTierLevel,
           })),
         },
       },

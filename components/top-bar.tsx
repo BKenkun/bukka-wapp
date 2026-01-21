@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { auth } from "@/auth"
 
 // Icono por defecto (bolsa)
 const DefaultIcon = () => (
@@ -20,7 +21,7 @@ interface TopBarItem {
   openInNewTab: boolean
 }
 
-async function getTopBarItems(): Promise<TopBarItem[]> {
+async function getTopBarItems(userTierLevel: number | null): Promise<TopBarItem[]> {
   try {
     const menu = await prisma.menu.findUnique({
       where: { slug: "topbar" },
@@ -35,12 +36,23 @@ async function getTopBarItems(): Promise<TopBarItem[]> {
             icon: true,
             customIcon: true,
             openInNewTab: true,
+            minTierLevel: true,
           },
         },
       },
     })
 
-    return menu?.items || []
+    if (!menu?.items) return []
+
+    // Filtrar items por nivel de suscripción del usuario
+    return menu.items.filter((item) => {
+      // Si el item no tiene restricción de tier, es visible para todos
+      if (item.minTierLevel === null) return true
+      // Si el usuario no tiene suscripción, solo ve items sin restricción
+      if (userTierLevel === null) return false
+      // El usuario ve el item si su nivel es >= al mínimo requerido
+      return userTierLevel >= item.minTierLevel
+    })
   } catch {
     return []
   }
@@ -59,7 +71,11 @@ function TopBarItemIcon({ customIcon }: { customIcon: string | null }) {
 }
 
 export async function TopBar() {
-  const items = await getTopBarItems()
+  // Obtener sesión del usuario para filtrar menús por suscripción
+  const session = await auth()
+  const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
+
+  const items = await getTopBarItems(userTierLevel)
 
   // Si no hay items configurados, no mostrar nada
   if (items.length === 0) {

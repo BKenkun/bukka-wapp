@@ -233,7 +233,7 @@ export default function CastingPage() {
           </div>
           <button
             onClick={() => router.push("/")}
-            className="bg-[#FA4860] px-8 py-3 rounded-lg font-['Montserrat'] text-base font-normal hover:bg-[#e03d54] transition-colors"
+            className="btn-primary"
           >
             Volver al Inicio
           </button>
@@ -786,7 +786,7 @@ export default function CastingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isUploading}
-                className="bg-[#FA4860] px-8 py-3 rounded-lg font-['Montserrat'] text-base font-normal hover:bg-[#e03d54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isSubmitting || isUploading ? (
                   <>

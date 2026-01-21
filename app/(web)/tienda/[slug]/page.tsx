@@ -3,8 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { DiscountBanner } from "@/components/discount-banner"
-import { ProductImageSlider } from "./product-image-slider"
-import { ProductAddToCart } from "./product-add-to-cart"
+import { ProductDetailClient } from "./product-detail-client"
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -18,12 +17,16 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const product = await prisma.product.findUnique({
     where: { slug, status: "ACTIVE" },
     include: {
-      Performer: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          profileImage: true,
+      performers: {
+        include: {
+          performer: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              profileImage: true,
+            },
+          },
         },
       },
       ProductToCategory: {
@@ -49,16 +52,24 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       // For VARIABLE products, get associated attributes
       attributes: {
         include: {
-          attribute: {
+          attribute: true,
+        },
+        orderBy: { order: "asc" },
+      },
+      // Get variants with their attribute values to filter available options
+      variants: {
+        where: { isActive: true },
+        include: {
+          attributeValues: {
             include: {
-              values: {
-                where: { isActive: true },
-                orderBy: { order: "asc" },
+              attributeValue: {
+                include: {
+                  attribute: true,
+                },
               },
             },
           },
         },
-        orderBy: { order: "asc" },
       },
     },
   })
@@ -67,13 +78,24 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound()
   }
 
+  // Get performer IDs for related products query
+  const performerIds = product.performers.map((pp) => pp.performer.id)
+
   // Productos relacionados (misma categoría o performer)
   const relatedProducts = await prisma.product.findMany({
     where: {
       status: "ACTIVE",
       id: { not: product.id },
       OR: [
-        product.performerId ? { performerId: product.performerId } : {},
+        performerIds.length > 0
+          ? {
+              performers: {
+                some: {
+                  performerId: { in: performerIds },
+                },
+              },
+            }
+          : {},
         product.ProductToCategory.length > 0
           ? {
               ProductToCategory: {
@@ -87,37 +109,57 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     },
     take: 4,
     include: {
-      Performer: {
-        select: { name: true },
+      performers: {
+        include: {
+          performer: {
+            select: { name: true, slug: true },
+          },
+        },
       },
     },
   })
 
-  const images = product.images && product.images.length > 0
-    ? product.images
-    : ["/images/placeholder-product.jpg"]
+  // Get all attribute value IDs actually used by this product's variants
+  const usedAttributeValueIds = new Set<string>()
+  const attributeValuesMap = new Map<string, Map<string, { id: string; value: string; slug: string; colorHex: string | null; imageUrl: string | null }>>()
 
-  const hasDiscount = product.compareAtPrice && Number(product.compareAtPrice) > Number(product.price)
-  const discountPercent = hasDiscount
-    ? Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)
-    : 0
+  product.variants.forEach((variant) => {
+    variant.attributeValues.forEach((av) => {
+      usedAttributeValueIds.add(av.attributeValueId)
+      const attrId = av.attributeValue.attribute.id
 
-  // Transform attributes for the variant selector component
-  const productAttributes = product.attributes.map((pa) => ({
-    id: pa.attribute.id,
-    name: pa.attribute.name,
-    slug: pa.attribute.slug,
-    type: pa.attribute.type as "SELECT" | "COLOR" | "IMAGE",
-    values: pa.attribute.values.map((v) => ({
-      id: v.id,
-      value: v.value,
-      slug: v.slug,
-      colorHex: v.colorHex,
-      imageUrl: v.imageUrl,
-    })),
-  }))
+      if (!attributeValuesMap.has(attrId)) {
+        attributeValuesMap.set(attrId, new Map())
+      }
 
-  const isVariable = product.productType === "VARIABLE"
+      const attrValues = attributeValuesMap.get(attrId)!
+      if (!attrValues.has(av.attributeValueId)) {
+        attrValues.set(av.attributeValueId, {
+          id: av.attributeValue.id,
+          value: av.attributeValue.value,
+          slug: av.attributeValue.slug,
+          colorHex: av.attributeValue.colorHex,
+          imageUrl: av.attributeValue.imageUrl,
+        })
+      }
+    })
+  })
+
+  // Transform attributes for the variant selector component - only include values used by variants
+  const productAttributes = product.attributes
+    .filter((pa) => attributeValuesMap.has(pa.attribute.id))
+    .map((pa) => ({
+      id: pa.attribute.id,
+      name: pa.attribute.name,
+      slug: pa.attribute.slug,
+      type: pa.attribute.type as "SELECT" | "COLOR" | "IMAGE",
+      values: Array.from(attributeValuesMap.get(pa.attribute.id)?.values() || []),
+    }))
+
+  // Calculate total stock from variants for VARIABLE products
+  const totalVariantStock = product.productType === "VARIABLE"
+    ? product.variants.reduce((sum, v) => sum + v.stock, 0)
+    : product.stock
 
   return (
     <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
@@ -126,194 +168,69 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </div>
 
       <div className="w-full mx-auto px-4 md:px-8 mt-8 mb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Side - Image Slider */}
-          <ProductImageSlider images={images} productName={product.name} />
-
-          {/* Right Side - Product Info */}
-          <div className="flex flex-col space-y-6">
-            {/* Categories */}
-            {product.ProductToCategory.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                {product.ProductToCategory.map(({ ShopCategory }) => (
-                  <Link
-                    key={ShopCategory.id}
-                    href={`/tienda?category=${ShopCategory.slug}`}
-                    className="text-sm px-3 py-1 bg-gray-800 hover:bg-gray-700 transition-colors"
-                  >
-                    {ShopCategory.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {/* Title */}
-            <h1
-              className="text-[#E5E7EB]"
-              style={{
-                fontFamily: "Montserrat",
-                fontSize: "30px",
-                fontWeight: 700,
-                lineHeight: "36px",
-              }}
-            >
-              {product.name}
-            </h1>
-
-            {/* SKU */}
-            {product.sku && (
-              <p
-                className="text-white/60"
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                }}
-              >
-                SKU: {product.sku}
-              </p>
-            )}
-
-            {/* Performer Badge */}
-            {product.Performer && (
+        {/* Categories */}
+        {product.ProductToCategory.length > 0 && (
+          <div className="flex gap-2 flex-wrap mb-6">
+            {product.ProductToCategory.map(({ ShopCategory }) => (
               <Link
-                href={`/modelos/${product.Performer.slug}`}
-                className="flex items-center gap-3 p-3 bg-gray-900 hover:bg-gray-800 transition-colors w-fit"
+                key={ShopCategory.id}
+                href={`/tienda?category=${ShopCategory.slug}`}
+                className="text-sm px-3 py-1 bg-gray-800 hover:bg-gray-700 transition-colors"
               >
-                {product.Performer.profileImage && (
-                  <Image
-                    src={product.Performer.profileImage}
-                    alt={product.Performer.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover"
-                  />
-                )}
-                <div>
-                  <p className="text-xs text-white/60">Producto de</p>
-                  <p className="text-sm font-medium text-[#00B1DE]">{product.Performer.name}</p>
-                </div>
+                {ShopCategory.name}
               </Link>
-            )}
-
-            {/* Pricing */}
-            <div className="flex items-baseline gap-3">
-              <span
-                className="text-white"
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "32px",
-                  fontWeight: 700,
-                }}
-              >
-                {Number(product.price).toFixed(2)}€
-              </span>
-              {hasDiscount && (
-                <>
-                  <span
-                    className="text-white/50 line-through"
-                    style={{
-                      fontFamily: "Montserrat",
-                      fontSize: "20px",
-                      fontWeight: 400,
-                    }}
-                  >
-                    {Number(product.compareAtPrice).toFixed(2)}€
-                  </span>
-                  <span
-                    className="text-[#16A34A] font-medium"
-                    style={{
-                      fontFamily: "Montserrat",
-                      fontSize: "16px",
-                    }}
-                  >
-                    -{discountPercent}%
-                  </span>
-                </>
-              )}
-            </div>
-
-            {/* Stock Status */}
-            {product.trackInventory && (
-              <p
-                className={product.stock > 0 ? "text-[#16A34A]" : "text-[#DC2626]"}
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                }}
-              >
-                {product.stock > 0
-                  ? product.stock <= 3
-                    ? `En stock - ¡Solo quedan ${product.stock}!`
-                    : "En stock"
-                  : "Agotado"}
-              </p>
-            )}
-
-            {/* Description */}
-            {product.description && (
-              <div
-                className="text-white/90"
-                style={{
-                  fontFamily: "Montserrat",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  lineHeight: "26px",
-                }}
-              >
-                {product.description.split("\n").map((paragraph, i) => (
-                  <p key={i} className="mb-3">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            )}
-
-            {/* Add to Cart Button */}
-            <ProductAddToCart
-              productId={product.id}
-              productSlug={product.slug}
-              productType={isVariable ? "VARIABLE" : "SIMPLE"}
-              stock={product.stock}
-              trackInventory={product.trackInventory}
-              basePrice={Number(product.price)}
-              compareAtPrice={product.compareAtPrice ? Number(product.compareAtPrice) : null}
-              attributes={productAttributes}
-            />
-
-            {/* Related Videos */}
-            {product.VideoProduct.length > 0 && (
-              <div className="pt-6 border-t border-gray-800">
-                <h3 className="text-lg font-semibold mb-4">Aparece en estos videos</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {product.VideoProduct.map(({ video }) => (
-                    <Link
-                      key={video.id}
-                      href={`/videos/${video.slug}`}
-                      className="group"
-                    >
-                      <div className="relative aspect-video bg-gray-900 overflow-hidden mb-2">
-                        {video.thumbnailUrl && (
-                          <Image
-                            src={video.thumbnailUrl}
-                            alt={video.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                            sizes="200px"
-                          />
-                        )}
-                      </div>
-                      <p className="text-sm text-white/80 line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
-                        {video.title}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
+
+        {/* Product Detail Client Component - handles images, variants, pricing dynamically */}
+        <ProductDetailClient
+          product={{
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            sku: product.sku,
+            description: product.description,
+            price: Number(product.price),
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            stock: totalVariantStock,
+            trackInventory: product.trackInventory,
+            images: product.images,
+            productType: product.productType as "SIMPLE" | "VARIABLE",
+          }}
+          attributes={productAttributes}
+        />
+
+        {/* Related Videos */}
+        {product.VideoProduct.length > 0 && (
+          <div className="mt-12 pt-6 border-t border-gray-800">
+            <h3 className="text-lg font-semibold mb-4">Aparece en estos videos</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {product.VideoProduct.map(({ video }) => (
+                <Link
+                  key={video.id}
+                  href={`/videos/${video.slug}`}
+                  className="group"
+                >
+                  <div className="relative aspect-video bg-gray-900 overflow-hidden mb-2">
+                    {video.thumbnailUrl && (
+                      <Image
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform"
+                        sizes="200px"
+                      />
+                    )}
+                  </div>
+                  <p className="text-sm text-white/80 line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
+                    {video.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
@@ -344,8 +261,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   <h3 className="text-sm font-medium line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
                     {relProduct.name}
                   </h3>
-                  {relProduct.Performer && (
-                    <p className="text-xs text-white/60">{relProduct.Performer.name}</p>
+                  {relProduct.performers.length > 0 && (
+                    <p className="text-xs text-white/60">
+                      {relProduct.performers.map(pp => pp.performer.name).join(", ")}
+                    </p>
                   )}
                   <p className="text-sm font-bold mt-1">{Number(relProduct.price).toFixed(2)}€</p>
                 </Link>

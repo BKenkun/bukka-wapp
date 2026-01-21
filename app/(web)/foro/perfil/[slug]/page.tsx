@@ -44,9 +44,9 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
       id: true,
       name: true,
       image: true,
-      tier: true,
+      SubscriptionPlan: { select: { name: true } },
       createdAt: true,
-      forumPosts: {
+      ForumPost: {
         orderBy: { createdAt: "desc" },
         take: 10,
         select: {
@@ -58,22 +58,22 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
           createdAt: true,
         },
       },
-      forumReplies: {
+      ForumReply: {
         orderBy: { createdAt: "desc" },
         take: 10,
         select: {
           id: true,
           content: true,
           createdAt: true,
-          post: {
+          ForumPost: {
             select: { id: true, title: true },
           },
         },
       },
       _count: {
         select: {
-          forumPosts: true,
-          forumReplies: true,
+          ForumPost: true,
+          ForumReply: true,
         },
       },
     },
@@ -84,7 +84,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
   }
 
   // Calculate stats
-  const totalLikes = user.forumPosts.reduce((acc, post) => acc + post.likeCount, 0)
+  const totalLikes = user.ForumPost.reduce((acc, post) => acc + post.likeCount, 0)
   const memberSince = user.createdAt
 
   // Get tier badge info
@@ -97,11 +97,12 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
     DIAMOND: { label: "Diamond", textColor: "#1E40AF", bgColor: "#DBEAFE" },
   }
 
-  const tierBadge = tierBadges[user.tier] || tierBadges.FREE
+  const tierName = user.SubscriptionPlan?.name.toUpperCase() || "FREE"
+  const tierBadge = tierBadges[tierName] || tierBadges.FREE
 
   // Calculate reputation (simple formula)
   const reputation = Math.min(100, Math.round(
-    (user._count.forumPosts * 5 + user._count.forumReplies * 2 + totalLikes * 3) / 10
+    (user._count.ForumPost * 5 + user._count.ForumReply * 2 + totalLikes * 3) / 10
   ))
 
   return (
@@ -173,7 +174,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
                 </div>
                 <div className="text-center">
                   <span className="font-montserrat text-white text-[20px] font-bold leading-normal block">
-                    {user._count.forumPosts}
+                    {user._count.ForumPost}
                   </span>
                   <span className="font-montserrat text-white text-[12px] font-normal">Temas</span>
                 </div>
@@ -216,13 +217,13 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-4 bg-black/20 rounded">
                 <span className="font-montserrat text-[#FA4860] text-[24px] font-bold block">
-                  {user._count.forumPosts}
+                  {user._count.ForumPost}
                 </span>
                 <span className="font-montserrat text-white text-[14px]">Temas Creados</span>
               </div>
               <div className="text-center p-4 bg-black/20 rounded">
                 <span className="font-montserrat text-[#00B1DE] text-[24px] font-bold block">
-                  {user._count.forumReplies}
+                  {user._count.ForumReply}
                 </span>
                 <span className="font-montserrat text-white text-[14px]">Respuestas</span>
               </div>
@@ -243,7 +244,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
 
           {/* Tabs and Content */}
           <ProfileTabs
-            posts={user.forumPosts.map((post) => ({
+            posts={user.ForumPost.map((post) => ({
               id: post.id,
               title: post.title,
               description: post.content.length > 150 ? post.content.substring(0, 150) + "..." : post.content,
@@ -251,10 +252,10 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
               responses: post.replyCount,
               timeAgo: formatTimeAgo(post.createdAt),
             }))}
-            replies={user.forumReplies.map((reply) => ({
+            replies={user.ForumReply.map((reply) => ({
               id: reply.id,
-              postId: reply.post.id,
-              postTitle: reply.post.title,
+              postId: reply.ForumPost.id,
+              postTitle: reply.ForumPost.title,
               content: reply.content.length > 150 ? reply.content.substring(0, 150) + "..." : reply.content,
               timeAgo: formatTimeAgo(reply.createdAt),
             }))}

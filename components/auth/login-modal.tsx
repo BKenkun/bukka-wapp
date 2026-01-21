@@ -105,7 +105,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#FA4860] hover:bg-[#FA4860]/90 text-white font-semibold py-3 px-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">

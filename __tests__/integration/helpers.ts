@@ -87,14 +87,14 @@ export async function createUser(options: CreateUserOptions = {}) {
       email: options.email || faker.internet.email(),
       password: hashedPassword,
       name: options.name || faker.person.fullName(),
-      username: options.username || faker.internet.userName().toLowerCase(),
+      username: options.username || faker.internet.username().toLowerCase(),
       isAdmin: options.isAdmin || false,
       adminRole: options.adminRole || null,
       subscriptionPlanId: options.subscriptionPlanId || null,
       subscriptionEnd: options.subscriptionEnd,
     },
     include: {
-      subscriptionPlan: true,
+      SubscriptionPlan: true,
     },
   })
 }
@@ -461,28 +461,6 @@ export async function addToCart(cartId: string, productId: string, quantity: num
 }
 
 // ============================================
-// Banner factory
-// ============================================
-
-interface CreateBannerOptions {
-  title?: string
-  imageUrl?: string
-  placement?: 'HOME_HERO' | 'HOME_PROMO' | 'NAVBAR_TOP' | 'VIDEO_DETAIL' | 'SUBSCRIPTION_PAGE'
-  isActive?: boolean
-}
-
-export async function createBanner(options: CreateBannerOptions = {}) {
-  return prisma.banner.create({
-    data: {
-      title: options.title || faker.lorem.sentence(),
-      imageUrl: options.imageUrl || faker.image.url(),
-      placement: options.placement || 'HOME_HERO',
-      isActive: options.isActive ?? true,
-    },
-  })
-}
-
-// ============================================
 // PromoCode factory
 // ============================================
 
@@ -582,7 +560,7 @@ export async function createHomeSection(options: CreateHomeSectionOptions = {}) 
       title: options.title || faker.lorem.words(2),
       enabled: options.enabled ?? true,
       order: options.order ?? 0,
-      config: options.config || {},
+      config: (options.config || {}) as any,
     },
   })
 }

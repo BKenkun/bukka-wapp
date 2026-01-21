@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, X, LogOut } from "lucide-react"
+import { Search, LogOut } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { CartButton } from "@/components/cart/cart-button"
 import { LoginModal } from "@/components/auth/login-modal"
+import { SearchModal } from "@/components/search/search-modal"
 
 export function HeaderActions() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -26,15 +27,14 @@ export function HeaderActions() {
   return (
     <>
       <div className="flex items-center justify-end w-full">
-        {/* Desktop search bar */}
-        <div className="relative hidden xl:flex w-[320px] h-10 bg-zinc-400/40 items-center px-4 mr-[40px]">
-          <input
-            type="text"
-            placeholder="Busca"
-            className="bg-transparent border-none outline-none text-white placeholder-white/70 w-full font-['Montserrat'] font-bold text-sm"
-          />
-          <Search className="w-5 h-5 text-white shrink-0" />
-        </div>
+        {/* Desktop search bar - clickable to open modal */}
+        <button
+          onClick={() => setIsSearchOpen(true)}
+          className="relative hidden xl:flex w-[320px] h-10 bg-zinc-400/40 items-center px-4 mr-[40px] cursor-pointer hover:bg-zinc-400/50 transition-colors"
+        >
+          <span className="text-white/70 font-['Montserrat'] font-bold text-sm">Busca</span>
+          <Search className="w-5 h-5 text-white shrink-0 ml-auto" />
+        </button>
 
         <div className="flex items-center gap-[11px]">
           <button
@@ -100,24 +100,7 @@ export function HeaderActions() {
         </div>
       </div>
 
-      {isSearchOpen && (
-        <div className="fixed inset-0 bg-black/90 z-[100] flex items-start justify-center pt-20 px-4">
-          <div className="w-full max-w-2xl">
-            <div className="relative flex w-full h-12 bg-zinc-400/40 items-center px-4">
-              <input
-                type="text"
-                placeholder="Busca"
-                autoFocus
-                className="bg-transparent border-none outline-none text-white placeholder-white/70 w-full font-['Montserrat'] font-bold text-base"
-              />
-              <Search className="w-5 h-5 text-white shrink-0 mr-4" />
-              <button onClick={() => setIsSearchOpen(false)} className="hover:opacity-80 transition-opacity text-white">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SearchModal open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </>
   )
 }

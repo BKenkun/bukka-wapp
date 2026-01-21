@@ -9,7 +9,7 @@ interface Props {
 }
 
 // Menús predefinidos del sistema
-const SYSTEM_MENUS: Record<string, { name: string; description: string }> = {
+const SYSTEM_MENUS: Record<string, { name: string; description: string; defaultTitle?: string }> = {
   "topbar": {
     name: "Top Bar",
     description: "Enlaces con iconos en la barra superior (BUKAKERY, GANGLORY, etc.)",
@@ -23,20 +23,24 @@ const SYSTEM_MENUS: Record<string, { name: string; description: string }> = {
     description: "Enlaces del menú de usuario logueado",
   },
   "footer-col-1": {
-    name: "Footer - Columna 1 (Legal)",
-    description: "Enlaces legales: Términos, Privacidad, etc.",
+    name: "Footer - Columna 1 (Servicios)",
+    description: "Enlaces de servicios: Cursos, Tienda, Blog, etc.",
+    defaultTitle: "SERVICIOS",
   },
   "footer-col-2": {
-    name: "Footer - Columna 2 (Soporte)",
-    description: "Enlaces de soporte: FAQ, Contacto, etc.",
+    name: "Footer - Columna 2 (Contacto)",
+    description: "Enlaces de contacto y soporte",
+    defaultTitle: "CONTACTO",
   },
   "footer-col-3": {
     name: "Footer - Columna 3 (Información)",
-    description: "Enlaces informativos: Sobre nosotros, Blog, etc.",
+    description: "Enlaces informativos: Términos, Privacidad, etc.",
+    defaultTitle: "INFORMACIÓN",
   },
-  "footer-social": {
-    name: "Footer - Redes Sociales",
-    description: "Enlaces a redes sociales con iconos",
+  "footer-col-4": {
+    name: "Footer - Columna 4 (Facturación)",
+    description: "Enlaces de facturación y proveedores de pago",
+    defaultTitle: "FACTURACIÓN",
   },
 }
 
@@ -58,6 +62,13 @@ export default async function EditMenuPage({ params }: Props) {
     where: { status: "PUBLISHED" },
     select: { id: true, title: true, slug: true },
     orderBy: { title: "asc" },
+  })
+
+  // Obtener planes de suscripción para el selector de nivel mínimo
+  const subscriptionPlans = await prisma.subscriptionPlan.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true, level: true, slug: true },
+    orderBy: { level: "asc" },
   })
 
   // Info del menú del sistema
@@ -89,8 +100,10 @@ export default async function EditMenuPage({ params }: Props) {
       <MenuEditor
         menuSlug={slug}
         menuName={menuInfo.name}
+        defaultTitle={menuInfo.defaultTitle}
         existingMenu={menu}
         pages={pages}
+        subscriptionPlans={subscriptionPlans}
       />
     </div>
   )

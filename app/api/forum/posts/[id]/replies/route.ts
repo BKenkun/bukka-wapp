@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -15,7 +16,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       where: { postId: id },
       orderBy: { createdAt: "asc" },
       include: {
-        author: { select: { id: true, name: true, image: true, tier: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            SubscriptionPlan: { select: { name: true, level: true } },
+          },
+        },
       },
     })
 
@@ -35,6 +43,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
+    // Check forum access
+    const userPlan = await getUserPlan(session.user.id)
+    if (!canUserAccessForum(userPlan)) {
+      return NextResponse.json(
+        { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+        { status: 403 }
+      )
+    }
+
     const { id: postId } = await params
     const body = await request.json()
     const { content, parentId } = body
@@ -46,7 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if post exists and is not locked
     const post = await prisma.forumPost.findUnique({
       where: { id: postId },
-      include: { category: true },
+      include: { ForumCategory: { include: { SubscriptionPlan: true } } },
     })
 
     if (!post) {
@@ -60,16 +77,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check user tier for category access
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { tier: true },
+      include: { SubscriptionPlan: true },
     })
 
-    const tierOrder = ["VISITOR", "FREE", "SILVER", "GOLD", "PLATINUM", "DIAMOND"]
-    const userTierIndex = tierOrder.indexOf(user?.tier || "FREE")
-    const requiredTierIndex = tierOrder.indexOf(post.category.minTier)
+    const userLevel = user?.SubscriptionPlan?.level ?? 0
+    const requiredLevel = post.ForumCategory.SubscriptionPlan?.level ?? 0
 
-    if (userTierIndex < requiredTierIndex) {
+    if (userLevel < requiredLevel) {
       return NextResponse.json(
-        { error: `Necesitas tier ${post.category.minTier} para responder` },
+        {
+          error: `Necesitas un nivel de suscripción ${post.ForumCategory.SubscriptionPlan?.name || requiredLevel} para responder`,
+        },
         { status: 403 }
       )
     }
@@ -84,7 +102,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           parentId: parentId || null,
         },
         include: {
-          author: { select: { id: true, name: true, image: true, tier: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              SubscriptionPlan: { select: { name: true, level: true } },
+            },
+          },
         },
       }),
       prisma.forumPost.update({

@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma"
 import { DiscountBanner } from "@/components/discount-banner"
 import { SectionHeader } from "@/components/section-header"
 import { VideoCard } from "@/components/video-card"
+import { FollowButton } from "@/components/follow-button"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 import Image from "next/image"
 import Link from "next/link"
-import { IconBrandInstagram, IconBrandTwitter, IconBrandTiktok } from "@tabler/icons-react"
 
 interface ModelDetailPageProps {
   params: Promise<{
@@ -28,7 +28,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       VideoPerformer: {
         where: { video: { status: "PUBLISHED" } },
         orderBy: { video: { releaseDate: "desc" } },
-        take: 6,
+        take: 7, // 1 for latest release + 6 for grid
         include: {
           video: {
             select: {
@@ -42,19 +42,26 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
               muxPlaybackId: true,
               previewStartTime: true,
               previewEndTime: true,
+              releaseDate: true,
             },
           },
         },
       },
-      Product: {
-        where: { status: "ACTIVE" },
+      products: {
+        where: {
+          product: { status: "ACTIVE" },
+        },
         take: 5,
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          price: true,
-          images: true,
+        include: {
+          product: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              price: true,
+              images: true,
+            },
+          },
         },
       },
       _count: {
@@ -71,14 +78,13 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
     notFound()
   }
 
-  // Calcular edad si hay fecha de nacimiento
-  const age = performer.birthDate
-    ? Math.floor((Date.now() - performer.birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-    : null
+  // Separate latest release from other videos
+  const latestRelease = performer.VideoPerformer[0]?.video || null
+  const otherVideos = performer.VideoPerformer.slice(1).map(vp => vp.video)
 
   // Generate preview URLs for videos with Mux playback IDs
   const videosWithPreviews = await Promise.all(
-    performer.VideoPerformer.map(async ({ video }) => {
+    otherVideos.map(async (video) => {
       let previewUrl: string | undefined = undefined
 
       if (video.muxPlaybackId) {
@@ -96,6 +102,16 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       }
     })
   )
+
+  // Format follower count
+  const formatFollowers = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`
+    }
+    return count.toString()
+  }
 
   return (
     <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
@@ -161,144 +177,140 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                       </svg>
                     )}
                   </div>
-                  <button
-                    className="flex items-center"
-                    style={{
-                      padding: "10px 14px",
-                      gap: "14px",
-                      background: "#FA4860",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="14" viewBox="0 0 16 14" fill="none">
+                  <FollowButton performerId={performer.id} />
+                </div>
+
+                {/* Location */}
+                {performer.location && (
+                  <div className="flex items-center mb-6" style={{ gap: "12px" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="16" viewBox="0 0 12 16" fill="none">
                       <path
-                        d="M1.4875 8.07028L7.13438 13.3422C7.36875 13.5609 7.67812 13.6828 8 13.6828C8.32187 13.6828 8.63125 13.5609 8.86563 13.3422L14.5125 8.07028C15.4625 7.18591 16 5.94528 16 4.64841V4.46716C16 2.28278 14.4219 0.420285 12.2688 0.0609095C10.8438 -0.17659 9.39375 0.289035 8.375 1.30778L8 1.68278L7.625 1.30778C6.60625 0.289035 5.15625 -0.17659 3.73125 0.0609095C1.57812 0.420285 0 2.28278 0 4.46716V4.64841C0 5.94528 0.5375 7.18591 1.4875 8.07028Z"
-                        fill="white"
+                        d="M6.74062 15.6C8.34375 13.5938 12 8.73125 12 6C12 2.6875 9.3125 0 6 0C2.6875 0 0 2.6875 0 6C0 8.73125 3.65625 13.5938 5.25938 15.6C5.64375 16.0781 6.35625 16.0781 6.74062 15.6ZM6 4C6.53043 4 7.03914 4.21071 7.41421 4.58579C7.78929 4.96086 8 5.46957 8 6C8 6.53043 7.78929 7.03914 7.41421 7.41421C7.03914 7.78929 6.53043 8 6 8C5.46957 8 4.96086 7.78929 4.58579 7.41421C4.21071 7.03914 4 6.53043 4 6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4Z"
+                        fill="#FA4860"
                       />
                     </svg>
                     <span
                       style={{
                         color: "#FFF",
-                        textAlign: "center",
                         fontFamily: "Montserrat",
-                        fontSize: "16px",
-                        fontWeight: 500,
-                        lineHeight: "normal",
+                        fontSize: "18px",
+                        fontWeight: 400,
+                        lineHeight: "28px",
                       }}
                     >
-                      Follow
+                      {performer.location}
                     </span>
-                  </button>
-                </div>
-
-                {/* Location & Info */}
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  {performer.nationality && (
-                    <div className="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="16" viewBox="0 0 12 16" fill="none">
-                        <path
-                          d="M6.74062 15.6C8.34375 13.5938 12 8.73125 12 6C12 2.6875 9.3125 0 6 0C2.6875 0 0 2.6875 0 6C0 8.73125 3.65625 13.5938 5.25938 15.6C5.64375 16.0781 6.35625 16.0781 6.74062 15.6ZM6 4C6.53043 4 7.03914 4.21071 7.41421 4.58579C7.78929 4.96086 8 5.46957 8 6C8 6.53043 7.78929 7.03914 7.41421 7.41421C7.03914 7.78929 6.53043 8 6 8C5.46957 8 4.96086 7.78929 4.58579 7.41421C4.21071 7.03914 4 6.53043 4 6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4Z"
-                          fill="#FA4860"
-                        />
-                      </svg>
-                      <span className="text-white font-montserrat text-lg">{performer.nationality}</span>
-                    </div>
-                  )}
-                  {age && (
-                    <span className="text-gray-400 font-montserrat text-lg">{age} años</span>
-                  )}
-                  {performer.height && (
-                    <span className="text-gray-400 font-montserrat text-lg">{performer.height} cm</span>
-                  )}
-                  {performer.measurements && (
-                    <span className="text-gray-400 font-montserrat text-lg">{performer.measurements}</span>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Stats */}
                 <div className="flex gap-8 mb-6">
                   <div className="text-center">
-                    <div className="text-white font-montserrat text-2xl font-bold">
+                    <div
+                      style={{
+                        color: "#FFF",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        lineHeight: "normal",
+                      }}
+                    >
                       {performer._count.PerformerPhoto}
                     </div>
-                    <div className="text-gray-300 font-montserrat text-sm">Fotos</div>
+                    <div
+                      style={{
+                        color: "#E0E0E0",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                      }}
+                    >
+                      Fotos
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-white font-montserrat text-2xl font-bold">
+                    <div
+                      style={{
+                        color: "#FFF",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        lineHeight: "normal",
+                      }}
+                    >
                       {performer._count.VideoPerformer}
                     </div>
-                    <div className="text-gray-300 font-montserrat text-sm">Videos</div>
+                    <div
+                      style={{
+                        color: "#E0E0E0",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                      }}
+                    >
+                      Videos
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-white font-montserrat text-2xl font-bold">
-                      {performer._count.favorites.toLocaleString()}
+                    <div
+                      style={{
+                        color: "#FFF",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        lineHeight: "normal",
+                      }}
+                    >
+                      {formatFollowers(performer._count.favorites)}
                     </div>
-                    <div className="text-gray-300 font-montserrat text-sm">Seguidores</div>
+                    <div
+                      style={{
+                        color: "#E0E0E0",
+                        textAlign: "center",
+                        fontFamily: "Montserrat",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                      }}
+                    >
+                      Seguidores
+                    </div>
                   </div>
                 </div>
-
-                {/* Social Links */}
-                {(performer.instagram || performer.twitter || performer.onlyfans) && (
-                  <div className="flex gap-4 mb-6">
-                    {performer.instagram && (
-                      <a
-                        href={`https://instagram.com/${performer.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-pink-500 hover:text-pink-400"
-                      >
-                        <IconBrandInstagram size={24} />
-                        <span className="font-montserrat">@{performer.instagram}</span>
-                      </a>
-                    )}
-                    {performer.twitter && (
-                      <a
-                        href={`https://twitter.com/${performer.twitter}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
-                      >
-                        <IconBrandTwitter size={24} />
-                        <span className="font-montserrat">@{performer.twitter}</span>
-                      </a>
-                    )}
-                  </div>
-                )}
 
                 {/* Biography */}
                 {performer.bio && (
                   <div className="mb-6">
-                    <h2 className="text-white font-montserrat text-2xl font-bold mb-3">
+                    <h2
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Montserrat",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        lineHeight: "32px",
+                        marginBottom: "12px",
+                      }}
+                    >
                       Biografía
                     </h2>
-                    <p className="text-white font-montserrat text-base leading-relaxed">
+                    <p
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Montserrat",
+                        fontSize: "16px",
+                        fontWeight: 400,
+                        lineHeight: "26px",
+                      }}
+                    >
                       {performer.bio}
                     </p>
-                  </div>
-                )}
-
-                {/* Physical Details */}
-                {(performer.hairColor || performer.eyeColor || performer.skinTone) && (
-                  <div className="grid grid-cols-3 gap-4">
-                    {performer.hairColor && (
-                      <div>
-                        <span className="text-gray-400 font-montserrat text-sm">Cabello</span>
-                        <p className="text-white font-montserrat">{performer.hairColor}</p>
-                      </div>
-                    )}
-                    {performer.eyeColor && (
-                      <div>
-                        <span className="text-gray-400 font-montserrat text-sm">Ojos</span>
-                        <p className="text-white font-montserrat">{performer.eyeColor}</p>
-                      </div>
-                    )}
-                    {performer.skinTone && (
-                      <div>
-                        <span className="text-gray-400 font-montserrat text-sm">Piel</span>
-                        <p className="text-white font-montserrat">{performer.skinTone}</p>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -308,12 +320,12 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       </div>
 
       {/* Products Section */}
-      {performer.Product.length > 0 && (
+      {performer.products.length > 0 && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
             <SectionHeader title="PRODUCTOS" />
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-              {performer.Product.map((product) => (
+              {performer.products.map(({ product }) => (
                 <Link
                   key={product.id}
                   href={`/tienda/${product.slug}`}
@@ -327,13 +339,31 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 20vw"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                    <h3 className="text-white font-montserrat text-xl font-medium mb-2">
+                    <h3
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Montserrat",
+                        fontSize: "21.2px",
+                        fontWeight: 500,
+                        lineHeight: "25.801px",
+                        marginBottom: "8px",
+                      }}
+                    >
                       {product.name}
                     </h3>
-                    <p className="text-white font-montserrat text-xl mb-3">
+                    <p
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Montserrat",
+                        fontSize: "21.2px",
+                        fontWeight: 400,
+                        lineHeight: "25.801px",
+                        marginBottom: "12px",
+                      }}
+                    >
                       {Number(product.price).toFixed(2)} €
                     </p>
-                    <button className="text-white font-inter text-base py-2 px-6 bg-[#FA4860]">
+                    <button className="btn-primary">
                       Añadir al carrito
                     </button>
                   </div>
@@ -390,6 +420,61 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Latest Release Section */}
+      {latestRelease && (
+        <div className="px-4 md:px-8 mt-8">
+          <div className="w-full">
+            <SectionHeader title="ÚLTIMO LANZAMIENTO" />
+            <Link href={`/videos/${latestRelease.slug}`}>
+              <div className="relative w-full aspect-[21/9] overflow-hidden mt-6 group cursor-pointer">
+                <Image
+                  src={latestRelease.thumbnailUrl || "/images/2.jpg"}
+                  alt={latestRelease.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="100vw"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-6 left-6">
+                    <h3
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Montserrat",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        lineHeight: "32px",
+                      }}
+                    >
+                      {latestRelease.title}
+                    </h3>
+                    <p
+                      style={{
+                        color: "#E0E0E0",
+                        fontFamily: "Montserrat",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        marginTop: "8px",
+                      }}
+                    >
+                      {latestRelease.viewCount.toLocaleString()} vistas
+                    </p>
+                  </div>
+                </div>
+                {/* Play icon overlay */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       )}

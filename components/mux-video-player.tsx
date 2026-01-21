@@ -155,14 +155,18 @@ export function MuxVideoPlayer({
   if (locked) {
     const bgImage = config.backgroundImage || thumbnailUrl
     return (
-      <div className="relative aspect-video bg-black">
+      <div className="relative aspect-video bg-black overflow-hidden">
         {bgImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${bgImage})` }}
-          />
+          <>
+            <img
+              src={bgImage}
+              alt={title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/60" />
+          </>
         )}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center z-10">
           <div className="w-16 h-16 rounded-full bg-[#FA4860]/20 flex items-center justify-center">
             <Lock className="w-8 h-8 text-[#FA4860]" />
           </div>
@@ -224,7 +228,16 @@ export function MuxVideoPlayer({
   }
 
   return (
-    <div className="relative aspect-video bg-black">
+    <div className="relative aspect-video bg-black overflow-hidden">
+      <style jsx global>{`
+        mux-player::part(poster) {
+          object-fit: cover !important;
+        }
+        mux-player::part(poster-layer) {
+          background-size: cover !important;
+          background-position: center !important;
+        }
+      `}</style>
       <MuxPlayer
         playbackId={playbackId}
         tokens={{ playback: playbackToken, thumbnail: thumbnailToken }}
@@ -245,7 +258,7 @@ export function MuxVideoPlayer({
         onTimeUpdate={handleTimeUpdate}
         onEnded={onEnded}
         streamType="on-demand"
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", ["--poster-object-fit" as string]: "cover" }}
       >
         {subtitles?.map((sub) => (
           <track

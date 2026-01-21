@@ -103,12 +103,14 @@ interface MenuItem {
   isVisible: boolean
   highlight: boolean
   highlightColor: string | null
+  minTierLevel: number | null
 }
 
 interface Menu {
   id: string
   name: string
   slug: string
+  title: string | null
   items: MenuItem[]
 }
 
@@ -118,18 +120,30 @@ interface Page {
   slug: string
 }
 
+interface SubscriptionPlan {
+  id: string
+  name: string
+  level: number
+  slug: string
+}
+
 interface MenuEditorProps {
   menuSlug: string
   menuName: string
+  defaultTitle?: string
   existingMenu: Menu | null
   pages: Page[]
+  subscriptionPlans: SubscriptionPlan[]
 }
 
-export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEditorProps) {
+export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pages, subscriptionPlans }: MenuEditorProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [items, setItems] = React.useState<MenuItem[]>(
     existingMenu?.items || []
+  )
+  const [menuTitle, setMenuTitle] = React.useState(
+    existingMenu?.title || defaultTitle || ""
   )
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false)
   const [editingItem, setEditingItem] = React.useState<MenuItem | null>(null)
@@ -146,6 +160,7 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
     isVisible: true,
     highlight: false,
     highlightColor: null,
+    minTierLevel: 0,
   })
 
   const resetForm = () => {
@@ -160,6 +175,7 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
       isVisible: true,
       highlight: false,
       highlightColor: null,
+      minTierLevel: 0,
     })
     setEditingItem(null)
   }
@@ -228,6 +244,7 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: menuName,
+          title: menuTitle || null,
           items: items.map((item, index) => ({
             ...item,
             order: index,
@@ -266,8 +283,37 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
     return <IconComponent className="size-4" />
   }
 
+  // Mostrar campo de título solo para menús de footer
+  const showTitleField = menuSlug.startsWith("footer-col-")
+
   return (
     <div className="space-y-6">
+      {/* Título del Footer (solo para columnas de footer) */}
+      {showTitleField && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Título de la Columna</CardTitle>
+            <CardDescription>
+              Este título aparecerá como encabezado de la columna en el footer
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="menuTitle">Título</Label>
+              <Input
+                id="menuTitle"
+                value={menuTitle}
+                onChange={(e) => setMenuTitle(e.target.value)}
+                placeholder="Ej: SERVICIOS, CONTACTO, INFORMACIÓN..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Deja vacío para usar el título por defecto
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Items List */}
       <Card>
         <CardHeader>
@@ -456,6 +502,31 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
                     </div>
                   )}
 
+                  <div className="space-y-2">
+                    <Label>Suscripción mínima requerida</Label>
+                    <Select
+                      value={formData.minTierLevel?.toString() || "0"}
+                      onValueChange={(value) => setFormData({
+                        ...formData,
+                        minTierLevel: parseInt(value)
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona nivel mínimo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subscriptionPlans.map((plan) => (
+                          <SelectItem key={plan.id} value={plan.level.toString()}>
+                            {plan.name} {plan.level === 0 ? "(Visible para todos)" : `(Nivel ${plan.level}+)`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Solo los usuarios con este nivel de suscripción o superior verán este enlace
+                    </p>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="isVisible">Visible</Label>
@@ -527,7 +598,7 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium truncate">{item.label}</p>
                         {item.highlight && (
                           <Badge
@@ -535,6 +606,11 @@ export function MenuEditor({ menuSlug, menuName, existingMenu, pages }: MenuEdit
                             className="text-white text-xs"
                           >
                             Destacado
+                          </Badge>
+                        )}
+                        {item.minTierLevel !== null && item.minTierLevel !== undefined && (
+                          <Badge variant="outline" className="text-xs">
+                            {subscriptionPlans.find(p => p.level === item.minTierLevel)?.name || `Nivel ${item.minTierLevel}`}+
                           </Badge>
                         )}
                         {!item.isVisible && (

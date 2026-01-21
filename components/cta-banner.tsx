@@ -16,12 +16,6 @@ export function CtaBanner({
   buttonUrl,
   backgroundImage = "/red-lips-artistic.jpg",
 }: CtaBannerProps) {
-  const ButtonContent = (
-    <span className="flex justify-center items-center w-[183px] h-[39px] px-[32px] py-[7px] gap-[10px] bg-[#FA4860] hover:bg-[#d63d52] text-white text-[16px] font-bold leading-[24px] uppercase font-montserrat rounded-none mt-8">
-      {buttonText}
-    </span>
-  )
-
   return (
     <div className="relative w-full h-[486px] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -40,9 +34,11 @@ export function CtaBanner({
 
         {/* Button with optional link */}
         {buttonUrl ? (
-          <Link href={buttonUrl}>{ButtonContent}</Link>
+          <Link href={buttonUrl} className="btn-primary mt-8 uppercase">
+            {buttonText}
+          </Link>
         ) : (
-          <button className="flex justify-center items-center w-[183px] h-[39px] px-[32px] py-[7px] gap-[10px] bg-[#FA4860] hover:bg-[#d63d52] text-white text-[16px] font-bold leading-[24px] uppercase font-montserrat rounded-none mt-8">
+          <button className="btn-primary mt-8 uppercase">
             {buttonText}
           </button>
         )}

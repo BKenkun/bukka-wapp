@@ -21,19 +21,26 @@ export async function GET() {
     const categories = await prisma.videoCategory.findMany({
       orderBy: [{ order: "asc" }, { name: "asc" }],
       include: {
-        parent: {
+        VideoCategory: {
           select: { id: true, name: true },
         },
-        children: {
+        other_VideoCategory: {
           select: { id: true, name: true, slug: true },
         },
         _count: {
-          select: { videos: true },
+          select: { VideoToCategory: true },
         },
       },
     })
 
-    return NextResponse.json({ categories })
+    const transformedCategories = categories.map((c) => ({
+      ...c,
+      parent: c.VideoCategory,
+      children: c.other_VideoCategory,
+      _count: { videos: c._count.VideoToCategory },
+    }))
+
+    return NextResponse.json({ categories: transformedCategories })
   } catch (error) {
     console.error("Error fetching video categories:", error)
     return NextResponse.json({ error: "Error al obtener categorías" }, { status: 500 })

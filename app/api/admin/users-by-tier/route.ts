@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         username: true,
         image: true,
         subscriptionPlanId: true,
-        subscriptionPlan: {
+        SubscriptionPlan: {
           select: {
             name: true,
             slug: true,
@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
         isVerified: true,
         _count: {
           select: {
-            orders: true,
-            watchHistory: true,
-            comments: true,
+            Order: true,
+            WatchHistory: true,
+            Comment: true,
           },
         },
       },
@@ -67,8 +67,18 @@ export async function GET(request: NextRequest) {
       nextCursor = nextItem?.id || null
     }
 
+    const transformedUsers = users.map((user) => ({
+      ...user,
+      subscriptionPlan: user.SubscriptionPlan,
+      _count: {
+        orders: user._count.Order,
+        watchHistory: user._count.WatchHistory,
+        comments: user._count.Comment,
+      },
+    }))
+
     return NextResponse.json({
-      users,
+      users: transformedUsers,
       nextCursor,
     })
   } catch (error) {

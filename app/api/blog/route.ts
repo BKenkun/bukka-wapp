@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (categorySlug) {
-      where.category = { slug: categorySlug }
+      where.BlogCategory = { slug: categorySlug }
     }
 
     if (type) {
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
         include: {
-          author: { select: { id: true, name: true, image: true } },
-          category: { select: { id: true, slug: true, name: true } },
+          user: { select: { id: true, name: true, image: true } },
+          BlogCategory: { select: { id: true, slug: true, name: true } },
         },
       }),
       prisma.blogPost.count({ where }),
