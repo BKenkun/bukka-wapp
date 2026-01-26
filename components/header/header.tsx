@@ -1,8 +1,18 @@
 "use client"
 
+import { Suspense } from "react"
 import { HeaderLogo } from "./header-logo"
 import { HeaderNav } from "./header-nav"
 import { HeaderActions } from "./header-actions"
+
+function HeaderActionsFallback() {
+  return (
+    <div className="flex items-center gap-[11px]">
+      <div className="w-5 h-5 rounded-full bg-zinc-400/40 animate-pulse" />
+      <div className="w-5 h-5 rounded-full bg-zinc-400/40 animate-pulse" />
+    </div>
+  )
+}
 
 export function Header() {
   return (
@@ -20,7 +30,9 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex-shrink-0">
-          <HeaderActions />
+          <Suspense fallback={<HeaderActionsFallback />}>
+            <HeaderActions />
+          </Suspense>
         </div>
       </div>
     </header>
