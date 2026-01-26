@@ -61,7 +61,7 @@ export function RegisterForm({
         return
       }
 
-      router.push("/login?registered=true")
+      router.push("/?registered=true")
     } catch {
       setError("Error al crear la cuenta")
       setIsLoading(false)
@@ -144,7 +144,7 @@ export function RegisterForm({
           </Button>
           <FieldDescription className="text-center">
             ¿Ya tienes cuenta?{" "}
-            <a href="/login" className="underline underline-offset-4 text-white hover:text-white">
+            <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
               Inicia sesión
             </a>
           </FieldDescription>

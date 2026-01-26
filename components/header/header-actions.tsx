@@ -1,9 +1,11 @@
 "use client"
 
 import { Search, LogOut } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +21,28 @@ export function HeaderActions() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  useEffect(() => {
+    const registered = searchParams.get("registered")
+    const login = searchParams.get("login")
+
+    if (registered === "true") {
+      toast.success("¡Cuenta creada correctamente!", {
+        description: "Por favor revisa tu email para verificar tu cuenta.",
+        duration: 5000,
+      })
+      // Remove the query param from URL
+      router.replace("/", { scroll: false })
+    }
+
+    if (login === "true") {
+      setIsLoginModalOpen(true)
+      // Remove the query param from URL
+      router.replace("/", { scroll: false })
+    }
+  }, [searchParams, router])
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" })
