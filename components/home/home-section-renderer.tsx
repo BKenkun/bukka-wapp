@@ -26,7 +26,7 @@ interface VideoGridConfig {
   tagSlug?: string
   videoIds?: string[]
   limit?: number
-  columns?: 2 | 3
+  columns?: 2 | 3 | 4
 }
 
 interface ActressGridConfig {
@@ -222,13 +222,17 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
 
       case "manual":
         if (config.videoIds && config.videoIds.length > 0) {
-          videos = await prisma.video.findMany({
+          const fetchedVideos = await prisma.video.findMany({
             where: {
               id: { in: config.videoIds },
               status: "PUBLISHED",
             },
             select: videoSelect,
           })
+          // Maintain the order specified in config.videoIds
+          videos = config.videoIds
+            .map((id: string) => fetchedVideos.find((v) => v.id === id))
+            .filter((v): v is NonNullable<typeof v> => v !== undefined)
         } else {
           videos = []
         }

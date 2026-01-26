@@ -17,7 +17,7 @@ interface Video {
 interface VideoGridProps {
   videos?: Video[]
   variant?: "overlay" | "below"
-  columns?: 2 | 3
+  columns?: 2 | 3 | 4
 }
 
 // Default mock data to match the design
@@ -78,13 +78,17 @@ const defaultVideos: Video[] = [
   },
 ]
 
-export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns }: VideoGridProps) {
+export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns = 3 }: VideoGridProps) {
+  const columnClass = {
+    2: "lg:grid-cols-2",
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
+  }[columns] || "lg:grid-cols-3"
+
   return (
     <div className="w-full">
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 ${
-          columns === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3"
-        } gap-x-4 gap-y-8`}
+        className={`grid grid-cols-1 md:grid-cols-2 ${columnClass} gap-x-4 gap-y-8`}
       >
         {videos.map((video) => (
           <VideoCard

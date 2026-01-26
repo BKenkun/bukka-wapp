@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { FileDropzone } from "@/components/ui/file-dropzone"
 import { IconLink, IconFileText } from "@tabler/icons-react"
+import { VideoSelector } from "@/components/admin/video-selector"
 
 interface HomeSection {
   id: string
@@ -293,43 +294,35 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
 
               {config.source === "manual" && (
                 <div className="space-y-2">
-                  <Label htmlFor="videoIds">IDs de videos (separados por coma)</Label>
-                  <Textarea
-                    id="videoIds"
-                    value={
-                      Array.isArray(config.videoIds)
-                        ? (config.videoIds as string[]).join(", ")
-                        : ""
-                    }
-                    onChange={(e) =>
-                      updateConfig(
-                        "videoIds",
-                        e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
-                      )
-                    }
-                    placeholder="video-id-1, video-id-2, video-id-3"
+                  <Label>Seleccionar videos</Label>
+                  <VideoSelector
+                    value={Array.isArray(config.videoIds) ? (config.videoIds as string[]) : []}
+                    onChange={(ids) => updateConfig("videoIds", ids)}
+                    placeholder="Buscar videos por título..."
                   />
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="limit">Número de videos</Label>
-                  <Select
-                    value={String((config.limit as number) || 6)}
-                    onValueChange={(value) => updateConfig("limit", parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">3 videos</SelectItem>
-                      <SelectItem value="6">6 videos</SelectItem>
-                      <SelectItem value="9">9 videos</SelectItem>
-                      <SelectItem value="12">12 videos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className={config.source === "manual" ? "" : "grid grid-cols-2 gap-4"}>
+                {config.source !== "manual" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="limit">Número de videos</Label>
+                    <Select
+                      value={String((config.limit as number) || 6)}
+                      onValueChange={(value) => updateConfig("limit", parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 videos</SelectItem>
+                        <SelectItem value="6">6 videos</SelectItem>
+                        <SelectItem value="9">9 videos</SelectItem>
+                        <SelectItem value="12">12 videos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="columns">Columnas</Label>
@@ -455,12 +448,13 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ctaBackgroundImage">Imagen de fondo</Label>
-                <Input
-                  id="ctaBackgroundImage"
-                  value={(config.backgroundImage as string) || ""}
-                  onChange={(e) => updateConfig("backgroundImage", e.target.value)}
-                  placeholder="/images/cta-background.jpg"
+                <Label>Imagen de fondo</Label>
+                <FileDropzone
+                  value={(config.backgroundImage as string) || null}
+                  onChange={(url) => updateConfig("backgroundImage", url || "")}
+                  accept="image"
+                  folder="cta"
+                  placeholder="Arrastra una imagen de fondo aquí"
                 />
               </div>
             </>
@@ -497,12 +491,13 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="countdownBackgroundImage">Imagen de fondo (opcional)</Label>
-                <Input
-                  id="countdownBackgroundImage"
-                  value={(config.backgroundImage as string) || ""}
-                  onChange={(e) => updateConfig("backgroundImage", e.target.value)}
-                  placeholder="/images/countdown-bg.jpg"
+                <Label>Imagen de fondo (opcional)</Label>
+                <FileDropzone
+                  value={(config.backgroundImage as string) || null}
+                  onChange={(url) => updateConfig("backgroundImage", url || "")}
+                  accept="image"
+                  folder="countdown"
+                  placeholder="Arrastra una imagen de fondo aquí"
                 />
               </div>
             </>
