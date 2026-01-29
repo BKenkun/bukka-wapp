@@ -13,6 +13,7 @@ const megamenuLinkSchema = z.object({
   label: z.string(),
   url: z.string().optional(),
   pageId: z.string().optional(),
+  categoryId: z.string().optional(),
   openInNewTab: z.boolean(),
 })
 

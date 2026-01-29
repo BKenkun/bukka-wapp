@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation"
 interface StickyHeaderProps {
   children: React.ReactNode
   topBar: React.ReactNode
+  searchBar?: React.ReactNode
   discountBanner?: React.ReactNode
 }
 
-export function StickyHeader({ children, topBar, discountBanner }: StickyHeaderProps) {
+export function StickyHeader({ children, topBar, searchBar, discountBanner }: StickyHeaderProps) {
   const pathname = usePathname()
   const isHome = pathname === "/"
   const [scrolled, setScrolled] = useState(false)
@@ -53,6 +54,7 @@ export function StickyHeader({ children, topBar, discountBanner }: StickyHeaderP
 
   const showBackground = !isHome || scrolled
   const showTopBar = !isHome || scrolled
+  const showSearchBar = !isHome || scrolled
   const showDiscountBanner = !isHome && !scrolled
 
   return (
@@ -63,6 +65,7 @@ export function StickyHeader({ children, topBar, discountBanner }: StickyHeaderP
           showBackground ? "bg-black" : "bg-transparent"
         }`}
       >
+        {/* Top Bar */}
         <div
           className={`transition-all duration-300 overflow-hidden ${
             showTopBar ? "max-h-[36px] opacity-100" : "max-h-0 opacity-0"
@@ -70,7 +73,22 @@ export function StickyHeader({ children, topBar, discountBanner }: StickyHeaderP
         >
           {topBar}
         </div>
+
+        {/* Search Bar - between TopBar and MainHeader */}
+        {searchBar && (
+          <div
+            className={`transition-all duration-300 overflow-hidden ${
+              showSearchBar ? "max-h-[60px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            {searchBar}
+          </div>
+        )}
+
+        {/* Main Header (children) */}
         {children}
+
+        {/* Discount Banner */}
         {discountBanner && (
           <div
             className={`transition-all duration-300 overflow-hidden ${
