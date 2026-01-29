@@ -83,7 +83,7 @@ export async function TopBar() {
   }
 
   return (
-    <div className="w-full h-[36px] bg-[#353535] flex justify-end items-center px-8 z-50 relative">
+    <div className="w-full h-[36px] bg-[#353535] flex justify-end items-center px-8">
       <div className="flex items-center gap-8">
         {items.map((item) => {
           const content = (

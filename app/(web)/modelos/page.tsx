@@ -114,7 +114,7 @@ export default async function ModelosPage({
     name: p.name,
     imageUrl: p.profileImage || "/woman-in-black-bikini-on-beach.jpg",
     videoCount: p._count.VideoPerformer,
-    verified: p.User?.isVerified || false,
+    verified: true, // All performers are verified by default
   }))
 
   return (

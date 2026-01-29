@@ -176,11 +176,11 @@ export default async function HistorialDePagosPage() {
 
   return (
     <div className="flex-1 bg-black flex flex-col">
-      <main className="px-4 md:px-8 pt-[120px] pb-12 flex flex-col flex-1">
+      <main className="px-4 md:px-8 pb-12 flex flex-col flex-1">
         <AccountNav />
 
         {/* HISTORIAL DE TRANSACCIONES Section */}
-        <div className="mt-[50px] w-full">
+        <div className="mt-8 w-full">
           {/* Header */}
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-white font-montserrat text-[18px] font-semibold leading-[28px]">

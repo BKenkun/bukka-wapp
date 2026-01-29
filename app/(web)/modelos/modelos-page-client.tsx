@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { DiscountBanner } from "@/components/discount-banner"
 import { ActressesGrid } from "@/components/actresses-grid"
 import { CtaBanner } from "@/components/cta-banner"
 import { ArrowUpDown, Filter, X } from "lucide-react"
@@ -75,15 +74,10 @@ export function ModelosPageClient({
   const activeLetterGroup = letterFilter || "Todo"
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white pt-[124px]">
-      {/* Discount Banner */}
-      <div className="mt-[17px]">
-        <DiscountBanner />
-      </div>
-
-      <div className="py-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
+    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+      <div className="pt-8 pb-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
         <div className="w-full">
-          <div className="flex flex-col gap-4 mt-[25px]">
+          <div className="flex flex-col gap-4">
             {/* Title and count section */}
             <div className="flex flex-col gap-[10px]">
               <h1

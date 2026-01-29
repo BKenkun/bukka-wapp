@@ -14,6 +14,7 @@ interface CountdownTimerProps {
   title?: string
   subtitle?: string
   backgroundImage?: string
+  videoUrl?: string
 }
 
 export function CountdownTimer({
@@ -21,6 +22,7 @@ export function CountdownTimer({
   title = "Cuenta atrás próximo lanzamiento",
   subtitle = "Viernes 24 de octubre 2025",
   backgroundImage = "/images/background.png",
+  videoUrl,
 }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
@@ -57,13 +59,24 @@ export function CountdownTimer({
 
   return (
     <div className="relative w-full h-auto overflow-hidden">
-      {/* Background Image */}
+      {/* Background Video or Image */}
       <div className="absolute inset-0">
-        <img
-          src={backgroundImage}
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
+        {videoUrl ? (
+          <video
+            src={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={backgroundImage}
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+        )}
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-black/60" />
       </div>

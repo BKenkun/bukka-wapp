@@ -1,7 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { DiscountBanner } from "@/components/discount-banner"
 import { ProductCard } from "@/components/shop/product-card"
 
 interface SearchParams {
@@ -131,12 +130,8 @@ export default async function TiendaPage({
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-      <div className="mt-[17px]">
-        <DiscountBanner />
-      </div>
-
-      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 mt-[25px]">
+    <main className="flex-1 flex flex-col bg-black text-white">
+      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8">
         {/* Hero Section */}
         <div className="relative w-full aspect-[21/9] mb-8">
           <Image src="/images/shop.jpg" alt="Tienda" fill className="object-cover" sizes="100vw" />

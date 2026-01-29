@@ -92,6 +92,16 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
+  cta: {
+    maxSize: 100 * 1024 * 1024, // 100MB (para videos)
+    allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
+    requireAdmin: true,
+  },
+  countdown: {
+    maxSize: 100 * 1024 * 1024, // 100MB (para videos)
+    allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
+    requireAdmin: true,
+  },
 }
 
 interface UploadResult {

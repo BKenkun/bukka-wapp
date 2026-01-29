@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { DiscountBanner } from "@/components/discount-banner"
 
 interface CartItem {
   id: string
@@ -123,9 +122,8 @@ export default function CarritoPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-        <DiscountBanner />
-        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
+      <main className="flex-1 flex flex-col bg-black text-white">
+        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-12">Cargando...</div>
         </div>
       </main>
@@ -133,10 +131,9 @@ export default function CarritoPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-      <DiscountBanner />
+    <main className="flex-1 flex flex-col bg-black text-white">
 
-      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
+      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
         {/* Header */}
         <h1 className="font-montserrat font-bold text-[30px] leading-[36px] text-[#E5E7EB] mb-2">
           Tu Carrito

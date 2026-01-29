@@ -102,9 +102,9 @@ export default function FavoritosPage() {
   if (status === "loading") {
     return (
       <div className="flex-1 flex flex-col font-sans bg-black text-white">
-        <div className="flex flex-col flex-1 px-4 md:px-8 pt-[120px] pb-12">
+        <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
           <AccountNav />
-          <div className="mt-[50px] text-center">Cargando...</div>
+          <div className="mt-8 text-center">Cargando...</div>
         </div>
       </div>
     )
@@ -112,12 +112,12 @@ export default function FavoritosPage() {
 
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
-      <div className="flex flex-col flex-1 px-4 md:px-8 pt-[120px] pb-12">
+      <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
         {/* Account Navigation */}
         <AccountNav />
 
         {/* Tabs - Videos y Actrices */}
-        <div className="mt-[50px] flex gap-8">
+        <div className="mt-8 flex gap-8">
           <button
             onClick={() => setActiveTab("videos")}
             className={`font-montserrat text-[22px] font-bold leading-[48px] transition-colors ${

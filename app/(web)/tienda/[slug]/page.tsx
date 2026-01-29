@@ -2,7 +2,6 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { DiscountBanner } from "@/components/discount-banner"
 import { ProductDetailClient } from "./product-detail-client"
 
 interface ProductDetailPageProps {
@@ -162,11 +161,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     : product.stock
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-      <div>
-        <DiscountBanner />
-      </div>
-
+    <main className="flex-1 flex flex-col bg-black text-white">
       <div className="w-full mx-auto px-4 md:px-8 mt-8 mb-12">
         {/* Categories */}
         {product.ProductToCategory.length > 0 && (

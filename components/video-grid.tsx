@@ -1,17 +1,24 @@
 import { VideoCard } from "./video-card"
 
+interface Performer {
+  name: string
+  slug: string
+}
+
 interface Video {
   id: string
   slug?: string
   title: string
-  subtitle: string
+  subtitle?: string
   views: string
-  likes: string
+  likes?: string
   imageUrl: string
   previewUrl?: string
   previewStartTime?: number
   previewEndTime?: number
   isVerified?: boolean
+  category?: string
+  performers?: Performer[]
 }
 
 interface VideoGridProps {
@@ -104,6 +111,8 @@ export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns
             previewEndTime={video.previewEndTime}
             isVerified={video.isVerified}
             variant={variant}
+            category={video.category}
+            performers={video.performers}
           />
         ))}
       </div>

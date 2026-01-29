@@ -7,18 +7,25 @@ import { ArrowUpDown } from "lucide-react"
 import { VideoCard } from "@/components/video-card"
 import { VideoFiltersSidebar } from "@/components/video-filters-sidebar"
 
+interface VideoPerformer {
+  name: string
+  slug: string
+}
+
 interface Video {
   id: string
   slug: string
   title: string
-  subtitle: string
+  subtitle?: string
   views: string
-  likes: string
+  likes?: string
   imageUrl: string
   previewUrl?: string
   previewStartTime?: number
   previewEndTime?: number
   isVerified?: boolean
+  category?: string
+  performers?: VideoPerformer[]
 }
 
 interface Category {
@@ -94,10 +101,10 @@ export function VideosPageClient({
     (selectedCategory ? 1 : 0) + selectedPerformers.length + selectedTags.length
 
   return (
-    <div className="py-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
+    <div className="pt-8 pb-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
       <div className="w-full">
         {/* Header */}
-        <div className="flex flex-col items-start mt-[75px]">
+        <div className="flex flex-col items-start">
           <h2 className="text-white text-center font-montserrat text-[22px] font-bold leading-[48px] mb-[15px]">
             {activeFilters.category || "Videos"}
             {activeFilterCount > 0 && (
@@ -240,6 +247,8 @@ export function VideosPageClient({
                     isVerified={video.isVerified}
                     slug={video.slug}
                     variant="below"
+                    category={video.category}
+                    performers={video.performers}
                   />
                 ))}
               </div>

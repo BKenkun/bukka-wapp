@@ -456,6 +456,22 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                   folder="cta"
                   placeholder="Arrastra una imagen de fondo aquí"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Se usará como fondo si no hay video configurado
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Video de fondo (opcional)</Label>
+                <FileDropzone
+                  value={(config.videoUrl as string) || null}
+                  onChange={(url) => updateConfig("videoUrl", url || "")}
+                  accept="video"
+                  folder="cta"
+                  placeholder="Arrastra un video aquí para usarlo como fondo (autoplay, sin sonido)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Si se sube un video, se mostrará en lugar de la imagen con autoplay y sin sonido
+                </p>
               </div>
             </>
           )}
@@ -499,6 +515,22 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                   folder="countdown"
                   placeholder="Arrastra una imagen de fondo aquí"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Se usará como fondo si no hay video configurado
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Video de fondo (opcional)</Label>
+                <FileDropzone
+                  value={(config.videoUrl as string) || null}
+                  onChange={(url) => updateConfig("videoUrl", url || "")}
+                  accept="video"
+                  folder="countdown"
+                  placeholder="Arrastra un video aquí para usarlo como fondo (autoplay, sin sonido)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Si se sube un video, se mostrará en lugar de la imagen con autoplay y sin sonido
+                </p>
               </div>
             </>
           )}

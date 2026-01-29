@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { DiscountBanner } from "@/components/discount-banner"
 import { SectionHeader } from "@/components/section-header"
 import { VideoCard } from "@/components/video-card"
 import { FollowButton } from "@/components/follow-button"
@@ -114,11 +113,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
-      <div>
-        <DiscountBanner />
-      </div>
-
+    <main className="flex-1 flex flex-col bg-black text-white">
       {/* Cover Image */}
       <div className="w-full overflow-hidden">
         <div className="relative w-full h-[448px] flex-shrink-0">

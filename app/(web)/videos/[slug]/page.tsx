@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
-import { DiscountBanner } from "@/components/discount-banner"
 import { VideoInfoBar } from "@/components/video-info-bar"
 import { ProductSidebar } from "@/components/product-sidebar"
 import { VideoInformation } from "@/components/video-information"
@@ -281,11 +280,7 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
   const lockConfig = videoAccessSettings.lockScreen
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[124px]">
-      <div>
-        <DiscountBanner />
-      </div>
-
+    <main className="flex-1 flex flex-col bg-black text-white">
       <div className="px-4 md:px-8 flex-1 w-full">
         <div className="w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">

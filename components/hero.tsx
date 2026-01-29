@@ -15,7 +15,7 @@ export function Hero({
   openInNewTab = false,
 }: HeroProps) {
   const content = (
-    <div className="relative w-full h-[calc(100vh-40px)] overflow-hidden bg-black">
+    <div className="relative w-full h-screen -mt-[78px] overflow-hidden bg-black">
       {videoUrl ? (
         <video
           src={videoUrl}

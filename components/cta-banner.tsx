@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 
@@ -7,6 +9,7 @@ interface CtaBannerProps {
   buttonText: string
   buttonUrl?: string
   backgroundImage?: string
+  videoUrl?: string
 }
 
 export function CtaBanner({
@@ -15,12 +18,24 @@ export function CtaBanner({
   buttonText,
   buttonUrl,
   backgroundImage = "/red-lips-artistic.jpg",
+  videoUrl,
 }: CtaBannerProps) {
   return (
     <div className="relative w-full h-[486px] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background Video or Image */}
       <div className="absolute inset-0 z-0">
-        <Image src={backgroundImage || "/placeholder.svg"} alt="Background" fill className="object-cover" priority />
+        {videoUrl ? (
+          <video
+            src={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <Image src={backgroundImage || "/placeholder.svg"} alt="Background" fill className="object-cover" priority />
+        )}
         {/* Dark Overlay for readability */}
         <div className="absolute inset-0 bg-black/40" />
       </div>

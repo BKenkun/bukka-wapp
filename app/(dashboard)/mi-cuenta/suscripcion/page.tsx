@@ -111,14 +111,14 @@ export default async function SuscripcionPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <main className="pt-[120px] px-4 md:px-8 flex flex-col flex-1 pb-12">
+      <main className="px-4 md:px-8 flex flex-col flex-1 pb-12">
         <AccountNav />
 
         {/* SUBSCRIPCIÓN Section */}
-        <div className="mt-[90px]">
+        <div className="mt-12">
           <SectionHeader title="SUBSCRIPCIÓN" />
 
-          <div className="mt-[50px] flex flex-col">
+          <div className="mt-8 flex flex-col">
             {/* Current Plan Card */}
             <div className="w-full border border-[#E5E7EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[33px_25px] flex flex-col justify-center items-start gap-[5px]">
               <div className="flex items-center justify-between w-full">
@@ -297,7 +297,7 @@ export default async function SuscripcionPage() {
             </div>
 
             {/* Billing History */}
-            <div className="mt-[90px] w-full">
+            <div className="mt-12 w-full">
               <div className="flex items-center justify-between mb-[30px]">
                 <h3 className="text-white font-montserrat text-[20px] font-semibold leading-[28px]">
                   Historial de facturación

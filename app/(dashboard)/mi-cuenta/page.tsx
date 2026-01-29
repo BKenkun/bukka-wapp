@@ -259,7 +259,7 @@ export default async function MiCuentaPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <main className="pt-[120px] px-4 md:px-8 flex flex-col">
+      <main className="px-4 md:px-8 flex flex-col">
         {/* Welcome message */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">
@@ -271,7 +271,7 @@ export default async function MiCuentaPage() {
         <AccountNav />
 
         {/* Stats Section */}
-        <div className="mt-[50px] flex flex-col lg:flex-row gap-[20px] items-stretch justify-center">
+        <div className="mt-8 flex flex-col lg:flex-row gap-[20px] items-stretch justify-center">
           {stats.map((stat) => (
             <InteractionCard
               key={stat.id}
@@ -283,10 +283,10 @@ export default async function MiCuentaPage() {
         </div>
 
         {/* MIS PEDIDOS Section */}
-        <div className="mt-[90px]">
+        <div className="mt-12">
           <SectionHeader title="MIS PEDIDOS" />
 
-          <div className="mt-[50px] flex flex-col items-center gap-[5px]">
+          <div className="mt-8 flex flex-col items-center gap-[5px]">
             {transformedOrders.length > 0 ? (
               transformedOrders.map((order) => (
                 <OrderCard
@@ -304,10 +304,10 @@ export default async function MiCuentaPage() {
         </div>
 
         {/* SUBSCRIPCION Section */}
-        <div className="mt-[90px]">
+        <div className="mt-12">
           <SectionHeader title="SUBSCRIPCION" />
 
-          <div className="mt-[50px] flex flex-col items-center">
+          <div className="mt-8 flex flex-col items-center">
             {/* Current Plan Card */}
             <div className="w-full max-w-[961px] border border-[rgba(229,231,235,0.43)] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[33px_25px] flex flex-col justify-center items-start gap-[5px]">
               <div className="flex items-center gap-4">
@@ -407,10 +407,10 @@ export default async function MiCuentaPage() {
         </div>
 
         {/* INTERACCIONES Section */}
-        <div className="mt-[90px]">
+        <div className="mt-12">
           <SectionHeader title="INTERACCIONES" />
 
-          <div className="mt-[50px] flex flex-col lg:flex-row gap-[20px] items-stretch justify-center">
+          <div className="mt-8 flex flex-col lg:flex-row gap-[20px] items-stretch justify-center">
             {interactionStats.map((interaction) => (
               <InteractionCard
                 key={interaction.id}
@@ -424,11 +424,11 @@ export default async function MiCuentaPage() {
         </div>
 
         {/* ULTIMOS VIDEOS Section */}
-        <div className="mt-[90px] mb-[50px]">
+        <div className="mt-12 mb-[50px]">
           <SectionHeader title="ULTIMOS VIDEOS" />
 
           {transformedRecentVideos.length > 0 ? (
-            <div className="mt-[50px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {transformedRecentVideos.map((video) => (
                 <Link key={video.id} href={`/videos/${video.slug}`} className="group">
                   <div className="relative aspect-video overflow-hidden">
@@ -447,7 +447,7 @@ export default async function MiCuentaPage() {
               ))}
             </div>
           ) : (
-            <p className="mt-[50px] text-gray-400 text-center">
+            <p className="mt-8 text-gray-400 text-center">
               No has visto ningun video todavia. <Link href="/videos" className="text-[#FA4860] hover:underline">Explorar videos</Link>
             </p>
           )}

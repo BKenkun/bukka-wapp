@@ -446,11 +446,11 @@ export default function ConfiguracionPage() {
 
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
-      <div className="flex flex-col flex-1 px-4 md:px-8 pt-[120px] pb-12">
+      <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
         <AccountNav />
 
         {/* Información Personal */}
-        <div className="mt-[50px] w-full">
+        <div className="mt-8 w-full">
           <h2 className="font-[Montserrat] text-[20px] font-semibold leading-[28px] text-white mb-2">
             Información Personal
           </h2>
@@ -645,7 +645,7 @@ export default function ConfiguracionPage() {
         </div>
 
         {/* Contraseña y Seguridad */}
-        <div className="mt-[50px] w-full">
+        <div className="mt-8 w-full">
           <h2 className="font-[Montserrat] text-[20px] font-semibold leading-[28px] text-white mb-2">
             Contraseña y Seguridad
           </h2>
@@ -744,7 +744,7 @@ export default function ConfiguracionPage() {
         </div>
 
         {/* Gestión de suscripción */}
-        <div className="mt-[50px] w-full">
+        <div className="mt-8 w-full">
           <h2 className="font-[Montserrat] text-[20px] font-semibold leading-normal text-white mb-8">
             Gestión de suscripción
           </h2>
@@ -823,7 +823,7 @@ export default function ConfiguracionPage() {
         </div>
 
         {/* Preferencias de Notificación */}
-        <div className="mt-[50px] w-full">
+        <div className="mt-8 w-full">
           <div className="flex items-center gap-3 mb-2">
             <IconBell className="w-6 h-6 text-[#00B1DE]" />
             <h2 className="font-[Montserrat] text-[20px] font-semibold leading-[28px] text-white">

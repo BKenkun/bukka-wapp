@@ -14,7 +14,7 @@ function HeaderActionsFallback() {
 
 export async function MainHeader() {
   return (
-    <header className="absolute top-[36px] left-0 w-full z-50 px-4 md:px-8 py-6">
+    <header className="w-full px-4 md:px-8 py-6">
       <div className="grid grid-cols-12 items-center w-full mx-auto gap-4">
         <div className="col-span-6 md:col-span-3 xl:col-span-2 flex justify-start">
           <HeaderLogo />

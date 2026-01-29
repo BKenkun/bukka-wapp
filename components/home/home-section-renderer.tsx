@@ -6,6 +6,7 @@ import { VideoGrid } from "@/components/video-grid"
 import { CtaBanner } from "@/components/cta-banner"
 import { ActressesGrid } from "@/components/actresses-grid"
 import { CountdownTimer } from "@/components/countdown-timer"
+import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 
 interface HomeSection {
   id: string
@@ -49,6 +50,7 @@ interface CtaBannerConfig {
   buttonText?: string
   buttonUrl?: string
   backgroundImage?: string
+  videoUrl?: string
 }
 
 interface CountdownConfig {
@@ -56,20 +58,28 @@ interface CountdownConfig {
   title?: string
   subtitle?: string
   backgroundImage?: string
+  videoUrl?: string
+}
+
+interface Performer {
+  name: string
+  slug: string
 }
 
 interface VideoData {
   id: string
   slug: string
   title: string
-  subtitle: string
+  subtitle?: string
   views: string
-  likes: string
+  likes?: string
   imageUrl: string
   previewUrl?: string
   previewStartTime?: number
   previewEndTime?: number
   isVerified: boolean
+  category?: string
+  performers?: Performer[]
 }
 
 async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]> {
@@ -87,7 +97,8 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
       muxPlaybackId: string | null
       viewCount: number
       likeCount: number
-      performers: Array<{ performer: { name: string } }>
+      performers: Array<{ performer: { name: string; slug: string } }>
+      categories: Array<{ category: { name: string } }>
     }>
 
     const videoSelect = {
@@ -101,7 +112,8 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
       muxPlaybackId: true,
       viewCount: true,
       likeCount: true,
-      performers: { include: { performer: { select: { name: true } } } },
+      performers: { include: { performer: { select: { name: true, slug: true } } } },
+      categories: { include: { category: { select: { name: true } } }, take: 1 },
     }
 
     // Calculate date for weekly filtering
@@ -249,28 +261,38 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
         break
     }
 
-    // Transform to VideoGrid format
-    return videos.map((video) => {
-      // Use custom previewUrl if available, otherwise use Mux MP4
-      let videoPreviewUrl = video.previewUrl || undefined
-      if (!videoPreviewUrl && video.muxPlaybackId) {
-        videoPreviewUrl = `https://stream.mux.com/${video.muxPlaybackId}/medium.mp4`
-      }
+    // Transform to VideoGrid format with signed preview URLs
+    return Promise.all(
+      videos.map(async (video) => {
+        // Use custom previewUrl if available, otherwise use signed Mux MP4
+        let videoPreviewUrl = video.previewUrl || undefined
 
-      return {
-        id: video.id,
-        slug: video.slug,
-        title: video.title,
-        subtitle: video.performers.map((p) => p.performer.name).join(", ") || "",
-        views: formatViews(video.viewCount),
-        likes: calculateLikePercentage(video.likeCount, video.viewCount),
-        imageUrl: video.thumbnailUrl || "/images/placeholder-video.jpg",
-        previewUrl: videoPreviewUrl,
-        previewStartTime: video.previewStartTime,
-        previewEndTime: video.previewEndTime,
-        isVerified: true,
-      }
-    })
+        if (!videoPreviewUrl && video.muxPlaybackId) {
+          try {
+            // Generate signed token for Mux MP4 preview
+            const token = await getVideoToken(video.muxPlaybackId)
+            videoPreviewUrl = getVideoPreviewUrl(video.muxPlaybackId, token, "medium")
+          } catch (error) {
+            console.warn(`Failed to generate preview token for video ${video.id}:`, error)
+            // Fallback: leave previewUrl undefined
+          }
+        }
+
+        return {
+          id: video.id,
+          slug: video.slug,
+          title: video.title,
+          views: formatViews(video.viewCount),
+          imageUrl: video.thumbnailUrl || "/images/placeholder-video.jpg",
+          previewUrl: videoPreviewUrl,
+          previewStartTime: video.previewStartTime,
+          previewEndTime: video.previewEndTime,
+          isVerified: true,
+          category: video.categories[0]?.category.name,
+          performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+        }
+      })
+    )
   } catch (error) {
     console.error("Error fetching videos for section:", error)
     return []
@@ -279,9 +301,11 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
 
 interface PerformerData {
   id: string
+  slug?: string
   name: string
   imageUrl: string
   videoCount?: number
+  verified?: boolean
 }
 
 async function getPerformersForSection(config: ActressGridConfig): Promise<PerformerData[]> {
@@ -290,6 +314,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
   try {
     let performers: Array<{
       id: string
+      slug: string
       name: string
       profileImage: string | null
     }>
@@ -299,7 +324,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
         if (config.performerIds && config.performerIds.length > 0) {
           performers = await prisma.performer.findMany({
             where: { id: { in: config.performerIds } },
-            select: { id: true, name: true, profileImage: true },
+            select: { id: true, slug: true, name: true, profileImage: true },
           })
         } else {
           performers = []
@@ -313,7 +338,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
         performers = await prisma.performer.findMany({
           orderBy: { createdAt: "desc" },
           take: limit,
-          select: { id: true, name: true, profileImage: true },
+          select: { id: true, slug: true, name: true, profileImage: true },
         })
         break
     }
@@ -321,8 +346,10 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
     // Transform to ActressesGrid format
     return performers.map((performer) => ({
       id: performer.id,
+      slug: performer.slug,
       name: performer.name,
       imageUrl: performer.profileImage || "/images/placeholder-performer.jpg",
+      verified: true,
     }))
   } catch (error) {
     console.error("Error fetching performers for section:", error)
@@ -411,6 +438,7 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
           buttonText={ctaConfig.buttonText || "Ver más"}
           buttonUrl={ctaConfig.buttonUrl}
           backgroundImage={ctaConfig.backgroundImage}
+          videoUrl={ctaConfig.videoUrl}
         />
       )
     }
@@ -423,6 +451,7 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
           title={countdownConfig.title}
           subtitle={countdownConfig.subtitle}
           backgroundImage={countdownConfig.backgroundImage}
+          videoUrl={countdownConfig.videoUrl}
         />
       )
     }

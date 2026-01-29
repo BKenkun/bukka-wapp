@@ -248,7 +248,7 @@ export default function CheckoutPage() {
   if (status === "loading" || loading) {
     return (
       <main className="flex-1 flex flex-col bg-black text-white">
-        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
+        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-12">Cargando...</div>
         </div>
       </main>
@@ -257,8 +257,8 @@ export default function CheckoutPage() {
 
   if (step === "confirmation") {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-        <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 py-12">
+      <main className="flex-1 flex flex-col bg-black text-white">
+        <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             {/* Success Animation */}
             <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
@@ -329,8 +329,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white pt-[120px]">
-      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 py-12">
+    <main className="flex-1 flex flex-col bg-black text-white">
+      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
         {/* Header */}
         <h1 className="font-montserrat font-bold text-[30px] leading-[36px] text-[#E5E7EB] mb-8">
           Checkout

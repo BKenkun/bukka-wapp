@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma"
-import { DiscountBanner } from "@/components/discount-banner"
 import { CtaBanner } from "@/components/cta-banner"
 import { VideosPageClient } from "./videos-page-client"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
@@ -99,6 +98,14 @@ export default async function VideosPage({
             },
           },
         },
+        categories: {
+          include: {
+            category: {
+              select: { name: true },
+            },
+          },
+          take: 1,
+        },
       },
     }),
     prisma.video.count({ where: whereClause }),
@@ -146,14 +153,14 @@ export default async function VideosPage({
         id: video.id,
         slug: video.slug,
         title: video.title,
-        subtitle: video.performers.map((p) => p.performer.name).join(", ") || "Bukkake",
         views: formatViews(video.viewCount),
-        likes: `${Math.min(99, Math.max(70, Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100 + 70)))}%`,
         imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
         previewUrl: videoPreviewUrl,
         previewStartTime: video.previewStartTime,
         previewEndTime: video.previewEndTime,
         isVerified: true,
+        category: video.categories[0]?.category.name,
+        performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
       }
     })
   )
@@ -166,12 +173,7 @@ export default async function VideosPage({
   }
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white pt-[120px]">
-      {/* Discount Banner */}
-      <div className="mt-[17px]">
-        <DiscountBanner />
-      </div>
-
+    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
       <VideosPageClient
         videos={transformedVideos}
         categories={categories}

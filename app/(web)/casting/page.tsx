@@ -197,7 +197,7 @@ export default function CastingPage() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-black text-white pt-32 pb-16">
+      <main className="min-h-screen bg-black text-white pt-8 pb-16">
         <div className="px-4 md:px-8 max-w-2xl mx-auto text-center">
           <div className="mb-8">
             <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
@@ -243,10 +243,10 @@ export default function CastingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white pt-32 pb-16">
+    <main className="min-h-screen bg-black text-white pt-8 pb-16">
       <div className="px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         <div className="lg:col-span-1">
-          <div className="sticky top-32 border border-[#E5E7EB] rounded-lg p-6 shadow-[0_4px_6px_0_rgba(0,0,0,0.1),0_10px_15px_0_rgba(0,0,0,0.1)]">
+          <div className="sticky top-24 border border-[#E5E7EB] rounded-lg p-6 shadow-[0_4px_6px_0_rgba(0,0,0,0.1),0_10px_15px_0_rgba(0,0,0,0.1)]">
             <h2 className="font-['Montserrat'] text-2xl font-bold mb-6">Información del Casting</h2>
             <div className="mb-6 border-l-4 border-[#06B6D4] pl-4">
               <h3 className="font-['Montserrat'] text-base font-semibold mb-4 leading-6">Requisitos Generales</h3>
