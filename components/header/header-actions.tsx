@@ -51,10 +51,10 @@ export function HeaderActions() {
   return (
     <>
       <div className="flex items-center gap-[11px]">
-        {/* Mobile search icon - opens modal */}
+        {/* Search icon - opens modal */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="lg:hidden p-1 hover:opacity-80 transition-opacity text-white"
+          className="p-1 hover:opacity-80 transition-opacity text-white cursor-pointer"
         >
           <Search className="w-5 h-5" />
         </button>

@@ -110,14 +110,17 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     return () => clearTimeout(timer)
   }, [query])
 
-  // Focus input when modal opens
+  // Focus input when modal opens and reset state when it closes
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
+      // Reset all state when modal closes
       setQuery("")
       setResults(null)
       setSelectedIndex(-1)
+      setTrending(null)
+      setIsTrendingLoading(false)
     }
   }, [open])
 
