@@ -77,9 +77,14 @@ export function HomeSectionList({ sections, pages, tags }: HomeSectionListProps)
 
       if (response.ok) {
         router.refresh()
+      } else {
+        const text = await response.text()
+        console.error("Error toggling section:", response.status, text)
+        alert(`Error: ${text}`)
       }
     } catch (error) {
       console.error("Error toggling section:", error)
+      alert(`Error de red: ${error}`)
     }
   }
 
@@ -94,9 +99,14 @@ export function HomeSectionList({ sections, pages, tags }: HomeSectionListProps)
       if (response.ok) {
         setEditingSection(null)
         router.refresh()
+      } else {
+        const text = await response.text()
+        console.error("Error saving section:", response.status, text)
+        alert(`Error al guardar: ${text}`)
       }
     } catch (error) {
       console.error("Error saving section:", error)
+      alert(`Error de red: ${error}`)
     }
   }
 

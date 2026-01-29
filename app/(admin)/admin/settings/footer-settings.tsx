@@ -28,6 +28,12 @@ interface SocialLink {
   label: string
 }
 
+interface Page {
+  id: string
+  title: string
+  slug: string
+}
+
 interface FooterSettingsData {
   logo: {
     type: "image" | "text"
@@ -38,7 +44,14 @@ interface FooterSettingsData {
     title: string
     titleUrl: string | null
     openInNewTab: boolean
+    placeholder: string
+    buttonText: string
     customHtml: string
+    privacyText: string
+    privacyLinkText: string
+    privacyLinkUrl: string | null
+    privacyLinkPageId: string | null
+    privacyLinkOpenInNewTab: boolean
   }
   followUs: {
     title: string
@@ -67,7 +80,16 @@ export function FooterSettings() {
   const [newsletterTitle, setNewsletterTitle] = React.useState("CASTINGS")
   const [newsletterTitleUrl, setNewsletterTitleUrl] = React.useState<string | null>(null)
   const [newsletterOpenInNewTab, setNewsletterOpenInNewTab] = React.useState(false)
+  const [newsletterPlaceholder, setNewsletterPlaceholder] = React.useState("Introduce tu mail")
+  const [newsletterButtonText, setNewsletterButtonText] = React.useState("Enviar")
   const [newsletterCustomHtml, setNewsletterCustomHtml] = React.useState("")
+  const [privacyText, setPrivacyText] = React.useState("He leído y acepto la")
+  const [privacyLinkText, setPrivacyLinkText] = React.useState("política de privacidad")
+  const [privacyLinkUrl, setPrivacyLinkUrl] = React.useState<string | null>(null)
+  const [privacyLinkPageId, setPrivacyLinkPageId] = React.useState<string | null>(null)
+  const [privacyLinkOpenInNewTab, setPrivacyLinkOpenInNewTab] = React.useState(false)
+  const [privacyLinkType, setPrivacyLinkType] = React.useState<"url" | "page">("url")
+  const [pages, setPages] = React.useState<Page[]>([])
 
   // Follow Us
   const [followUsTitle, setFollowUsTitle] = React.useState("SÍGUENOS")
@@ -88,9 +110,14 @@ export function FooterSettings() {
   const loadSettings = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/admin/settings/footer")
-      if (response.ok) {
-        const data: FooterSettingsData = await response.json()
+      // Load settings and pages in parallel
+      const [settingsResponse, pagesResponse] = await Promise.all([
+        fetch("/api/admin/settings/footer"),
+        fetch("/api/admin/pages?status=PUBLISHED"),
+      ])
+
+      if (settingsResponse.ok) {
+        const data: FooterSettingsData = await settingsResponse.json()
 
         // Logo
         setLogoType(data.logo?.type || "text")
@@ -101,7 +128,15 @@ export function FooterSettings() {
         setNewsletterTitle(data.newsletter?.title || "CASTINGS")
         setNewsletterTitleUrl(data.newsletter?.titleUrl || null)
         setNewsletterOpenInNewTab(data.newsletter?.openInNewTab || false)
+        setNewsletterPlaceholder(data.newsletter?.placeholder || "Introduce tu mail")
+        setNewsletterButtonText(data.newsletter?.buttonText || "Enviar")
         setNewsletterCustomHtml(data.newsletter?.customHtml || "")
+        setPrivacyText(data.newsletter?.privacyText || "He leído y acepto la")
+        setPrivacyLinkText(data.newsletter?.privacyLinkText || "política de privacidad")
+        setPrivacyLinkUrl(data.newsletter?.privacyLinkUrl || null)
+        setPrivacyLinkPageId(data.newsletter?.privacyLinkPageId || null)
+        setPrivacyLinkOpenInNewTab(data.newsletter?.privacyLinkOpenInNewTab || false)
+        setPrivacyLinkType(data.newsletter?.privacyLinkPageId ? "page" : "url")
 
         // Follow Us
         setFollowUsTitle(data.followUs?.title || "SÍGUENOS")
@@ -115,6 +150,11 @@ export function FooterSettings() {
           data.disclaimer?.text ||
             "All performers appearing on this website are 18 years or older..."
         )
+      }
+
+      if (pagesResponse.ok) {
+        const pagesData = await pagesResponse.json()
+        setPages(pagesData.pages || [])
       }
     } catch (error) {
       console.error("Error loading footer settings:", error)
@@ -137,7 +177,14 @@ export function FooterSettings() {
           title: newsletterTitle,
           titleUrl: newsletterTitleUrl,
           openInNewTab: newsletterOpenInNewTab,
+          placeholder: newsletterPlaceholder,
+          buttonText: newsletterButtonText,
           customHtml: newsletterCustomHtml,
+          privacyText: privacyText,
+          privacyLinkText: privacyLinkText,
+          privacyLinkUrl: privacyLinkUrl,
+          privacyLinkPageId: privacyLinkPageId,
+          privacyLinkOpenInNewTab: privacyLinkOpenInNewTab,
         },
         followUs: {
           title: followUsTitle,
@@ -353,6 +400,29 @@ export function FooterSettings() {
 
           <Separator />
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="newsletterPlaceholder">Placeholder del Campo Email</Label>
+              <Input
+                id="newsletterPlaceholder"
+                value={newsletterPlaceholder}
+                onChange={(e) => setNewsletterPlaceholder(e.target.value)}
+                placeholder="Introduce tu mail"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newsletterButtonText">Texto del Botón</Label>
+              <Input
+                id="newsletterButtonText"
+                value={newsletterButtonText}
+                onChange={(e) => setNewsletterButtonText(e.target.value)}
+                placeholder="Enviar"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
           <div className="space-y-2">
             <Label htmlFor="newsletterCustomHtml">Formulario Personalizado (HTML)</Label>
             <Textarea
@@ -367,6 +437,113 @@ export function FooterSettings() {
               Pega el código HTML de tu proveedor de email marketing (Mailchimp, Sendinblue, ConvertKit, etc.).
               Si dejas este campo vacío, se mostrará un formulario básico por defecto.
             </p>
+          </div>
+
+          <Separator />
+
+          {/* Privacy Policy Link */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Política de Privacidad</Label>
+            <p className="text-xs text-muted-foreground">
+              Configura el texto y enlace de política de privacidad que aparece debajo del formulario de suscripción.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="privacyText">Texto previo al enlace</Label>
+                <Input
+                  id="privacyText"
+                  value={privacyText}
+                  onChange={(e) => setPrivacyText(e.target.value)}
+                  placeholder="He leído y acepto la"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="privacyLinkText">Texto del enlace</Label>
+                <Input
+                  id="privacyLinkText"
+                  value={privacyLinkText}
+                  onChange={(e) => setPrivacyLinkText(e.target.value)}
+                  placeholder="política de privacidad"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de enlace</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={privacyLinkType === "url" ? "secondary" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    setPrivacyLinkType("url")
+                    setPrivacyLinkPageId(null)
+                  }}
+                >
+                  URL personalizada
+                </Button>
+                <Button
+                  type="button"
+                  variant={privacyLinkType === "page" ? "secondary" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    setPrivacyLinkType("page")
+                    setPrivacyLinkUrl(null)
+                  }}
+                >
+                  Página interna
+                </Button>
+              </div>
+            </div>
+
+            {privacyLinkType === "url" ? (
+              <div className="space-y-2">
+                <Label htmlFor="privacyLinkUrl">URL del enlace</Label>
+                <Input
+                  id="privacyLinkUrl"
+                  value={privacyLinkUrl || ""}
+                  onChange={(e) => setPrivacyLinkUrl(e.target.value || null)}
+                  placeholder="https://... o /politica-privacidad"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Página</Label>
+                {pages.length > 0 ? (
+                  <select
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    value={privacyLinkPageId || ""}
+                    onChange={(e) => setPrivacyLinkPageId(e.target.value || null)}
+                  >
+                    <option value="">Selecciona una página</option>
+                    {pages.map((page) => (
+                      <option key={page.id} value={page.id}>
+                        {page.title}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No hay páginas publicadas disponibles
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="privacyLinkOpenInNewTab">Abrir en nueva pestaña</Label>
+                <p className="text-xs text-muted-foreground">
+                  El enlace de privacidad se abrirá en una nueva ventana
+                </p>
+              </div>
+              <Switch
+                id="privacyLinkOpenInNewTab"
+                checked={privacyLinkOpenInNewTab}
+                onCheckedChange={setPrivacyLinkOpenInNewTab}
+              />
+            </div>
           </div>
 
           {/* Preview */}
@@ -394,7 +571,7 @@ export function FooterSettings() {
               <div className="flex w-full max-w-md">
                 <input
                   type="text"
-                  placeholder="Introduce tu mail"
+                  placeholder={newsletterPlaceholder || "Introduce tu mail"}
                   className="flex-1 px-4 py-2 text-white placeholder-white/70 text-sm"
                   style={{
                     background: "rgba(255, 255, 255, 0.15)",
@@ -409,8 +586,20 @@ export function FooterSettings() {
                   }}
                   disabled
                 >
-                  Enviar
+                  {newsletterButtonText || "Enviar"}
                 </button>
+              </div>
+            )}
+            {/* Privacy text preview */}
+            {(privacyText || privacyLinkText) && (
+              <div className="flex items-center gap-1 mt-3">
+                <input type="checkbox" className="accent-[#FA4860]" disabled />
+                <p className="text-white/70 text-xs">
+                  {privacyText}{" "}
+                  <span className="text-[#FA4860] hover:underline cursor-pointer">
+                    {privacyLinkText}
+                  </span>
+                </p>
               </div>
             )}
           </div>

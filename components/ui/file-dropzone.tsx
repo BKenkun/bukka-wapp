@@ -1,9 +1,13 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import { upload } from "@vercel/blob/client"
 import { cn } from "@/lib/utils"
 import { Upload, X, FileVideo, Image as ImageIcon, Loader2 } from "lucide-react"
 import { Button } from "./button"
+
+// Threshold for using client-side upload (4MB)
+const CLIENT_UPLOAD_THRESHOLD = 4 * 1024 * 1024
 
 interface FileDropzoneProps {
   value?: string | null
@@ -26,6 +30,7 @@ export function FileDropzone({
 }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const acceptedTypes = {
@@ -68,26 +73,41 @@ export function FileDropzone({
         throw new Error(`Archivo demasiado grande. Máximo: ${maxSizeMB}MB`)
       }
 
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("folder", folder)
+      // Use client-side upload for large files (bypasses serverless function limit)
+      if (file.size > CLIENT_UPLOAD_THRESHOLD) {
+        setUploadProgress(0)
+        const blob = await upload(`${folder}/${file.name}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload/client",
+          onUploadProgress: (progress) => {
+            setUploadProgress(Math.round(progress.percentage))
+          },
+        })
+        onChange(blob.url)
+      } else {
+        // Use regular API upload for small files
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("folder", folder)
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      })
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
 
-      if (!response.ok) {
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || "Error al subir archivo")
+        }
+
         const data = await response.json()
-        throw new Error(data.error || "Error al subir archivo")
+        onChange(data.url)
       }
-
-      const data = await response.json()
-      onChange(data.url)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir archivo")
     } finally {
       setIsUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -185,7 +205,17 @@ export function FileDropzone({
             {isUploading ? (
               <>
                 <Loader2 className="h-10 w-10 text-muted-foreground mb-3 animate-spin" />
-                <p className="text-sm text-muted-foreground">Subiendo archivo...</p>
+                <p className="text-sm text-muted-foreground">
+                  {uploadProgress > 0 ? `Subiendo... ${uploadProgress}%` : "Subiendo archivo..."}
+                </p>
+                {uploadProgress > 0 && (
+                  <div className="w-48 h-2 bg-muted rounded-full mt-2 overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                )}
               </>
             ) : (
               <>

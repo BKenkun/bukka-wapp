@@ -19,6 +19,12 @@ export interface FooterSettings {
     openInNewTab: boolean
     placeholder: string
     buttonText: string
+    privacyText: string
+    privacyLinkText: string
+    privacyLinkUrl: string | null
+    privacyLinkPageId: string | null
+    privacyLinkOpenInNewTab: boolean
+    customHtml: string | null
   }
   followUs: {
     title: string
@@ -44,6 +50,12 @@ const DEFAULT_SETTINGS: FooterSettings = {
     openInNewTab: false,
     placeholder: "Introduce tu mail",
     buttonText: "Enviar",
+    privacyText: "He leído y acepto la",
+    privacyLinkText: "política de privacidad",
+    privacyLinkUrl: null,
+    privacyLinkPageId: null,
+    privacyLinkOpenInNewTab: false,
+    customHtml: null,
   },
   followUs: {
     title: "SÍGUENOS",

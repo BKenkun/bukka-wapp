@@ -403,6 +403,54 @@ export async function Footer() {
   // Copyright con el año actual
   const copyrightText = footerSettings.copyright.text.replace("{year}", currentYear.toString())
 
+  // Resolver la URL del enlace de privacidad
+  let privacyLinkUrl = footerSettings.newsletter.privacyLinkUrl
+  if (footerSettings.newsletter.privacyLinkPageId) {
+    const privacyPage = await prisma.page.findUnique({
+      where: { id: footerSettings.newsletter.privacyLinkPageId, status: "PUBLISHED" },
+      select: { slug: true },
+    })
+    if (privacyPage) {
+      privacyLinkUrl = `/p/${privacyPage.slug}`
+    }
+  }
+
+  // Componente para renderizar el texto de privacidad
+  const renderPrivacyText = () => {
+    if (!footerSettings.newsletter.privacyText && !footerSettings.newsletter.privacyLinkText) {
+      return null
+    }
+
+    return (
+      <label className="mt-3 flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" className="accent-[#FA4860] cursor-pointer" />
+        <span
+          className="text-white/70"
+          style={{
+            fontFamily: "Montserrat",
+            fontSize: "12px",
+            fontWeight: 500,
+          }}
+        >
+          {footerSettings.newsletter.privacyText}{" "}
+          {privacyLinkUrl ? (
+            <Link
+              href={privacyLinkUrl}
+              target={footerSettings.newsletter.privacyLinkOpenInNewTab ? "_blank" : undefined}
+              rel={footerSettings.newsletter.privacyLinkOpenInNewTab ? "noopener noreferrer" : undefined}
+              className="text-[#FA4860] hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {footerSettings.newsletter.privacyLinkText}
+            </Link>
+          ) : (
+            <span className="text-[#FA4860]">{footerSettings.newsletter.privacyLinkText}</span>
+          )}
+        </span>
+      </label>
+    )
+  }
+
   // Función para renderizar el título del newsletter (con o sin enlace)
   const renderNewsletterTitle = () => {
     const title = (
@@ -460,38 +508,41 @@ export async function Footer() {
                     dangerouslySetInnerHTML={{ __html: footerSettings.newsletter.customHtml }}
                   />
                 ) : (
-                  <div className="flex w-full">
-                    <input
-                      type="email"
-                      placeholder="Introduce tu mail"
-                      className="flex-1 px-4 text-white placeholder-white min-w-0"
-                      style={{
-                        background: "rgba(255, 255, 255, 0.15)",
-                        fontFamily: "Montserrat",
-                        fontSize: "18px",
-                        fontWeight: 700,
-                        lineHeight: "37px",
-                        border: "none",
-                        outline: "none",
-                        paddingTop: "10px",
-                        paddingBottom: "10px",
-                      }}
-                    />
-                    <button
-                      className="px-4 text-white font-bold whitespace-nowrap"
-                      style={{
-                        background: "#FA4860",
-                        fontFamily: "Montserrat",
-                        fontSize: "18px",
-                        fontWeight: 700,
-                        lineHeight: "37px",
-                        paddingTop: "10px",
-                        paddingBottom: "10px",
-                      }}
-                    >
-                      Enviar
-                    </button>
-                  </div>
+                  <>
+                    <div className="flex w-full">
+                      <input
+                        type="email"
+                        placeholder={footerSettings.newsletter.placeholder}
+                        className="flex-1 px-4 text-white placeholder-white min-w-0"
+                        style={{
+                          background: "rgba(255, 255, 255, 0.15)",
+                          fontFamily: "Montserrat",
+                          fontSize: "18px",
+                          fontWeight: 700,
+                          lineHeight: "37px",
+                          border: "none",
+                          outline: "none",
+                          paddingTop: "10px",
+                          paddingBottom: "10px",
+                        }}
+                      />
+                      <button
+                        className="px-4 text-white font-bold whitespace-nowrap"
+                        style={{
+                          background: "#FA4860",
+                          fontFamily: "Montserrat",
+                          fontSize: "18px",
+                          fontWeight: 700,
+                          lineHeight: "37px",
+                          paddingTop: "10px",
+                          paddingBottom: "10px",
+                        }}
+                      >
+                        {footerSettings.newsletter.buttonText}
+                      </button>
+                    </div>
+                    {renderPrivacyText()}
+                  </>
                 )}
               </div>
 
@@ -557,38 +608,41 @@ export async function Footer() {
                   dangerouslySetInnerHTML={{ __html: footerSettings.newsletter.customHtml }}
                 />
               ) : (
-                <div className="flex w-full">
-                  <input
-                    type="email"
-                    placeholder="Introduce tu mail"
-                    className="flex-1 px-4 text-white placeholder-white min-w-0"
-                    style={{
-                      background: "rgba(255, 255, 255, 0.15)",
-                      fontFamily: "Montserrat",
-                      fontSize: "18px",
-                      fontWeight: 700,
-                      lineHeight: "37px",
-                      border: "none",
-                      outline: "none",
-                      paddingTop: "10px",
-                      paddingBottom: "10px",
-                    }}
-                  />
-                  <button
-                    className="px-6 text-white font-bold whitespace-nowrap"
-                    style={{
-                      background: "#FA4860",
-                      fontFamily: "Montserrat",
-                      fontSize: "18px",
-                      fontWeight: 700,
-                      lineHeight: "37px",
-                      paddingTop: "10px",
-                      paddingBottom: "10px",
-                    }}
-                  >
-                    Enviar
-                  </button>
-                </div>
+                <>
+                  <div className="flex w-full">
+                    <input
+                      type="email"
+                      placeholder={footerSettings.newsletter.placeholder}
+                      className="flex-1 px-4 text-white placeholder-white min-w-0"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.15)",
+                        fontFamily: "Montserrat",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        lineHeight: "37px",
+                        border: "none",
+                        outline: "none",
+                        paddingTop: "10px",
+                        paddingBottom: "10px",
+                      }}
+                    />
+                    <button
+                      className="px-6 text-white font-bold whitespace-nowrap"
+                      style={{
+                        background: "#FA4860",
+                        fontFamily: "Montserrat",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        lineHeight: "37px",
+                        paddingTop: "10px",
+                        paddingBottom: "10px",
+                      }}
+                    >
+                      {footerSettings.newsletter.buttonText}
+                    </button>
+                  </div>
+                  {renderPrivacyText()}
+                </>
               )}
             </div>
 
