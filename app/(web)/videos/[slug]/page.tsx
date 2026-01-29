@@ -11,16 +11,254 @@ import { RelatedContentTabs } from "@/components/related-content-tabs"
 import { MuxVideoPlayer } from "@/components/mux-video-player"
 import { VideoPlayer } from "@/components/video-player"
 import { getVideoAccessSettings } from "@/lib/get-video-access-settings"
+import { CtaBanner } from "@/components/cta-banner"
+import { VideosPageClient } from "../videos-page-client"
+import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
+import type { Metadata } from "next"
 
-interface VideoDetailPageProps {
-  params: Promise<{
-    slug: string
+interface PageProps {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{
+    page?: string
+    sort?: string
+    performers?: string
+    tags?: string
   }>
 }
 
-export default async function VideoDetailPage({ params }: VideoDetailPageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
 
+  // Check if it's a category
+  const category = await prisma.videoCategory.findUnique({
+    where: { slug },
+    select: { name: true, description: true },
+  })
+
+  if (category) {
+    return {
+      title: `${category.name} - Videos`,
+      description: category.description || `Videos de ${category.name}`,
+    }
+  }
+
+  // Check if it's a video
+  const video = await prisma.video.findUnique({
+    where: { slug },
+    select: { title: true, description: true },
+  })
+
+  if (video) {
+    return {
+      title: video.title,
+      description: video.description || undefined,
+    }
+  }
+
+  return { title: "No encontrado" }
+}
+
+export default async function VideoOrCategoryPage({ params, searchParams }: PageProps) {
+  const { slug } = await params
+
+  // First, check if the slug matches a category
+  const category = await prisma.videoCategory.findUnique({
+    where: { slug },
+    select: { id: true, name: true, slug: true, description: true },
+  })
+
+  // If it's a category, render the category page
+  if (category) {
+    return <CategoryPage category={category} searchParams={searchParams} />
+  }
+
+  // Otherwise, render the video detail page
+  return <VideoDetailPage slug={slug} />
+}
+
+// Category Page Component
+async function CategoryPage({
+  category,
+  searchParams,
+}: {
+  category: { id: string; name: string; slug: string; description: string | null }
+  searchParams: Promise<{
+    page?: string
+    sort?: string
+    performers?: string
+    tags?: string
+  }>
+}) {
+  const search = await searchParams
+
+  const page = Number(search.page) || 1
+  const pageSize = 12
+  const skip = (page - 1) * pageSize
+
+  const performerSlugs = search.performers?.split(",").filter(Boolean) || []
+  const tagSlugs = search.tags?.split(",").filter(Boolean) || []
+  const sortOption = search.sort || "newest"
+
+  let orderBy: Record<string, string> = { releaseDate: "desc" }
+  switch (sortOption) {
+    case "popular":
+      orderBy = { viewCount: "desc" }
+      break
+    case "oldest":
+      orderBy = { releaseDate: "asc" }
+      break
+    case "title":
+      orderBy = { title: "asc" }
+      break
+    case "newest":
+    default:
+      orderBy = { releaseDate: "desc" }
+  }
+
+  const whereClause: Record<string, unknown> = {
+    status: "PUBLISHED",
+    categories: {
+      some: {
+        categoryId: category.id,
+      },
+    },
+  }
+
+  if (performerSlugs.length > 0) {
+    whereClause.performers = {
+      some: {
+        performer: { slug: { in: performerSlugs } },
+      },
+    }
+  }
+
+  if (tagSlugs.length > 0) {
+    whereClause.tags = {
+      some: {
+        tag: { slug: { in: tagSlugs } },
+      },
+    }
+  }
+
+  const [videos, totalCount, categories, performers, tags] = await Promise.all([
+    prisma.video.findMany({
+      where: whereClause,
+      skip,
+      take: pageSize,
+      orderBy,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnailUrl: true,
+        previewUrl: true,
+        previewStartTime: true,
+        previewEndTime: true,
+        muxPlaybackId: true,
+        viewCount: true,
+        likeCount: true,
+        performers: {
+          include: {
+            performer: {
+              select: { name: true, slug: true },
+            },
+          },
+        },
+        categories: {
+          include: {
+            category: {
+              select: { name: true },
+            },
+          },
+          take: 1,
+        },
+      },
+    }),
+    prisma.video.count({ where: whereClause }),
+    prisma.videoCategory.findMany({
+      where: { parentId: null },
+      orderBy: { order: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+    prisma.performer.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+    prisma.tag.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+  ])
+
+  const totalPages = Math.ceil(totalCount / pageSize)
+
+  const transformedVideos = await Promise.all(
+    videos.map(async (video) => {
+      let videoPreviewUrl = video.previewUrl || undefined
+
+      if (!videoPreviewUrl && video.muxPlaybackId) {
+        try {
+          const token = await getVideoToken(video.muxPlaybackId)
+          videoPreviewUrl = getVideoPreviewUrl(video.muxPlaybackId, token, "medium")
+        } catch (error) {
+          console.warn(`Failed to generate preview token for video ${video.id}:`, error)
+        }
+      }
+
+      return {
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        views: formatViews(video.viewCount),
+        imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
+        previewUrl: videoPreviewUrl,
+        previewStartTime: video.previewStartTime,
+        previewEndTime: video.previewEndTime,
+        isVerified: true,
+        category: video.categories[0]?.category.name,
+        performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+      }
+    })
+  )
+
+  const activeFilters = {
+    category: category.name,
+    performers: performerSlugs.length > 0 ? performerSlugs.length : undefined,
+    tags: tagSlugs.length > 0 ? tagSlugs.length : undefined,
+  }
+
+  return (
+    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+      <VideosPageClient
+        videos={transformedVideos}
+        categories={categories}
+        performers={performers}
+        tags={tags}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        sortOption={sortOption}
+        selectedCategory={category.slug}
+        selectedPerformers={performerSlugs}
+        selectedTags={tagSlugs}
+        activeFilters={activeFilters}
+        categoryTitle={category.name}
+        categoryDescription={category.description}
+        basePath={`/videos/${category.slug}`}
+      />
+
+      <CtaBanner
+        title="The Bukkake Degree"
+        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
+        buttonText="SUBSCRÍBETE"
+        backgroundImage="/images/red-lips-bg.jpg"
+      />
+    </main>
+  )
+}
+
+// Video Detail Page Component
+async function VideoDetailPage({ slug }: { slug: string }) {
   const video = await prisma.video.findUnique({
     where: { slug },
     include: {
@@ -171,7 +409,6 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
   let lockReason = ""
   let requiredTier = ""
 
-  // 1. Video requiere tier mínimo
   if (video.minTierPlan) {
     const userLevel = userPlan?.level ?? 0
     if (userLevel < video.minTierPlan.level) {
@@ -181,14 +418,12 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
     }
   }
 
-  // 2. Video es Diamond Exclusive
   if (video.isDiamondExclusive && !userPlan?.canAccessExclusive) {
     isLocked = true
     lockReason = "Contenido exclusivo para suscriptores Diamond"
     requiredTier = "Diamond"
   }
 
-  // 3. Video es Limited Edition (acceso anticipado)
   if (video.isLimitedEdition && video.limitedAccessUntil) {
     const now = new Date()
     if (now < video.limitedAccessUntil && !userPlan?.canAccessLimitedEdition) {
@@ -198,17 +433,14 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
     }
   }
 
-  // Si no hay sesión y el video requiere cualquier plan
   if (!session && video.minTierPlan) {
     isLocked = true
     lockReason = "Inicia sesión para ver este contenido"
     requiredTier = video.minTierPlan.name
   }
 
-  // Permisos del usuario
   const canDownload = userPlan?.canDownload ?? false
 
-  // Transformar performers para el grid de actrices
   const actresses = video.performers.map(({ performer }) => ({
     id: performer.id,
     slug: performer.slug,
@@ -217,7 +449,6 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
     verified: performer.User?.isVerified || false,
   }))
 
-  // Transformar productos relacionados (solo activos)
   const sidebarProducts = video.relatedProducts
     .filter((vp) => vp.product.status === "ACTIVE")
     .map((vp) => ({
@@ -228,26 +459,20 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
       price: Number(vp.product.price),
     }))
 
-  // Transformar galería
   const galleryImages = video.gallery.map((g) => ({
     src: g.url,
     alt: video.title,
   }))
 
-  // Transformar performers para VideoInformation
   const performersList = video.performers.map(({ performer }) => ({
     id: performer.id,
     slug: performer.slug,
     name: performer.name,
   }))
 
-  // Transformar tags
   const tagsList = video.tags.map((t) => t.tag.name)
-
-  // Transformar categorías IDs para videos relacionados
   const categoryIds = video.categories.map((c) => c.category.id)
 
-  // Transformar comentarios
   const commentsList = video.comments.map((comment) => ({
     id: comment.id,
     content: comment.content,
@@ -272,10 +497,8 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
     })),
   }))
 
-  // Determinar si tenemos video de Mux disponible
   const hasMuxVideo = !!video.muxPlaybackId
 
-  // Obtener configuración de pantalla de acceso denegado
   const videoAccessSettings = await getVideoAccessSettings()
   const lockConfig = videoAccessSettings.lockScreen
 
@@ -285,7 +508,6 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
         <div className="w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
             <div className="lg:col-span-8">
-              {/* Video Player */}
               {hasMuxVideo ? (
                 <MuxVideoPlayer
                   videoId={video.id}
@@ -345,7 +567,6 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
             </div>
           )}
 
-          {/* Actresses in this video */}
           {actresses.length > 0 && (
             <div className="mt-8">
               <SectionHeader title="ACTRICES EN ESTE VIDEO" />
@@ -370,4 +591,14 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
       </div>
     </main>
   )
+}
+
+function formatViews(views: number): string {
+  if (views >= 1000000) {
+    return `${(views / 1000000).toFixed(1)}M`
+  }
+  if (views >= 1000) {
+    return `${(views / 1000).toFixed(0)}K`
+  }
+  return views.toString()
 }

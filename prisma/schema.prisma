@@ -274,7 +274,7 @@ model Menu {
 }
 
 model MenuItem {
-  id             String     @id @default(cuid())
+  id             String          @id @default(cuid())
   menuId         String
   label          String
   url            String?
@@ -282,20 +282,36 @@ model MenuItem {
   icon           String?
   customIcon     String?
   parentId       String?
-  order          Int        @default(0)
-  openInNewTab   Boolean    @default(false)
-  isVisible      Boolean    @default(true)
-  highlight      Boolean    @default(false)
+  order          Int             @default(0)
+  openInNewTab   Boolean         @default(false)
+  isVisible      Boolean         @default(true)
+  highlight      Boolean         @default(false)
   highlightColor String?
-  minTierLevel   Int?       // Nivel mínimo de suscripción requerido (null = visible para todos)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  menu           Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  parent         MenuItem?  @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: Cascade)
-  children       MenuItem[] @relation("MenuItemToMenuItem")
+  minTierLevel   Int?            // Nivel mínimo de suscripción requerido (null = visible para todos)
+  hasMegamenu    Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  menu           Menu            @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent         MenuItem?       @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: Cascade)
+  children       MenuItem[]      @relation("MenuItemToMenuItem")
+  megamenuConfig MegamenuConfig?
 
   @@index([menuId])
   @@index([parentId])
+}
+
+model MegamenuConfig {
+  id                   String          @id @default(cuid())
+  menuItemId           String          @unique
+  featuredPerformerIds String[]
+  videoSource          VideoSourceType @default(MANUAL)
+  videoIds             String[]
+  videoCategoryId      String?
+  links                Json            @default("[]")
+  linksSectionTitle    String          @default("Descubre")
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  menuItem             MenuItem        @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
 }
 
 model Order {
@@ -847,6 +863,13 @@ enum VideoStatus {
   ARCHIVED
 }
 
+enum VideoSourceType {
+  MANUAL
+  CATEGORY
+  LATEST
+  POPULAR
+}
+
 enum AdminRole {
   GLOBAL_ADMIN
   CONTENT_EDITOR
@@ -1031,4 +1054,14 @@ model EmailLog {
 
   @@index([to])
   @@index([template])
+}
+
+model SearchTrend {
+  id        String   @id @default(cuid())
+  query     String   @unique
+  count     Int      @default(1)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([count(sort: Desc)])
 }

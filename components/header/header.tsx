@@ -1,9 +1,10 @@
-"use client"
-
 import { Suspense } from "react"
+import { auth } from "@/auth"
+import { getHeaderMenu } from "@/lib/get-header-menu"
 import { HeaderLogo } from "./header-logo"
 import { HeaderNav } from "./header-nav"
 import { HeaderActions } from "./header-actions"
+import { MobileMenu } from "./mobile-menu"
 
 function HeaderActionsFallback() {
   return (
@@ -14,18 +15,23 @@ function HeaderActionsFallback() {
   )
 }
 
-export function Header() {
+export async function Header() {
+  const session = await auth()
+  const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
+  const links = await getHeaderMenu({ userTierLevel })
+
   return (
     <header className="sticky top-0 z-50 bg-black">
       <div className="flex items-center justify-between px-4 md:px-8 py-4">
-        {/* Logo */}
-        <div className="flex-shrink-0">
+        {/* Mobile Menu + Logo */}
+        <div className="flex items-center gap-3">
+          <MobileMenu links={links} />
           <HeaderLogo />
         </div>
 
         {/* Navigation - Hidden on mobile */}
         <div className="hidden lg:flex flex-1 justify-center">
-          <HeaderNav />
+          <HeaderNav links={links} />
         </div>
 
         {/* Actions */}

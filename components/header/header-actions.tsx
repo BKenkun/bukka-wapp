@@ -54,9 +54,9 @@ export function HeaderActions() {
         {/* Desktop search bar - clickable to open modal */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="relative hidden xl:flex w-[320px] h-10 bg-zinc-400/40 items-center px-4 mr-[40px] cursor-pointer hover:bg-zinc-400/50 transition-colors"
+          className="relative hidden xl:flex w-[420px] h-10 bg-zinc-400/40 items-center px-4 mr-4 cursor-pointer hover:bg-zinc-400/50 transition-colors"
         >
-          <span className="text-white/70 font-['Montserrat'] font-bold text-sm">Busca</span>
+          <span className="text-white/70 font-['Montserrat'] font-bold text-sm">Buscar en Bukkakery</span>
           <Search className="w-5 h-5 text-white shrink-0 ml-auto" />
         </button>
 

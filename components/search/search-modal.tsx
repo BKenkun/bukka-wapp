@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, X, Loader2, ShoppingBag, Play, User } from "lucide-react"
+import { Search, X, Loader2, ShoppingBag, Play, User, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -32,10 +32,24 @@ interface Performer {
   videoCount: number
 }
 
+interface TrendingPerformer {
+  id: string
+  slug: string
+  name: string
+  profileImage: string | null
+  followersCount: number
+}
+
 interface SearchResults {
   products: Product[]
   videos: Video[]
   performers: Performer[]
+}
+
+interface TrendingData {
+  searches: string[]
+  performers: TrendingPerformer[]
+  videos: Video[]
 }
 
 interface SearchModalProps {
@@ -52,10 +66,24 @@ function formatDuration(seconds: number): string {
 export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResults | null>(null)
+  const [trending, setTrending] = useState<TrendingData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isTrendingLoading, setIsTrendingLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  // Fetch trending data when modal opens
+  useEffect(() => {
+    if (open) {
+      setIsTrendingLoading(true)
+      fetch("/api/search?trending=true")
+        .then((res) => res.json())
+        .then((data) => setTrending(data))
+        .catch(console.error)
+        .finally(() => setIsTrendingLoading(false))
+    }
+  }, [open])
 
   // Debounced search
   useEffect(() => {
@@ -93,9 +121,36 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     }
   }, [open])
 
+  // Record search when user presses Enter
+  const recordSearch = useCallback((searchQuery: string) => {
+    if (searchQuery.trim().length >= 2) {
+      fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery }),
+      }).catch(console.error)
+    }
+  }, [])
+
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onOpenChange(false)
+        return
+      }
+
+      // Handle Enter for search submission
+      if (e.key === "Enter" && query.trim().length >= 2) {
+        if (!results || selectedIndex < 0) {
+          // Record the search and navigate to search results page
+          recordSearch(query)
+          router.push(`/buscar?q=${encodeURIComponent(query)}`)
+          onOpenChange(false)
+          return
+        }
+      }
+
       if (!results) return
 
       const allItems = [
@@ -114,6 +169,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         e.preventDefault()
         const item = allItems[selectedIndex]
         if (item) {
+          recordSearch(query)
           const url =
             item.type === "product"
               ? `/tienda/${item.slug}`
@@ -123,12 +179,15 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
           router.push(url)
           onOpenChange(false)
         }
-      } else if (e.key === "Escape") {
-        onOpenChange(false)
       }
     },
-    [results, selectedIndex, router, onOpenChange]
+    [results, selectedIndex, router, onOpenChange, query, recordSearch]
   )
+
+  // Handle trending search click
+  const handleTrendingSearchClick = (searchTerm: string) => {
+    setQuery(searchTerm)
+  }
 
   // Close on backdrop click
   const handleBackdropClick = useCallback(
@@ -145,6 +204,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const hasResults =
     results && (results.products.length > 0 || results.videos.length > 0 || results.performers.length > 0)
   const noResults = results && !hasResults && query.length >= 2
+  const showTrending = !results && query.length < 2
 
   let currentIndex = -1
 
@@ -163,7 +223,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar productos, videos, modelos..."
+            placeholder="Buscar en Bukkakery"
             className="bg-transparent border-none outline-none text-white placeholder-zinc-500 w-full font-['Montserrat'] text-base"
           />
           {isLoading && <Loader2 className="w-5 h-5 text-[#FA4860] animate-spin shrink-0 mr-3" />}
@@ -172,7 +232,130 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
           </button>
         </div>
 
-        {/* Results */}
+        {/* Trending content (initial state) */}
+        {showTrending && isTrendingLoading && (
+          <div className="mt-2 bg-zinc-900 border border-zinc-700 p-8 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-[#FA4860] animate-spin" />
+          </div>
+        )}
+        {showTrending && !isTrendingLoading && trending && (
+          <div className="mt-2 bg-zinc-900 border border-zinc-700 max-h-[70vh] overflow-y-auto">
+            {/* Trending Searches */}
+            {trending.searches.length > 0 && (
+              <div className="p-4 border-b border-zinc-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-4 h-4 text-[#FA4860]" />
+                  <span className="text-sm font-semibold text-white">Búsquedas de Tendencia</span>
+                </div>
+                <div className="space-y-1">
+                  {trending.searches.map((search, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleTrendingSearchClick(search)}
+                      className="block w-full text-left text-zinc-400 hover:text-white text-sm py-1.5 transition-colors"
+                    >
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trending Performers */}
+            {trending.performers.length > 0 && (
+              <div className="p-4 border-b border-zinc-800">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-white">Estrellas porno y modelos en tendencia</span>
+                  <Link
+                    href="/modelos"
+                    onClick={() => onOpenChange(false)}
+                    className="text-[#FA4860] text-sm font-medium hover:underline"
+                  >
+                    Ver Todos
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {trending.performers.map((performer) => (
+                    <Link
+                      key={performer.id}
+                      href={`/modelos/${performer.slug}`}
+                      onClick={() => onOpenChange(false)}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                    >
+                      <div className="relative w-12 h-12 shrink-0 bg-zinc-800 rounded-full overflow-hidden">
+                        {performer.profileImage ? (
+                          <Image
+                            src={performer.profileImage}
+                            alt={performer.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-zinc-600" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-white text-sm font-medium">{performer.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Popular Videos */}
+            {trending.videos.length > 0 && (
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-white">Videos populares</span>
+                  <Link
+                    href="/videos"
+                    onClick={() => onOpenChange(false)}
+                    className="text-[#FA4860] text-sm font-medium hover:underline"
+                  >
+                    Ver Todos
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {trending.videos.map((video) => (
+                    <Link
+                      key={video.id}
+                      href={`/videos/${video.slug}`}
+                      onClick={() => onOpenChange(false)}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                    >
+                      <div className="relative w-20 h-12 shrink-0 bg-zinc-800 overflow-hidden rounded">
+                        {video.thumbnailUrl ? (
+                          <Image
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Play className="w-5 h-5 text-zinc-600" />
+                          </div>
+                        )}
+                        <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium rounded">
+                          {formatDuration(video.duration)}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{video.title}</p>
+                        <p className="text-zinc-500 text-xs">
+                          {video.viewCount.toLocaleString()} visualizaciones
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Search Results */}
         {hasResults && (
           <div className="mt-2 bg-zinc-900 border border-zinc-700 divide-y divide-zinc-800 max-h-[60vh] overflow-y-auto">
             {/* Products */}
@@ -190,7 +373,10 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       <Link
                         key={product.id}
                         href={`/tienda/${product.slug}`}
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => {
+                          recordSearch(query)
+                          onOpenChange(false)
+                        }}
                         className={`flex items-center gap-3 p-2 rounded transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
@@ -242,7 +428,10 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       <Link
                         key={video.id}
                         href={`/videos/${video.slug}`}
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => {
+                          recordSearch(query)
+                          onOpenChange(false)
+                        }}
                         className={`flex items-center gap-3 p-2 rounded transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
@@ -292,7 +481,10 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       <Link
                         key={performer.id}
                         href={`/modelos/${performer.slug}`}
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => {
+                          recordSearch(query)
+                          onOpenChange(false)
+                        }}
                         className={`flex items-center gap-3 p-2 rounded transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
@@ -332,13 +524,6 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             <Search className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
             <p className="text-white font-medium">No se encontraron resultados</p>
             <p className="text-zinc-500 text-sm mt-1">Intenta con otros términos de búsqueda</p>
-          </div>
-        )}
-
-        {/* Initial state */}
-        {!results && query.length < 2 && (
-          <div className="mt-2 bg-zinc-900 border border-zinc-700 p-6 text-center">
-            <p className="text-zinc-400 text-sm">Escribe al menos 2 caracteres para buscar</p>
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import Link from "next/link"
 import { IconArrowLeft } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { MenuEditor } from "./menu-editor"
+import type { MegamenuLink } from "@/types/megamenu"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -53,6 +54,9 @@ export default async function EditMenuPage({ params }: Props) {
     include: {
       items: {
         orderBy: { order: "asc" },
+        include: {
+          megamenuConfig: true,
+        },
       },
     },
   })
@@ -70,6 +74,30 @@ export default async function EditMenuPage({ params }: Props) {
     select: { id: true, name: true, level: true, slug: true },
     orderBy: { level: "asc" },
   })
+
+  // Obtener performers para el selector de megamenu
+  const performers = await prisma.performer.findMany({
+    select: { id: true, name: true, slug: true, profileImage: true },
+    orderBy: { name: "asc" },
+  })
+
+  // Obtener categorías de video para el selector de megamenu
+  const videoCategories = await prisma.videoCategory.findMany({
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: "asc" },
+  })
+
+  // Transform menu to properly type megamenuConfig.links
+  const transformedMenu = menu ? {
+    ...menu,
+    items: menu.items.map(item => ({
+      ...item,
+      megamenuConfig: item.megamenuConfig ? {
+        ...item.megamenuConfig,
+        links: (item.megamenuConfig.links as unknown as MegamenuLink[]) || [],
+      } : null,
+    })),
+  } : null
 
   // Info del menú del sistema
   const menuInfo = SYSTEM_MENUS[slug]
@@ -101,9 +129,11 @@ export default async function EditMenuPage({ params }: Props) {
         menuSlug={slug}
         menuName={menuInfo.name}
         defaultTitle={menuInfo.defaultTitle}
-        existingMenu={menu}
+        existingMenu={transformedMenu}
         pages={pages}
         subscriptionPlans={subscriptionPlans}
+        performers={performers}
+        videoCategories={videoCategories}
       />
     </div>
   )

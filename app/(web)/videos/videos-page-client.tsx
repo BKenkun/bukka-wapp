@@ -63,6 +63,9 @@ interface VideosPageClientProps {
     performers?: number
     tags?: number
   }
+  categoryTitle?: string
+  categoryDescription?: string | null
+  basePath?: string
 }
 
 export function VideosPageClient({
@@ -78,6 +81,9 @@ export function VideosPageClient({
   selectedPerformers,
   selectedTags,
   activeFilters,
+  categoryTitle,
+  categoryDescription,
+  basePath = "/videos",
 }: VideosPageClientProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const router = useRouter()
@@ -87,13 +93,13 @@ export function VideosPageClient({
     const params = new URLSearchParams(searchParams.toString())
     params.set("sort", sort)
     params.set("page", "1")
-    return `/videos?${params.toString()}`
+    return `${basePath}?${params.toString()}`
   }
 
   const buildPageUrl = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("page", page.toString())
-    return `/videos?${params.toString()}`
+    return `${basePath}?${params.toString()}`
   }
 
   // Count active filters
@@ -106,13 +112,16 @@ export function VideosPageClient({
         {/* Header */}
         <div className="flex flex-col items-start">
           <h2 className="text-white text-center font-montserrat text-[22px] font-bold leading-[48px] mb-[15px]">
-            {activeFilters.category || "Videos"}
-            {activeFilterCount > 0 && (
+            {categoryTitle || activeFilters.category || "Videos"}
+            {(activeFilterCount > 0 || categoryTitle) && (
               <span className="text-[#6B7280] text-[16px] font-normal ml-2">
                 ({totalCount} resultados)
               </span>
             )}
           </h2>
+          {categoryDescription && (
+            <p className="text-[#6B7280] text-sm mb-4 max-w-2xl">{categoryDescription}</p>
+          )}
           <div className="flex gap-2 flex-wrap">
             {/* Sort Dropdown */}
             <div className="relative group">
@@ -198,7 +207,7 @@ export function VideosPageClient({
                 </span>
               )}
               <button
-                onClick={() => router.push("/videos")}
+                onClick={() => router.push(basePath)}
                 className="text-[#6B7280] text-sm hover:text-white underline"
               >
                 Limpiar filtros

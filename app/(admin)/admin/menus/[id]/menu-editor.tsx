@@ -36,6 +36,7 @@ import {
   IconLock,
   IconInfoCircle,
   IconQuestionMark,
+  IconLayoutGrid,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,6 +61,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
+import { MegamenuEditor } from "@/components/admin/megamenu-editor"
+import type { MegamenuLink } from "@/types/megamenu"
+import type { VideoSourceType, Prisma } from "@prisma/client"
 
 // Iconos disponibles para los menús
 const AVAILABLE_ICONS = [
@@ -91,6 +95,24 @@ const AVAILABLE_ICONS = [
   { name: "IconBrandDiscord", label: "Discord", icon: IconBrandDiscord },
 ]
 
+interface MegamenuConfigInput {
+  id?: string
+  featuredPerformerIds: string[]
+  videoSource: VideoSourceType
+  videoIds: string[]
+  videoCategoryId: string | null
+  links: MegamenuLink[]
+}
+
+interface MegamenuConfigFromDB {
+  id: string
+  featuredPerformerIds: string[]
+  videoSource: VideoSourceType
+  videoIds: string[]
+  videoCategoryId: string | null
+  links: Prisma.JsonValue
+}
+
 interface MenuItem {
   id?: string
   label: string
@@ -104,6 +126,8 @@ interface MenuItem {
   highlight: boolean
   highlightColor: string | null
   minTierLevel: number | null
+  hasMegamenu: boolean
+  megamenuConfig?: MegamenuConfigInput | null
 }
 
 interface Menu {
@@ -127,6 +151,19 @@ interface SubscriptionPlan {
   slug: string
 }
 
+interface Performer {
+  id: string
+  name: string
+  slug: string
+  profileImage?: string | null
+}
+
+interface VideoCategory {
+  id: string
+  name: string
+  slug: string
+}
+
 interface MenuEditorProps {
   menuSlug: string
   menuName: string
@@ -134,19 +171,25 @@ interface MenuEditorProps {
   existingMenu: Menu | null
   pages: Page[]
   subscriptionPlans: SubscriptionPlan[]
+  performers: Performer[]
+  videoCategories: VideoCategory[]
 }
 
-export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pages, subscriptionPlans }: MenuEditorProps) {
+export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pages, subscriptionPlans, performers, videoCategories }: MenuEditorProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [items, setItems] = React.useState<MenuItem[]>(
-    existingMenu?.items || []
+    existingMenu?.items?.map(item => ({
+      ...item,
+      hasMegamenu: item.hasMegamenu || false,
+    })) || []
   )
   const [menuTitle, setMenuTitle] = React.useState(
     existingMenu?.title || defaultTitle || ""
   )
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false)
   const [editingItem, setEditingItem] = React.useState<MenuItem | null>(null)
+  const [megamenuEditorItem, setMegamenuEditorItem] = React.useState<MenuItem | null>(null)
 
   // Form state for new/edit item
   const [formData, setFormData] = React.useState<MenuItem>({
@@ -161,6 +204,7 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
     highlight: false,
     highlightColor: null,
     minTierLevel: 0,
+    hasMegamenu: false,
   })
 
   const resetForm = () => {
@@ -176,6 +220,7 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
       highlight: false,
       highlightColor: null,
       minTierLevel: 0,
+      hasMegamenu: false,
     })
     setEditingItem(null)
   }
@@ -540,6 +585,23 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
                       onCheckedChange={(checked) => setFormData({ ...formData, isVisible: checked })}
                     />
                   </div>
+
+                  {/* Megamenu toggle - only for header-main menu */}
+                  {menuSlug === "header-main" && (
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div>
+                        <Label htmlFor="hasMegamenu">Activar Megamenu</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Muestra un megamenu con modelos, videos y enlaces al pasar el cursor
+                        </p>
+                      </div>
+                      <Switch
+                        id="hasMegamenu"
+                        checked={formData.hasMegamenu}
+                        onCheckedChange={(checked) => setFormData({ ...formData, hasMegamenu: checked })}
+                      />
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => {
@@ -608,6 +670,11 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
                             Destacado
                           </Badge>
                         )}
+                        {item.hasMegamenu && (
+                          <Badge variant="default" className="text-xs bg-purple-600">
+                            Megamenu
+                          </Badge>
+                        )}
                         {item.minTierLevel !== null && item.minTierLevel !== undefined && (
                           <Badge variant="outline" className="text-xs">
                             {subscriptionPlans.find(p => p.level === item.minTierLevel)?.name || `Nivel ${item.minTierLevel}`}+
@@ -630,6 +697,16 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
                   <div className="flex items-center gap-1">
                     {item.openInNewTab && (
                       <IconExternalLink className="size-4 text-muted-foreground" />
+                    )}
+                    {item.hasMegamenu && item.id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMegamenuEditorItem(item)}
+                      >
+                        <IconLayoutGrid className="mr-1 size-3" />
+                        Megamenu
+                      </Button>
                     )}
                     <Button
                       variant="ghost"
@@ -662,6 +739,40 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
           Guardar Menú
         </Button>
       </div>
+
+      {/* Megamenu Editor Dialog */}
+      {megamenuEditorItem && megamenuEditorItem.id && (
+        <MegamenuEditor
+          open={!!megamenuEditorItem}
+          onOpenChange={(open) => !open && setMegamenuEditorItem(null)}
+          menuItemId={megamenuEditorItem.id}
+          menuItemLabel={megamenuEditorItem.label}
+          initialConfig={megamenuEditorItem.megamenuConfig || null}
+          performers={performers}
+          videoCategories={videoCategories}
+          pages={pages}
+          onSave={async (config) => {
+            const response = await fetch(`/api/admin/megamenu/${megamenuEditorItem.id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(config),
+            })
+            if (!response.ok) {
+              const error = await response.json()
+              throw new Error(error.error || "Error al guardar")
+            }
+            // Update local state
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === megamenuEditorItem.id
+                  ? { ...item, megamenuConfig: config }
+                  : item
+              )
+            )
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }

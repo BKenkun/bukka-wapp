@@ -31,6 +31,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       include: {
         items: {
           orderBy: { order: "asc" },
+          include: {
+            megamenuConfig: true,
+          },
         },
       },
     })
@@ -93,6 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             highlight: boolean
             highlightColor: string | null
             minTierLevel: number | null
+            hasMegamenu?: boolean
           }) => ({
             label: item.label,
             url: item.url,
@@ -105,12 +109,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             highlight: item.highlight,
             highlightColor: item.highlightColor,
             minTierLevel: item.minTierLevel,
+            hasMegamenu: item.hasMegamenu || false,
           })),
         },
       },
       include: {
         items: {
           orderBy: { order: "asc" },
+          include: {
+            megamenuConfig: true,
+          },
         },
       },
     })
@@ -149,6 +157,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const existingMenu = await prisma.menu.findUnique({
       where: { slug },
+      include: {
+        items: {
+          select: { id: true },
+        },
+      },
     })
 
     if (!existingMenu) {
@@ -158,47 +171,93 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Eliminar items existentes y crear los nuevos
-    await prisma.menuItem.deleteMany({
-      where: { menuId: existingMenu.id },
-    })
+    // Separate items into existing (with id) and new (without id)
+    const itemsWithId = items.filter((item: { id?: string }) => item.id)
+    const itemsWithoutId = items.filter((item: { id?: string }) => !item.id)
 
+    // Find items to delete (existing items not in the new list)
+    const newItemIds = itemsWithId.map((item: { id: string }) => item.id)
+    const itemsToDelete = existingMenu.items.filter(
+      (item) => !newItemIds.includes(item.id)
+    )
+
+    // Delete removed items
+    if (itemsToDelete.length > 0) {
+      await prisma.menuItem.deleteMany({
+        where: {
+          id: { in: itemsToDelete.map((item) => item.id) },
+        },
+      })
+    }
+
+    // Update existing items
+    for (const item of itemsWithId) {
+      await prisma.menuItem.update({
+        where: { id: item.id },
+        data: {
+          label: item.label,
+          url: item.url,
+          pageId: item.pageId,
+          icon: item.icon,
+          customIcon: item.customIcon,
+          order: item.order,
+          openInNewTab: item.openInNewTab,
+          isVisible: item.isVisible,
+          highlight: item.highlight,
+          highlightColor: item.highlightColor,
+          minTierLevel: item.minTierLevel,
+          hasMegamenu: item.hasMegamenu || false,
+        },
+      })
+    }
+
+    // Create new items
+    if (itemsWithoutId.length > 0) {
+      await prisma.menuItem.createMany({
+        data: itemsWithoutId.map((item: {
+          label: string
+          url: string | null
+          pageId: string | null
+          icon: string | null
+          customIcon: string | null
+          order: number
+          openInNewTab: boolean
+          isVisible: boolean
+          highlight: boolean
+          highlightColor: string | null
+          minTierLevel: number | null
+          hasMegamenu?: boolean
+        }) => ({
+          menuId: existingMenu.id,
+          label: item.label,
+          url: item.url,
+          pageId: item.pageId,
+          icon: item.icon,
+          customIcon: item.customIcon,
+          order: item.order,
+          openInNewTab: item.openInNewTab,
+          isVisible: item.isVisible,
+          highlight: item.highlight,
+          highlightColor: item.highlightColor,
+          minTierLevel: item.minTierLevel,
+          hasMegamenu: item.hasMegamenu || false,
+        })),
+      })
+    }
+
+    // Update menu title/name
     const menu = await prisma.menu.update({
       where: { slug },
       data: {
         name: name || undefined,
         title: title !== undefined ? title : undefined,
-        items: {
-          create: items.map((item: {
-            label: string
-            url: string | null
-            pageId: string | null
-            icon: string | null
-            customIcon: string | null
-            order: number
-            openInNewTab: boolean
-            isVisible: boolean
-            highlight: boolean
-            highlightColor: string | null
-            minTierLevel: number | null
-          }) => ({
-            label: item.label,
-            url: item.url,
-            pageId: item.pageId,
-            icon: item.icon,
-            customIcon: item.customIcon,
-            order: item.order,
-            openInNewTab: item.openInNewTab,
-            isVisible: item.isVisible,
-            highlight: item.highlight,
-            highlightColor: item.highlightColor,
-            minTierLevel: item.minTierLevel,
-          })),
-        },
       },
       include: {
         items: {
           orderBy: { order: "asc" },
+          include: {
+            megamenuConfig: true,
+          },
         },
       },
     })

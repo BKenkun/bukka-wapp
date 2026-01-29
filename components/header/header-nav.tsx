@@ -1,7 +1,9 @@
-import type React from "react"
+"use client"
+
+import { useState, useRef } from "react"
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import type { NavItemWithMegamenu } from "@/types/megamenu"
+import { Megamenu } from "./megamenu"
 
 interface NavLinkProps {
   href: string
@@ -11,24 +13,9 @@ interface NavLinkProps {
   highlightColor?: string | null
 }
 
-interface NavItem {
-  id?: string
-  label: string
-  url: string
-  openInNewTab?: boolean
-  highlight?: boolean
-  highlightColor?: string | null
+interface HeaderNavProps {
+  links: NavItemWithMegamenu[]
 }
-
-// Links por defecto si el menú no está configurado
-const DEFAULT_NAV_LINKS: NavItem[] = [
-  { label: "Vídeos", url: "/videos" },
-  { label: "Modelos", url: "/modelos" },
-  { label: "Categorías", url: "#" },
-  { label: "Shop Live", url: "/tienda" },
-  { label: "Casting", url: "/casting" },
-  { label: "Blog", url: "/blog" },
-]
 
 function NavLink({ href, children, openInNewTab, highlight, highlightColor }: NavLinkProps) {
   return (
@@ -44,104 +31,89 @@ function NavLink({ href, children, openInNewTab, highlight, highlightColor }: Na
   )
 }
 
-async function getHeaderMenuItems(userTierLevel: number | null): Promise<NavItem[] | null> {
-  try {
-    const menu = await prisma.menu.findUnique({
-      where: { slug: "header-main" },
-      include: {
-        items: {
-          where: { isVisible: true, parentId: null },
-          orderBy: { order: "asc" },
-          select: {
-            id: true,
-            label: true,
-            url: true,
-            pageId: true,
-            openInNewTab: true,
-            highlight: true,
-            highlightColor: true,
-            minTierLevel: true,
-          },
-        },
-      },
-    })
+export function HeaderNav({ links }: HeaderNavProps) {
+  const [openMegamenu, setOpenMegamenu] = useState<string | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    if (!menu || menu.items.length === 0) {
-      return null // Usar defaults
+  const megamenuLink = openMegamenu
+    ? links.find((link, index) => (link.id || String(index)) === openMegamenu)
+    : null
+
+  const handleMouseEnter = (key: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
-
-    // Filtrar items por nivel de suscripción del usuario
-    const filteredItems = menu.items.filter((item) => {
-      // Si el item no tiene restricción de tier, es visible para todos
-      if (item.minTierLevel === null) return true
-      // Si el usuario no tiene suscripción, solo ve items sin restricción
-      if (userTierLevel === null) return false
-      // El usuario ve el item si su nivel es >= al mínimo requerido
-      return userTierLevel >= item.minTierLevel
-    })
-
-    if (filteredItems.length === 0) {
-      return null // Usar defaults
-    }
-
-    // Resolver URLs de páginas internas
-    const itemsWithUrls: NavItem[] = await Promise.all(
-      filteredItems.map(async (item): Promise<NavItem> => {
-        if (item.pageId) {
-          const page = await prisma.page.findUnique({
-            where: { id: item.pageId, status: "PUBLISHED" },
-            select: { slug: true },
-          })
-          return {
-            id: item.id,
-            label: item.label,
-            url: page ? `/p/${page.slug}` : item.url || "#",
-            openInNewTab: item.openInNewTab,
-            highlight: item.highlight,
-            highlightColor: item.highlightColor,
-          }
-        }
-        return {
-          id: item.id,
-          label: item.label,
-          url: item.url || "#",
-          openInNewTab: item.openInNewTab,
-          highlight: item.highlight,
-          highlightColor: item.highlightColor,
-        }
-      })
-    )
-
-    return itemsWithUrls
-  } catch (error) {
-    console.error("Error fetching header menu:", error)
-    return null // Usar defaults en caso de error
+    setOpenMegamenu(key)
   }
-}
 
-export async function HeaderNav() {
-  // Obtener sesión del usuario para filtrar menús por suscripción
-  const session = await auth()
-  const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setOpenMegamenu(null)
+    }, 150)
+  }
 
-  const menuItems = await getHeaderMenuItems(userTierLevel)
-  const links = menuItems || DEFAULT_NAV_LINKS
+  const handleMegamenuEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }
 
   return (
-    <nav className="flex items-center justify-center w-full">
-      <div className="flex items-center gap-[45px] flex-wrap justify-center">
-        {links.map((link, index) => (
-          <NavLink
-            key={link.id || index}
-            href={link.url}
-            openInNewTab={link.openInNewTab}
-            highlight={link.highlight}
-            highlightColor={link.highlightColor}
-          >
-            {link.label}
-          </NavLink>
-        ))}
-      </div>
-    </nav>
+    <>
+      <nav className="flex items-center justify-center w-full">
+        <div className="flex items-center gap-[45px] flex-wrap justify-center">
+          {links.map((link, index) => {
+            const key = link.id || String(index)
+
+            if (link.hasMegamenu && link.megamenu) {
+              return (
+                <button
+                  key={key}
+                  onMouseEnter={() => handleMouseEnter(key)}
+                  onMouseLeave={handleMouseLeave}
+                  className="text-white text-sm xl:text-base font-bold font-['Montserrat'] leading-6 hover:opacity-80 transition-opacity whitespace-nowrap flex items-center gap-1"
+                  style={link.highlight && link.highlightColor ? { color: link.highlightColor } : undefined}
+                >
+                  {link.label}
+                  <svg
+                    className={`w-3 h-3 transition-transform ${openMegamenu === key ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )
+            }
+
+            return (
+              <NavLink
+                key={key}
+                href={link.url}
+                openInNewTab={link.openInNewTab}
+                highlight={link.highlight}
+                highlightColor={link.highlightColor}
+              >
+                {link.label}
+              </NavLink>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* Megamenu dropdown - full width */}
+      {megamenuLink?.megamenu && (
+        <div
+          className="fixed left-0 right-0 top-[72px] z-50 bg-black"
+          onMouseEnter={handleMegamenuEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <Megamenu data={megamenuLink.megamenu} />
+        </div>
+      )}
+    </>
   )
 }
