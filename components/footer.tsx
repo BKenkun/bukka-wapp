@@ -442,7 +442,6 @@ export async function Footer() {
               target={footerSettings.newsletter.privacyLinkOpenInNewTab ? "_blank" : undefined}
               rel={footerSettings.newsletter.privacyLinkOpenInNewTab ? "noopener noreferrer" : undefined}
               className="text-[#FA4860] hover:underline"
-              onClick={(e) => e.stopPropagation()}
             >
               {footerSettings.newsletter.privacyLinkText}
             </Link>
