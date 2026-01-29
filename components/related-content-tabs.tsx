@@ -493,7 +493,7 @@ export function RelatedContentTabs({
                 }}
               >
                 <p className="text-white/60 font-montserrat">
-                  <Link href="/login" className="text-[#00B1DE] hover:underline">
+                  <Link href="/?login=true" className="text-[#00B1DE] hover:underline">
                     Inicia sesión
                   </Link>{" "}
                   para dejar un comentario

@@ -259,7 +259,7 @@ export default async function MiCuentaPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <main className="px-4 md:px-8 flex flex-col">
+      <main className="px-4 md:px-8 pt-8 pb-12 flex flex-col">
         {/* Welcome message */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">

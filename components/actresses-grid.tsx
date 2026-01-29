@@ -6,6 +6,7 @@ interface Actress {
   name: string
   imageUrl: string
   videoCount?: number
+  totalViews?: number
   verified?: boolean
 }
 
@@ -35,6 +36,8 @@ export function ActressesGrid({ actresses = defaultActresses, isFilterOpen = fal
               slug={actress.slug}
               verified={actress.verified ?? true}
               viewMode="grid"
+              videoCount={actress.videoCount}
+              totalViews={actress.totalViews}
             />
           </div>
         ))}

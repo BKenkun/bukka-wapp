@@ -176,7 +176,7 @@ export default async function HistorialDePagosPage() {
 
   return (
     <div className="flex-1 bg-black flex flex-col">
-      <main className="px-4 md:px-8 pb-12 flex flex-col flex-1">
+      <main className="px-4 md:px-8 pt-8 pb-12 flex flex-col flex-1">
         <AccountNav />
 
         {/* HISTORIAL DE TRANSACCIONES Section */}

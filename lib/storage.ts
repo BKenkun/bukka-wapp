@@ -102,6 +102,16 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
     requireAdmin: true,
   },
+  shop: {
+    maxSize: 8 * 1024 * 1024, // 8MB
+    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+    requireAdmin: true,
+  },
+  footer: {
+    maxSize: 4 * 1024 * 1024, // 4MB
+    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+    requireAdmin: true,
+  },
 }
 
 interface UploadResult {

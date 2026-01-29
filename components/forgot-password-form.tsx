@@ -74,7 +74,7 @@ export function ForgotPasswordForm({
         </div>
         <div className="flex flex-col gap-2">
           <a
-            href="/login"
+            href="/?login=true"
             className="text-sm text-center underline underline-offset-4 text-white hover:text-white/80"
           >
             Volver a iniciar sesión
@@ -121,7 +121,7 @@ export function ForgotPasswordForm({
           </Button>
           <FieldDescription className="text-center">
             ¿Recordaste tu contraseña?{" "}
-            <a href="/login" className="underline underline-offset-4 text-white hover:text-white">
+            <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
               Inicia sesión
             </a>
           </FieldDescription>

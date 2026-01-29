@@ -165,9 +165,9 @@ export function CategoriesDataTable({
       accessorKey: "slug",
       header: "Slug",
       cell: ({ row }) => (
-        <code className="text-xs bg-muted px-2 py-1 rounded">
+        <span className="text-sm text-muted-foreground">
           {row.original.slug}
-        </code>
+        </span>
       ),
     },
     {

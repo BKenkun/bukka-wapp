@@ -1,13 +1,15 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { IconSettings, IconShieldCheck, IconLock, IconMail, IconLayoutBottombar, IconPalette } from "@tabler/icons-react"
+import { IconSettings, IconShieldCheck, IconLock, IconMail, IconLayoutBottombar, IconPalette, IconPlaylist, IconShoppingBag } from "@tabler/icons-react"
 import { GeneralSettings } from "./general-settings"
 import { AgeVerificationSettings } from "./age-verification-settings"
 import { VideoAccessSettings } from "./video-access-settings"
 import { EmailSettings } from "./email-settings"
 import { FooterSettings } from "./footer-settings"
 import { DesignSettings } from "./design-settings"
+import { SystemCollectionsSettings } from "./system-collections-settings"
+import { ShopSettings } from "./shop-settings"
 
 export default function SettingsPage() {
   return (
@@ -45,6 +47,14 @@ export default function SettingsPage() {
             <IconLayoutBottombar className="size-4" />
             Footer
           </TabsTrigger>
+          <TabsTrigger value="shop" className="gap-2">
+            <IconShoppingBag className="size-4" />
+            Tienda
+          </TabsTrigger>
+          <TabsTrigger value="collections" className="gap-2">
+            <IconPlaylist className="size-4" />
+            Colecciones
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -69,6 +79,14 @@ export default function SettingsPage() {
 
         <TabsContent value="footer">
           <FooterSettings />
+        </TabsContent>
+
+        <TabsContent value="shop">
+          <ShopSettings />
+        </TabsContent>
+
+        <TabsContent value="collections">
+          <SystemCollectionsSettings />
         </TabsContent>
       </Tabs>
     </div>

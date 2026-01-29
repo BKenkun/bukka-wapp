@@ -868,6 +868,16 @@ enum VideoSourceType {
   CATEGORY
   LATEST
   POPULAR
+  SYSTEM_COLLECTION
+}
+
+enum SystemCollectionType {
+  MAS_VISTOS
+  NUEVOS
+  TENDENCIAS
+  MEJOR_VALORADOS
+  MAS_COMENTADOS
+  RECOMENDADOS
 }
 
 enum AdminRole {
@@ -1064,4 +1074,21 @@ model SearchTrend {
   createdAt DateTime @default(now())
 
   @@index([count(sort: Desc)])
+}
+
+// ============================================
+// COLECCIONES DEL SISTEMA
+// ============================================
+
+model SystemCollection {
+  id          String               @id @default(cuid())
+  type        SystemCollectionType @unique
+  slug        String               @unique
+  name        String
+  description String?
+  imageUrl    String?
+  isEnabled   Boolean              @default(true)
+  order       Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 }

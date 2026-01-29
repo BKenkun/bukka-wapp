@@ -111,7 +111,7 @@ export default async function SuscripcionPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <main className="px-4 md:px-8 flex flex-col flex-1 pb-12">
+      <main className="px-4 md:px-8 pt-8 flex flex-col flex-1 pb-12">
         <AccountNav />
 
         {/* SUBSCRIPCIÓN Section */}

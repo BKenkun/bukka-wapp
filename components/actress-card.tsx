@@ -34,9 +34,24 @@ interface ActressCardProps {
   slug?: string
   verified?: boolean
   viewMode?: "grid" | "list"
+  videoCount?: number
+  totalViews?: number
 }
 
-export function ActressCard({ name, image, slug, verified = false, viewMode = "grid" }: ActressCardProps) {
+function formatViews(views: number): string {
+  if (views >= 1000000000) {
+    return `${(views / 1000000000).toFixed(1)}B`
+  }
+  if (views >= 1000000) {
+    return `${(views / 1000000).toFixed(1)}M`
+  }
+  if (views >= 1000) {
+    return `${(views / 1000).toFixed(0)}K`
+  }
+  return views.toString()
+}
+
+export function ActressCard({ name, image, slug, verified = false, viewMode = "grid", videoCount, totalViews }: ActressCardProps) {
   const href = slug ? `/modelos/${slug}` : `/modelos/${name.toLowerCase().replace(/\s+/g, "-")}`
 
   if (viewMode === "list") {
@@ -72,6 +87,19 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
             </h3>
             {verified && <VerifiedBadge className="w-10 h-6 flex-shrink-0" />}
           </div>
+          {(videoCount !== undefined || totalViews !== undefined) && (
+            <div className="flex items-center gap-2 mt-1 text-white/70 text-sm font-montserrat">
+              {videoCount !== undefined && (
+                <span>{videoCount} {videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+              )}
+              {videoCount !== undefined && totalViews !== undefined && (
+                <span className="text-white/40">·</span>
+              )}
+              {totalViews !== undefined && (
+                <span>{formatViews(totalViews)} Visitas</span>
+              )}
+            </div>
+          )}
         </div>
       </Link>
     )
@@ -112,6 +140,19 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
           </h3>
           {verified && <VerifiedBadge className="w-6 h-5 flex-shrink-0" />}
         </div>
+        {(videoCount !== undefined || totalViews !== undefined) && (
+          <div className="flex items-center gap-2 mt-1 text-white/70 text-sm font-montserrat">
+            {videoCount !== undefined && (
+              <span>{videoCount} {videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+            )}
+            {videoCount !== undefined && totalViews !== undefined && (
+              <span className="text-white/40">·</span>
+            )}
+            {totalViews !== undefined && (
+              <span>{formatViews(totalViews)} Visitas</span>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   )

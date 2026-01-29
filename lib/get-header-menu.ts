@@ -91,8 +91,8 @@ async function hydrateMegamenuData(config: {
   links: unknown
   linksSectionTitle: string
 }): Promise<MegamenuData> {
-  // Fetch performers
-  const performers: MegamenuPerformer[] = config.featuredPerformerIds.length > 0
+  // Fetch performers with their video count and total views
+  const performers = config.featuredPerformerIds.length > 0
     ? await prisma.performer.findMany({
         where: { id: { in: config.featuredPerformerIds } },
         select: {
@@ -100,13 +100,35 @@ async function hydrateMegamenuData(config: {
           slug: true,
           name: true,
           profileImage: true,
+          VideoPerformer: {
+            select: {
+              video: {
+                select: {
+                  viewCount: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: { VideoPerformer: true },
+          },
         },
       })
     : []
 
+  // Transform performers with videoCount and totalViews
+  const transformedPerformers: MegamenuPerformer[] = performers.map(p => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    profileImage: p.profileImage,
+    videoCount: p._count.VideoPerformer,
+    totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
+  }))
+
   // Sort performers by the order in featuredPerformerIds
   const sortedPerformers = config.featuredPerformerIds
-    .map(id => performers.find(p => p.id === id))
+    .map(id => transformedPerformers.find(p => p.id === id))
     .filter((p): p is MegamenuPerformer => p !== undefined)
 
   // Fetch videos based on source type
@@ -194,7 +216,14 @@ async function hydrateMegamenuData(config: {
   const links: MegamenuLinkResolved[] = await Promise.all(
     rawLinks.map(async (link): Promise<MegamenuLinkResolved> => {
       let url = link.url || "#"
-      if (link.categoryId) {
+      if (link.systemCollectionSlug) {
+        // Check if the system collection is enabled
+        const collection = await prisma.systemCollection.findUnique({
+          where: { slug: link.systemCollectionSlug },
+          select: { slug: true, isEnabled: true },
+        })
+        url = collection?.isEnabled ? `/videos/${collection.slug}` : "#"
+      } else if (link.categoryId) {
         const category = await prisma.videoCategory.findUnique({
           where: { id: link.categoryId },
           select: { slug: true },

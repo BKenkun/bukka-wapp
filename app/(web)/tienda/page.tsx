@@ -2,11 +2,19 @@ import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/shop/product-card"
+import { getShopSettings } from "@/lib/get-shop-settings"
 
 interface SearchParams {
   page?: string
   sort?: string
   category?: string
+}
+
+interface ShopCategory {
+  id: string
+  slug: string
+  name: string
+  imageUrl: string | null
 }
 
 export default async function TiendaPage({
@@ -48,15 +56,15 @@ export default async function TiendaPage({
   }
 
   if (categorySlug) {
-    whereClause.categories = {
+    whereClause.ProductToCategory = {
       some: {
         category: { slug: categorySlug },
       },
     }
   }
 
-  // Fetch productos y categorías en paralelo
-  const [productsRaw, totalCount, categories, selectedCategory] = await Promise.all([
+  // Fetch productos, categorías y configuración en paralelo
+  const [productsRaw, totalCount, allCategories, selectedCategory, shopSettings] = await Promise.all([
     prisma.product.findMany({
       where: whereClause,
       skip,
@@ -80,7 +88,7 @@ export default async function TiendaPage({
     prisma.shopCategory.findMany({
       where: { parentId: null },
       orderBy: { order: "asc" },
-      select: { id: true, slug: true, name: true },
+      select: { id: true, slug: true, name: true, imageUrl: true },
     }),
     categorySlug
       ? prisma.shopCategory.findUnique({
@@ -88,7 +96,11 @@ export default async function TiendaPage({
           select: { name: true },
         })
       : null,
+    getShopSettings(),
   ])
+
+  // Use all categories directly (managed in /admin/shop-categories)
+  const categories = allCategories
 
   // Transform products to calculate correct stock for variable products
   const products = productsRaw.map((p) => {
@@ -131,102 +143,109 @@ export default async function TiendaPage({
 
   return (
     <main className="flex-1 flex flex-col bg-black text-white">
-      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8">
-        {/* Hero Section */}
-        <div className="relative w-full aspect-[21/9] mb-8">
-          <Image src="/images/shop.jpg" alt="Tienda" fill className="object-cover" sizes="100vw" />
+      <div className="w-full mx-auto px-4 md:px-6 pt-6">
+        {/* 1. Banner/Slider */}
+        {shopSettings.banner.imageUrl && (
+          <div className="relative w-full aspect-[21/9] mb-8 overflow-hidden">
+            <Image
+              src={shopSettings.banner.imageUrl}
+              alt={shopSettings.banner.alt}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+          </div>
+        )}
+
+        {/* 2. Title + Description */}
+        <div className="text-center mb-8">
+          <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-white mb-3">
+            {selectedCategory ? selectedCategory.name : "Tienda"}
+          </h1>
+          <p className="text-white/80 font-montserrat text-base max-w-2xl mx-auto">
+            {selectedCategory
+              ? `Productos de la categoría ${selectedCategory.name}`
+              : "Descubre nuestra colección exclusiva de productos"}
+          </p>
         </div>
 
-        {/* Header */}
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col gap-[10px]">
-            <h1
-              className="font-montserrat font-bold"
-              style={{
-                color: "#E5E7EB",
-                fontSize: "30px",
-                lineHeight: "36px",
-              }}
-            >
-              {selectedCategory ? selectedCategory.name : "Tienda"}
-            </h1>
-            <p className="text-white font-montserrat text-base font-normal">
-              {selectedCategory
-                ? `Productos de la categoría ${selectedCategory.name}`
-                : "Descubre nuestra colección exclusiva de productos"}
-            </p>
-            <p className="text-white font-montserrat text-sm font-normal">
-              Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
-              {totalCount.toLocaleString()} productos
-            </p>
-          </div>
-
-          {/* Filtros */}
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            {/* Ordenamiento */}
-            <div className="flex gap-2 flex-wrap">
-              <Link
-                href={buildSortUrl("newest")}
-                className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                  sortOption === "newest" ? "bg-[#FA4860]" : "bg-[#00B1DE]"
-                }`}
-              >
-                Más recientes
-              </Link>
-              <Link
-                href={buildSortUrl("popular")}
-                className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                  sortOption === "popular" ? "bg-[#FA4860]" : "bg-[#00B1DE]"
-                }`}
-              >
-                Populares
-              </Link>
-              <Link
-                href={buildSortUrl("price_asc")}
-                className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                  sortOption === "price_asc" ? "bg-[#FA4860]" : "bg-[#00B1DE]"
-                }`}
-              >
-                Precio ↑
-              </Link>
-              <Link
-                href={buildSortUrl("price_desc")}
-                className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                  sortOption === "price_desc" ? "bg-[#FA4860]" : "bg-[#00B1DE]"
-                }`}
-              >
-                Precio ↓
-              </Link>
-            </div>
-
-            {/* Categorías */}
-            {categories.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
+        {/* 3. Category Cards with Images (centered) */}
+        {categories.some(c => c.imageUrl) && (
+          <div className="flex justify-center mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl">
+              {categories.filter(c => c.imageUrl).map((cat) => (
                 <Link
-                  href={buildCategoryUrl(null)}
-                  className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                    !categorySlug ? "bg-[#FA4860]" : "bg-gray-700"
+                  key={cat.id}
+                  href={buildCategoryUrl(cat.slug)}
+                  className={`group relative aspect-[4/3] overflow-hidden ${
+                    categorySlug === cat.slug ? "ring-2 ring-[#FA4860]" : ""
                   }`}
                 >
-                  Todas
+                  <Image
+                    src={cat.imageUrl!}
+                    alt={cat.name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 768px) 50vw, 250px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+                    <span className="text-white font-montserrat font-semibold text-base">
+                      {cat.name}
+                    </span>
+                  </div>
                 </Link>
-                {categories.slice(0, 5).map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={buildCategoryUrl(cat.slug)}
-                    className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] ${
-                      categorySlug === cat.slug ? "bg-[#FA4860]" : "bg-gray-700"
-                    }`}
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
-            )}
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Info + Filters */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <p className="text-white/60 font-montserrat text-sm">
+            Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
+            {totalCount.toLocaleString()} productos
+          </p>
+
+          {/* Sort buttons */}
+          <div className="flex gap-2 flex-wrap">
+            <Link
+              href={buildSortUrl("newest")}
+              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
+                sortOption === "newest" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
+              }`}
+            >
+              Recientes
+            </Link>
+            <Link
+              href={buildSortUrl("popular")}
+              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
+                sortOption === "popular" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
+              }`}
+            >
+              Populares
+            </Link>
+            <Link
+              href={buildSortUrl("price_asc")}
+              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
+                sortOption === "price_asc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
+              }`}
+            >
+              Precio ↑
+            </Link>
+            <Link
+              href={buildSortUrl("price_desc")}
+              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
+                sortOption === "price_desc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
+              }`}
+            >
+              Precio ↓
+            </Link>
           </div>
         </div>
 
-        {/* Products Grid */}
+        {/* 4. Products Grid - 3 columns */}
         {products.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {products.map((product) => (

@@ -446,7 +446,7 @@ export default function ConfiguracionPage() {
 
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
-      <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
+      <div className="flex flex-col flex-1 px-4 md:px-8 pt-8 pb-12">
         <AccountNav />
 
         {/* Información Personal */}

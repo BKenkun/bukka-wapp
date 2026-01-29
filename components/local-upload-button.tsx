@@ -18,6 +18,7 @@ export type UploadFolder =
   | "avatars"
   | "casting"
   | "footer"
+  | "shop"
 
 interface UploadResult {
   url: string

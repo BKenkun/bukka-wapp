@@ -32,22 +32,30 @@ interface Category {
   slug: string
 }
 
+interface SystemCollection {
+  type: string
+  slug: string
+  name: string
+}
+
 interface MegamenuLinksEditorProps {
   links: MegamenuLink[]
   onChange: (links: MegamenuLink[]) => void
   pages: Page[]
   categories?: Category[]
+  systemCollections?: SystemCollection[]
 }
 
-type LinkType = "url" | "page" | "category"
+type LinkType = "url" | "page" | "category" | "system"
 
 function getLinkType(link: MegamenuLink): LinkType {
+  if (link.systemCollectionSlug) return "system"
   if (link.categoryId) return "category"
   if (link.pageId) return "page"
   return "url"
 }
 
-export function MegamenuLinksEditor({ links, onChange, pages, categories = [] }: MegamenuLinksEditorProps) {
+export function MegamenuLinksEditor({ links, onChange, pages, categories = [], systemCollections = [] }: MegamenuLinksEditorProps) {
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
 
   const handleAddLink = () => {
@@ -88,18 +96,25 @@ export function MegamenuLinksEditor({ links, onChange, pages, categories = [] }:
   const handleLinkTypeChange = (index: number, type: LinkType) => {
     switch (type) {
       case "url":
-        handleUpdateLink(index, { pageId: undefined, categoryId: undefined, url: "" })
+        handleUpdateLink(index, { pageId: undefined, categoryId: undefined, systemCollectionSlug: undefined, url: "" })
         break
       case "page":
-        handleUpdateLink(index, { url: undefined, categoryId: undefined, pageId: pages[0]?.id })
+        handleUpdateLink(index, { url: undefined, categoryId: undefined, systemCollectionSlug: undefined, pageId: pages[0]?.id })
         break
       case "category":
-        handleUpdateLink(index, { url: undefined, pageId: undefined, categoryId: categories[0]?.id })
+        handleUpdateLink(index, { url: undefined, pageId: undefined, systemCollectionSlug: undefined, categoryId: categories[0]?.id })
+        break
+      case "system":
+        handleUpdateLink(index, { url: undefined, pageId: undefined, categoryId: undefined, systemCollectionSlug: systemCollections[0]?.slug })
         break
     }
   }
 
   const getLinkDescription = (link: MegamenuLink): string => {
+    if (link.systemCollectionSlug) {
+      const collection = systemCollections.find((c) => c.slug === link.systemCollectionSlug)
+      return `Colección: ${collection?.name || "..."}`
+    }
     if (link.categoryId) {
       const category = categories.find((c) => c.id === link.categoryId)
       return `Categoría: ${category?.name || "..."}`
@@ -199,7 +214,7 @@ export function MegamenuLinksEditor({ links, onChange, pages, categories = [] }:
 
                   <div className="space-y-2">
                     <Label>Tipo de destino</Label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         type="button"
                         variant={getLinkType(link) === "url" ? "secondary" : "outline"}
@@ -227,6 +242,17 @@ export function MegamenuLinksEditor({ links, onChange, pages, categories = [] }:
                       >
                         Categoría
                       </Button>
+                      {systemCollections.length > 0 && (
+                        <Button
+                          type="button"
+                          variant={getLinkType(link) === "system" ? "secondary" : "outline"}
+                          size="sm"
+                          className="justify-start"
+                          onClick={() => handleLinkTypeChange(index, "system")}
+                        >
+                          Colección
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -281,6 +307,30 @@ export function MegamenuLinksEditor({ links, onChange, pages, categories = [] }:
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  )}
+
+                  {getLinkType(link) === "system" && (
+                    <div className="space-y-2">
+                      <Label>Colección del sistema</Label>
+                      <Select
+                        value={link.systemCollectionSlug || ""}
+                        onValueChange={(value) => handleUpdateLink(index, { systemCollectionSlug: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una colección" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {systemCollections.map((collection) => (
+                            <SelectItem key={collection.slug} value={collection.slug}>
+                              {collection.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Las colecciones del sistema se actualizan automáticamente
+                      </p>
                     </div>
                   )}
 

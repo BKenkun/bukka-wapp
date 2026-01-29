@@ -10,19 +10,26 @@ export async function GET(request: Request) {
 
     // If trending=true, return trending data
     if (trending) {
-      // Get performers
+      // Get performers with total views
       const trendingPerformers = await prisma.performer.findMany({
         take: 4,
-        orderBy: { videoCount: "desc" },
+        orderBy: { VideoPerformer: { _count: "desc" } },
         select: {
           id: true,
           slug: true,
           name: true,
           profileImage: true,
-          videoCount: true,
           _count: {
             select: {
               favorites: true,
+              VideoPerformer: true,
+            },
+          },
+          VideoPerformer: {
+            select: {
+              video: {
+                select: { viewCount: true },
+              },
             },
           },
         },
@@ -60,7 +67,7 @@ export async function GET(request: Request) {
         if (b._count.favorites !== a._count.favorites) {
           return b._count.favorites - a._count.favorites
         }
-        return b.videoCount - a.videoCount
+        return b._count.VideoPerformer - a._count.VideoPerformer
       })
 
       return NextResponse.json({
@@ -71,6 +78,8 @@ export async function GET(request: Request) {
           name: p.name,
           profileImage: p.profileImage,
           followersCount: p._count.favorites,
+          videoCount: p._count.VideoPerformer,
+          totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
         })),
         videos: popularVideos,
       })
@@ -141,10 +150,19 @@ export async function GET(request: Request) {
           slug: true,
           name: true,
           profileImage: true,
-          videoCount: true,
+          _count: {
+            select: { VideoPerformer: true },
+          },
+          VideoPerformer: {
+            select: {
+              video: {
+                select: { viewCount: true },
+              },
+            },
+          },
         },
         take: limit,
-        orderBy: { videoCount: "desc" },
+        orderBy: { VideoPerformer: { _count: "desc" } },
       }),
     ])
 
@@ -155,10 +173,20 @@ export async function GET(request: Request) {
       compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
     }))
 
+    // Transform performers with totalViews
+    const transformedPerformers = performers.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      profileImage: p.profileImage,
+      videoCount: p._count.VideoPerformer,
+      totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
+    }))
+
     return NextResponse.json({
       products: transformedProducts,
       videos,
-      performers,
+      performers: transformedPerformers,
     })
   } catch (error) {
     console.error("Error searching:", error)

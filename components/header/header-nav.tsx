@@ -69,8 +69,11 @@ export function HeaderNav({ links }: HeaderNavProps) {
 
             if (link.hasMegamenu && link.megamenu) {
               return (
-                <button
+                <Link
                   key={key}
+                  href={link.url}
+                  target={link.openInNewTab ? "_blank" : undefined}
+                  rel={link.openInNewTab ? "noopener noreferrer" : undefined}
                   onMouseEnter={() => handleMouseEnter(key)}
                   onMouseLeave={handleMouseLeave}
                   className="text-white text-sm xl:text-base font-bold font-['Montserrat'] leading-6 hover:opacity-80 transition-opacity whitespace-nowrap flex items-center gap-1"
@@ -85,7 +88,7 @@ export function HeaderNav({ links }: HeaderNavProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                </Link>
               )
             }
 

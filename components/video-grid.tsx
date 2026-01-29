@@ -19,6 +19,7 @@ interface Video {
   isVerified?: boolean
   category?: string
   performers?: Performer[]
+  publishedAt?: Date | string
 }
 
 interface VideoGridProps {
@@ -113,6 +114,7 @@ export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns
             variant={variant}
             category={video.category}
             performers={video.performers}
+            publishedAt={video.publishedAt}
           />
         ))}
       </div>

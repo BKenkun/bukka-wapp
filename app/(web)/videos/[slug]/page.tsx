@@ -14,6 +14,11 @@ import { getVideoAccessSettings } from "@/lib/get-video-access-settings"
 import { CtaBanner } from "@/components/cta-banner"
 import { VideosPageClient } from "../videos-page-client"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
+import {
+  getSystemCollectionBySlug,
+  getVideosForSystemCollection,
+  getVideoCountForSystemCollection,
+} from "@/lib/system-collections"
 import type { Metadata } from "next"
 
 interface PageProps {
@@ -28,6 +33,15 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+
+  // Check if it's a system collection
+  const systemCollection = await getSystemCollectionBySlug(slug)
+  if (systemCollection && systemCollection.isEnabled) {
+    return {
+      title: `${systemCollection.name} - Videos`,
+      description: systemCollection.description || `Videos ${systemCollection.name.toLowerCase()}`,
+    }
+  }
 
   // Check if it's a category
   const category = await prisma.videoCategory.findUnique({
@@ -61,7 +75,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function VideoOrCategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params
 
-  // First, check if the slug matches a category
+  // First, check if the slug matches a system collection
+  const systemCollection = await getSystemCollectionBySlug(slug)
+  if (systemCollection && systemCollection.isEnabled) {
+    return <SystemCollectionPage collection={systemCollection} searchParams={searchParams} />
+  }
+
+  // Then, check if the slug matches a category
   const category = await prisma.videoCategory.findUnique({
     where: { slug },
     select: { id: true, name: true, slug: true, description: true },
@@ -157,6 +177,7 @@ async function CategoryPage({
         muxPlaybackId: true,
         viewCount: true,
         likeCount: true,
+        releaseDate: true,
         performers: {
           include: {
             performer: {
@@ -217,6 +238,7 @@ async function CategoryPage({
         isVerified: true,
         category: video.categories[0]?.category.name,
         performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+        publishedAt: video.releaseDate,
       }
     })
   )
@@ -245,6 +267,111 @@ async function CategoryPage({
         categoryTitle={category.name}
         categoryDescription={category.description}
         basePath={`/videos/${category.slug}`}
+      />
+
+      <CtaBanner
+        title="The Bukkake Degree"
+        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
+        buttonText="SUBSCRÍBETE"
+        backgroundImage="/images/red-lips-bg.jpg"
+      />
+    </main>
+  )
+}
+
+// System Collection Page Component
+async function SystemCollectionPage({
+  collection,
+  searchParams,
+}: {
+  collection: {
+    id: string
+    type: string
+    slug: string
+    name: string
+    description: string | null
+  }
+  searchParams: Promise<{
+    page?: string
+  }>
+}) {
+  const search = await searchParams
+  const page = Number(search.page) || 1
+  const pageSize = 12
+  const skip = (page - 1) * pageSize
+
+  // Get videos for this system collection
+  const [videos, totalCount, categories, performers, tags] = await Promise.all([
+    getVideosForSystemCollection(collection.type as import("@prisma/client").SystemCollectionType, {
+      skip,
+      take: pageSize,
+    }),
+    getVideoCountForSystemCollection(collection.type as import("@prisma/client").SystemCollectionType),
+    prisma.videoCategory.findMany({
+      where: { parentId: null },
+      orderBy: { order: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+    prisma.performer.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+    prisma.tag.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, slug: true, name: true },
+    }),
+  ])
+
+  const totalPages = Math.ceil(totalCount / pageSize)
+
+  // Transform videos
+  const transformedVideos = await Promise.all(
+    videos.map(async (video) => {
+      let videoPreviewUrl = video.previewUrl || undefined
+
+      if (!videoPreviewUrl && video.muxPlaybackId) {
+        try {
+          const token = await getVideoToken(video.muxPlaybackId)
+          videoPreviewUrl = getVideoPreviewUrl(video.muxPlaybackId, token, "medium")
+        } catch (error) {
+          console.warn(`Failed to generate preview token for video ${video.id}:`, error)
+        }
+      }
+
+      return {
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        views: formatViews(video.viewCount),
+        imageUrl: video.thumbnailUrl || "/fashion-model-portrait.png",
+        previewUrl: videoPreviewUrl,
+        previewStartTime: video.previewStartTime,
+        previewEndTime: video.previewEndTime,
+        isVerified: true,
+        category: video.categories[0]?.category.name,
+        performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+        publishedAt: video.releaseDate,
+      }
+    })
+  )
+
+  return (
+    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+      <VideosPageClient
+        videos={transformedVideos}
+        categories={categories}
+        performers={performers}
+        tags={tags}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        sortOption="newest"
+        selectedPerformers={[]}
+        selectedTags={[]}
+        activeFilters={{}}
+        categoryTitle={collection.name}
+        categoryDescription={collection.description}
+        basePath={`/videos/${collection.slug}`}
       />
 
       <CtaBanner

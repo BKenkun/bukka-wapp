@@ -102,7 +102,7 @@ export default function FavoritosPage() {
   if (status === "loading") {
     return (
       <div className="flex-1 flex flex-col font-sans bg-black text-white">
-        <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
+        <div className="flex flex-col flex-1 px-4 md:px-8 pt-8 pb-12">
           <AccountNav />
           <div className="mt-8 text-center">Cargando...</div>
         </div>
@@ -112,7 +112,7 @@ export default function FavoritosPage() {
 
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
-      <div className="flex flex-col flex-1 px-4 md:px-8 pb-12">
+      <div className="flex flex-col flex-1 px-4 md:px-8 pt-8 pb-12">
         {/* Account Navigation */}
         <AccountNav />
 
@@ -164,9 +164,11 @@ export default function FavoritosPage() {
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"
                       />
-                      <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 text-xs text-white">
-                        {formatDuration(fav.item.duration)}
-                      </div>
+                      {fav.item.duration > 0 && (
+                        <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 text-xs text-white">
+                          {formatDuration(fav.item.duration)}
+                        </div>
+                      )}
                     </div>
                     <h3 className="mt-2 text-white font-medium truncate">{fav.item.title}</h3>
                     {fav.item.performerName && (

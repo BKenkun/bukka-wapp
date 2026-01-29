@@ -80,6 +80,7 @@ interface VideoData {
   isVerified: boolean
   category?: string
   performers?: Performer[]
+  publishedAt?: Date | string
 }
 
 async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]> {
@@ -97,6 +98,7 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
       muxPlaybackId: string | null
       viewCount: number
       likeCount: number
+      releaseDate: Date | null
       performers: Array<{ performer: { name: string; slug: string } }>
       categories: Array<{ category: { name: string } }>
     }>
@@ -112,6 +114,7 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
       muxPlaybackId: true,
       viewCount: true,
       likeCount: true,
+      releaseDate: true,
       performers: { include: { performer: { select: { name: true, slug: true } } } },
       categories: { include: { category: { select: { name: true } } }, take: 1 },
     }
@@ -290,6 +293,7 @@ async function getVideosForSection(config: VideoGridConfig): Promise<VideoData[]
           isVerified: true,
           category: video.categories[0]?.category.name,
           performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+          publishedAt: video.releaseDate || undefined,
         }
       })
     )
@@ -305,6 +309,7 @@ interface PerformerData {
   name: string
   imageUrl: string
   videoCount?: number
+  totalViews?: number
   verified?: boolean
 }
 
@@ -317,14 +322,31 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       slug: string
       name: string
       profileImage: string | null
+      _count: { VideoPerformer: number }
+      VideoPerformer: Array<{ video: { viewCount: number } }>
     }>
+
+    const performerSelect = {
+      id: true,
+      slug: true,
+      name: true,
+      profileImage: true,
+      _count: { select: { VideoPerformer: true } },
+      VideoPerformer: {
+        select: {
+          video: {
+            select: { viewCount: true },
+          },
+        },
+      },
+    }
 
     switch (config.source) {
       case "manual":
         if (config.performerIds && config.performerIds.length > 0) {
           performers = await prisma.performer.findMany({
             where: { id: { in: config.performerIds } },
-            select: { id: true, slug: true, name: true, profileImage: true },
+            select: performerSelect,
           })
         } else {
           performers = []
@@ -338,7 +360,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
         performers = await prisma.performer.findMany({
           orderBy: { createdAt: "desc" },
           take: limit,
-          select: { id: true, slug: true, name: true, profileImage: true },
+          select: performerSelect,
         })
         break
     }
@@ -349,6 +371,8 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       slug: performer.slug,
       name: performer.name,
       imageUrl: performer.profileImage || "/images/placeholder-performer.jpg",
+      videoCount: performer._count.VideoPerformer,
+      totalViews: performer.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
       verified: true,
     }))
   } catch (error) {

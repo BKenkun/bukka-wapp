@@ -126,7 +126,7 @@ export function LoginForm({
           {showRegisterLink && (
             <FieldDescription className="text-center">
               ¿No tienes cuenta?{" "}
-              <a href="/registro" className="underline underline-offset-4 text-white hover:text-white">
+              <a href="/?register=true" className="underline underline-offset-4 text-white hover:text-white">
                 Regístrate
               </a>
             </FieldDescription>

@@ -27,7 +27,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { IconPlus, IconEdit, IconTrash, IconLoader2 } from "@tabler/icons-react"
+import { IconPlus, IconEdit, IconTrash, IconLoader2, IconX, IconPhoto } from "@tabler/icons-react"
+import { LocalUploadDropzone } from "@/components/local-upload-button"
+import Image from "next/image"
 
 interface ShopCategory {
   id: string
@@ -206,12 +208,51 @@ export default function ShopCategoriesPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">URL de Imagen</label>
-                <Input
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://..."
-                />
+                <label className="text-sm font-medium">Imagen de Categoría</label>
+                {formData.imageUrl ? (
+                  <div className="relative mt-2">
+                    <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-muted">
+                      <Image
+                        src={formData.imageUrl}
+                        alt="Imagen de categoría"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => setFormData({ ...formData, imageUrl: "" })}
+                    >
+                      <IconX className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <LocalUploadDropzone
+                    folder="categories"
+                    accept="image/*"
+                    onUploadComplete={(result) => {
+                      setFormData({ ...formData, imageUrl: result.url })
+                      toast.success("Imagen subida correctamente")
+                    }}
+                    onUploadError={(error) => {
+                      toast.error(error.message)
+                    }}
+                    className="mt-2"
+                  >
+                    <div className="flex flex-col items-center gap-2 py-6">
+                      <IconPhoto className="size-10 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Arrastra una imagen o haz clic
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Recomendado: 800x450px (ratio 16:9)
+                      </p>
+                    </div>
+                  </LocalUploadDropzone>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium">Categoría Padre</label>
@@ -264,6 +305,7 @@ export default function ShopCategoriesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Orden</TableHead>
+              <TableHead>Imagen</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Padre</TableHead>
@@ -274,13 +316,13 @@ export default function ShopCategoriesPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <IconLoader2 className="size-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No hay categorías. Crea la primera.
                 </TableCell>
               </TableRow>
@@ -288,6 +330,22 @@ export default function ShopCategoriesPage() {
               categories.map((cat) => (
                 <TableRow key={cat.id}>
                   <TableCell>{cat.order}</TableCell>
+                  <TableCell>
+                    {cat.imageUrl ? (
+                      <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
+                        <Image
+                          src={cat.imageUrl}
+                          alt={cat.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-10 rounded bg-muted flex items-center justify-center">
+                        <IconPhoto className="size-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium">{cat.name}</TableCell>
                   <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
                   <TableCell className="text-muted-foreground">

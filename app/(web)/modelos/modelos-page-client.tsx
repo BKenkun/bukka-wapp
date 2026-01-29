@@ -14,6 +14,7 @@ interface Actress {
   name: string
   imageUrl: string
   videoCount: number
+  totalViews?: number
   verified: boolean
 }
 

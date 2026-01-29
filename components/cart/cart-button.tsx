@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -36,6 +36,9 @@ export function CartButton() {
   const [cart, setCart] = useState<CartData | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const isEmpty = !cart || cart.items.length === 0
 
   const fetchCart = async () => {
     if (!session?.user) return
@@ -88,9 +91,29 @@ export function CartButton() {
     }
   }
 
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    setIsOpen(true)
+  }
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false)
+    }, 150)
+  }
+
+  const handleClick = () => {
+    // Only toggle on click if cart has items
+    if (!isEmpty) {
+      setIsOpen(!isOpen)
+    }
+  }
+
   if (!session?.user) {
     return (
-      <Link href="/login" className="relative p-2">
+      <Link href="/?login=true" className="relative p-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -111,10 +134,14 @@ export function CartButton() {
   }
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={isEmpty ? handleMouseEnter : undefined}
+      onMouseLeave={isEmpty ? handleMouseLeave : undefined}
+    >
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2"
+        onClick={handleClick}
+        className={`relative p-2 ${isEmpty ? "cursor-default" : "cursor-pointer"}`}
         aria-label="Carrito de compras"
       >
         <svg
@@ -142,24 +169,33 @@ export function CartButton() {
       {/* Dropdown */}
       {isOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay - only for non-empty cart */}
+          {!isEmpty && (
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+
           <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-
-          <div className="absolute right-0 top-full mt-2 w-[350px] bg-[#1a1a1a] border border-gray-800 shadow-xl z-50">
+            className="absolute right-0 top-full mt-2 bg-[#1a1a1a] border border-gray-800 shadow-xl z-50"
+            style={{ width: isEmpty ? "200px" : "350px" }}
+            onMouseEnter={isEmpty ? handleMouseEnter : undefined}
+            onMouseLeave={isEmpty ? handleMouseLeave : undefined}
+          >
             <div className="p-4">
-              <h3 className="text-white font-semibold text-lg mb-4">
-                Tu Carrito ({cart?.itemCount || 0})
-              </h3>
-
-              {!cart || cart.items.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">
-                  Tu carrito esta vacio
-                </p>
+              {isEmpty ? (
+                // Empty cart state - simple message
+                <div className="text-center py-2">
+                  <p className="text-gray-400 text-sm">Carrito vacío</p>
+                </div>
               ) : (
+                // Cart with items
                 <>
+                  <h3 className="text-white font-semibold text-lg mb-4">
+                    Tu Carrito ({cart?.itemCount || 0})
+                  </h3>
+
                   <div className="max-h-[300px] overflow-y-auto space-y-4">
                     {cart.items.map((item) => (
                       <div key={item.id} className={`flex gap-3 ${!item.product.available ? "opacity-50" : ""}`}>

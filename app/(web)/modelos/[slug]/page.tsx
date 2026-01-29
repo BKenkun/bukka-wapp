@@ -495,6 +495,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   slug={video.slug}
                   videoId={video.id}
                   variant="below"
+                  publishedAt={video.releaseDate || undefined}
                 />
               ))}
             </div>

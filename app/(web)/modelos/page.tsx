@@ -100,6 +100,15 @@ export default async function ModelosPage({
         profileImage: true,
         User: { select: { isVerified: true } },
         _count: { select: { VideoPerformer: true } },
+        VideoPerformer: {
+          select: {
+            video: {
+              select: {
+                viewCount: true,
+              },
+            },
+          },
+        },
       },
     }),
     prisma.performer.count({ where: prismaWhere }),
@@ -114,6 +123,7 @@ export default async function ModelosPage({
     name: p.name,
     imageUrl: p.profileImage || "/woman-in-black-bikini-on-beach.jpg",
     videoCount: p._count.VideoPerformer,
+    totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
     verified: true, // All performers are verified by default
   }))
 

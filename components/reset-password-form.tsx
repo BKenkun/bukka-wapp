@@ -45,7 +45,7 @@ export function ResetPasswordForm({
             <Button className="w-full">Solicitar nuevo enlace</Button>
           </a>
           <a
-            href="/login"
+            href="/?login=true"
             className="text-sm text-center underline underline-offset-4 text-white hover:text-white/80"
           >
             Volver a iniciar sesión
@@ -115,7 +115,7 @@ export function ResetPasswordForm({
           </p>
         </div>
         <div className="flex flex-col gap-2">
-          <a href="/login">
+          <a href="/?login=true">
             <Button className="w-full">Iniciar sesión</Button>
           </a>
         </div>
@@ -173,7 +173,7 @@ export function ResetPasswordForm({
           </Button>
           <FieldDescription className="text-center">
             ¿Recordaste tu contraseña?{" "}
-            <a href="/login" className="underline underline-offset-4 text-white hover:text-white">
+            <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
               Inicia sesión
             </a>
           </FieldDescription>

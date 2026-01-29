@@ -26,6 +26,7 @@ interface Video {
   isVerified?: boolean
   category?: string
   performers?: VideoPerformer[]
+  publishedAt?: Date | string
 }
 
 interface Category {
@@ -258,6 +259,7 @@ export function VideosPageClient({
                     variant="below"
                     category={video.category}
                     performers={video.performers}
+                    publishedAt={video.publishedAt}
                   />
                 ))}
               </div>

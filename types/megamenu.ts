@@ -6,6 +6,7 @@ export interface MegamenuLink {
   url?: string
   pageId?: string
   categoryId?: string
+  systemCollectionSlug?: string
   openInNewTab: boolean
 }
 
@@ -25,6 +26,8 @@ export interface MegamenuPerformer {
   slug: string
   name: string
   profileImage: string | null
+  videoCount?: number
+  totalViews?: number
 }
 
 export interface MegamenuVideo {

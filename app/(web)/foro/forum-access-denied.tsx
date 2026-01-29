@@ -61,12 +61,12 @@ export function ForumAccessDenied({ isLoggedIn, currentPlanName }: ForumAccessDe
                 Inicia sesión o regístrate para acceder al foro.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-                <Link href="/login" className="w-full sm:w-auto">
+                <Link href="/?login=true" className="w-full sm:w-auto">
                   <button className="w-full sm:w-auto bg-[#00B1DE] text-white px-6 md:px-8 py-2.5 md:py-3 font-montserrat text-[14px] md:text-[16px] font-medium hover:bg-[#00B1DE]/90 transition-colors cursor-pointer">
                     Iniciar Sesión
                   </button>
                 </Link>
-                <Link href="/registro" className="w-full sm:w-auto">
+                <Link href="/?register=true" className="w-full sm:w-auto">
                   <button className="w-full sm:w-auto border border-white/30 text-white px-6 md:px-8 py-2.5 md:py-3 font-montserrat text-[14px] md:text-[16px] font-medium hover:bg-white/10 transition-colors cursor-pointer">
                     Registrarse
                   </button>

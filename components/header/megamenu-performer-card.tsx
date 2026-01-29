@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import type { MegamenuPerformer } from "@/types/megamenu"
 
@@ -8,15 +7,24 @@ interface MegamenuPerformerCardProps {
   performer: MegamenuPerformer
 }
 
-export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps) {
-  const [isHovering, setIsHovering] = useState(false)
+function formatViews(views: number): string {
+  if (views >= 1000000000) {
+    return `${(views / 1000000000).toFixed(1)}B`
+  }
+  if (views >= 1000000) {
+    return `${(views / 1000000).toFixed(1)}M`
+  }
+  if (views >= 1000) {
+    return `${(views / 1000).toFixed(0)}K`
+  }
+  return views.toString()
+}
 
+export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps) {
   return (
     <Link
       href={`/modelos/${performer.slug}`}
       className="group block cursor-pointer"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
     >
       {/* Vertical image container */}
       <div className="relative aspect-[3/4] overflow-hidden bg-zinc-800">
@@ -34,19 +42,33 @@ export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps)
           </div>
         )}
 
-        {/* Hover overlay with "Ver" button */}
-        <div className={`absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity duration-200 ${isHovering ? 'opacity-100' : 'opacity-0'}`}>
-          <span className="px-4 py-2 bg-[#FA4860] text-white text-sm font-bold uppercase tracking-wide">
-            Ver
-          </span>
-        </div>
-      </div>
+        {/* Default gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-      {/* Name below */}
-      <div className="mt-2 text-center">
-        <span className="text-white text-sm font-medium group-hover:text-[#FA4860] transition-colors">
-          {performer.name}
-        </span>
+        {/* Hover overlay with "VER" - same as home page */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <span className="text-white font-montserrat font-bold text-xl tracking-wider">VER</span>
+        </div>
+
+        {/* Name at bottom */}
+        <div className="absolute bottom-3 left-3 z-10">
+          <span className="text-white text-sm font-medium group-hover:text-white transition-colors">
+            {performer.name}
+          </span>
+          {(performer.videoCount !== undefined || performer.totalViews !== undefined) && (
+            <div className="flex items-center gap-1.5 mt-0.5 text-white/60 text-xs">
+              {performer.videoCount !== undefined && (
+                <span>{performer.videoCount} {performer.videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+              )}
+              {performer.videoCount !== undefined && performer.totalViews !== undefined && (
+                <span className="text-white/40">·</span>
+              )}
+              {performer.totalViews !== undefined && (
+                <span>{formatViews(performer.totalViews)} Visitas</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Link>
   )

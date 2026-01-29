@@ -91,6 +91,7 @@ export default async function VideosPage({
         muxPlaybackId: true,
         viewCount: true,
         likeCount: true,
+        releaseDate: true,
         performers: {
           include: {
             performer: {
@@ -161,6 +162,7 @@ export default async function VideosPage({
         isVerified: true,
         category: video.categories[0]?.category.name,
         performers: video.performers.map((p) => ({ name: p.performer.name, slug: p.performer.slug })),
+        publishedAt: video.releaseDate,
       }
     })
   )

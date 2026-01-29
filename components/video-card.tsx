@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Eye, Lock } from "lucide-react"
+import { Eye, Lock, Calendar } from "lucide-react"
 import { useState, useRef } from "react"
 import { useSubscription } from "@/hooks/use-subscription"
 
@@ -18,6 +18,19 @@ function PlayIcon({ className }: { className?: string }) {
       <path d="M8 5v14l11-7z" />
     </svg>
   )
+}
+
+// Format date to Spanish format "13 de noviembre de 2025"
+function formatPublishDate(date: Date | string): string {
+  const d = new Date(date)
+  const months = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ]
+  const day = d.getDate()
+  const month = months[d.getMonth()]
+  const year = d.getFullYear()
+  return `${day} de ${month} de ${year}`
 }
 
 interface Performer {
@@ -40,6 +53,7 @@ interface VideoCardProps {
   videoId?: string
   category?: string
   performers?: Performer[]
+  publishedAt?: Date | string
 }
 
 export function VideoCard({
@@ -57,6 +71,7 @@ export function VideoCard({
   videoId,
   category,
   performers = [],
+  publishedAt,
 }: VideoCardProps) {
   const router = useRouter()
   const [isHovering, setIsHovering] = useState(false)
@@ -131,7 +146,7 @@ export function VideoCard({
           : "Los visitantes pueden ver 3 trailers. Regístrate para ver más."}
       </p>
       <Link
-        href={isAuthenticated ? "/suscripciones" : "/registro"}
+        href={isAuthenticated ? "/suscripciones" : "/?register=true"}
         className="bg-[#FA4860] text-white px-6 py-2 text-sm font-medium hover:bg-[#FA4860]/80 transition-colors"
       >
         {isAuthenticated ? "Ver Suscripciones" : "Registrarse Gratis"}
@@ -226,10 +241,18 @@ export function VideoCard({
           {/* Title */}
           <h3 className="text-white font-bold text-lg leading-tight mb-1 line-clamp-1">{title}</h3>
 
-          {/* Views */}
-          <div className="flex items-center gap-1.5 text-white/60 text-sm">
-            <Eye className="w-4 h-4" />
-            <span>{views}</span>
+          {/* Views and Date */}
+          <div className="flex items-center gap-3 text-white/60 text-sm">
+            <div className="flex items-center gap-1.5">
+              <Eye className="w-4 h-4" />
+              <span>{views}</span>
+            </div>
+            {publishedAt && (
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                <span>{formatPublishDate(publishedAt)}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -304,10 +327,18 @@ export function VideoCard({
           {/* Title */}
           <h3 className="text-white font-bold text-lg leading-tight mb-2">{title}</h3>
 
-          {/* Views */}
-          <div className="flex items-center gap-1.5 text-white text-sm">
-            <Eye className="w-4 h-4" />
-            <span>{views}</span>
+          {/* Views and Date */}
+          <div className="flex items-center gap-3 text-white text-sm">
+            <div className="flex items-center gap-1.5">
+              <Eye className="w-4 h-4" />
+              <span>{views}</span>
+            </div>
+            {publishedAt && (
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                <span>{formatPublishDate(publishedAt)}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

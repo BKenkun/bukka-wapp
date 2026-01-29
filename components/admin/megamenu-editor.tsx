@@ -47,6 +47,12 @@ interface Page {
   slug: string
 }
 
+interface SystemCollection {
+  type: string
+  slug: string
+  name: string
+}
+
 interface MegamenuConfig {
   id?: string
   featuredPerformerIds: string[]
@@ -81,6 +87,17 @@ export function MegamenuEditor({
   onSave,
 }: MegamenuEditorProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [systemCollections, setSystemCollections] = React.useState<SystemCollection[]>([])
+
+  // Fetch system collections when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      fetch("/api/system-collections")
+        .then((res) => res.json())
+        .then((data) => setSystemCollections(data))
+        .catch(() => setSystemCollections([]))
+    }
+  }, [open])
   const [config, setConfig] = React.useState<MegamenuConfig>({
     featuredPerformerIds: initialConfig?.featuredPerformerIds || [],
     videoSource: initialConfig?.videoSource || "MANUAL",
@@ -258,6 +275,7 @@ export function MegamenuEditor({
               onChange={(links) => setConfig((prev) => ({ ...prev, links }))}
               pages={pages}
               categories={videoCategories}
+              systemCollections={systemCollections}
             />
           </TabsContent>
         </Tabs>

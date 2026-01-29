@@ -20,6 +20,7 @@ import { SearchModal } from "@/components/search/search-modal"
 export function HeaderActions() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [loginModalView, setLoginModalView] = useState<"login" | "register" | "forgot-password">("login")
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -27,19 +28,47 @@ export function HeaderActions() {
   useEffect(() => {
     const registered = searchParams.get("registered")
     const login = searchParams.get("login")
+    const register = searchParams.get("register")
+    const forgotPassword = searchParams.get("forgot-password")
+    const verified = searchParams.get("verified")
+    const error = searchParams.get("error")
 
     if (registered === "true") {
       toast.success("¡Cuenta creada correctamente!", {
         description: "Por favor revisa tu email para verificar tu cuenta.",
         duration: 5000,
       })
-      // Remove the query param from URL
       router.replace("/", { scroll: false })
     }
 
+    if (verified === "true") {
+      toast.success("¡Email verificado correctamente!", {
+        description: "Ya puedes iniciar sesión.",
+        duration: 5000,
+      })
+    }
+
+    if (error) {
+      toast.error(decodeURIComponent(error), {
+        duration: 5000,
+      })
+    }
+
     if (login === "true") {
+      setLoginModalView("login")
       setIsLoginModalOpen(true)
-      // Remove the query param from URL
+      router.replace("/", { scroll: false })
+    }
+
+    if (register === "true") {
+      setLoginModalView("register")
+      setIsLoginModalOpen(true)
+      router.replace("/", { scroll: false })
+    }
+
+    if (forgotPassword === "true") {
+      setLoginModalView("forgot-password")
+      setIsLoginModalOpen(true)
       router.replace("/", { scroll: false })
     }
   }, [searchParams, router])
@@ -109,7 +138,7 @@ export function HeaderActions() {
           </button>
         )}
 
-        <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
+        <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} defaultView={loginModalView} />
 
         <CartButton />
       </div>

@@ -30,6 +30,7 @@ interface Performer {
   name: string
   profileImage: string | null
   videoCount: number
+  totalViews?: number
 }
 
 interface TrendingPerformer {
@@ -38,6 +39,21 @@ interface TrendingPerformer {
   name: string
   profileImage: string | null
   followersCount: number
+  videoCount?: number
+  totalViews?: number
+}
+
+function formatViews(views: number): string {
+  if (views >= 1000000000) {
+    return `${(views / 1000000000).toFixed(1)}B`
+  }
+  if (views >= 1000000) {
+    return `${(views / 1000000).toFixed(1)}M`
+  }
+  if (views >= 1000) {
+    return `${(views / 1000).toFixed(0)}K`
+  }
+  return views.toString()
 }
 
 interface SearchResults {
@@ -299,7 +315,20 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           </div>
                         )}
                       </div>
-                      <span className="text-white text-sm font-medium">{performer.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium">{performer.name}</p>
+                        {(performer.videoCount !== undefined || performer.totalViews !== undefined) && (
+                          <p className="text-zinc-500 text-xs">
+                            {performer.videoCount !== undefined && (
+                              <span>{performer.videoCount} {performer.videoCount === 1 ? "vídeo" : "vídeos"}</span>
+                            )}
+                            {performer.videoCount !== undefined && performer.totalViews !== undefined && " · "}
+                            {performer.totalViews !== undefined && (
+                              <span>{formatViews(performer.totalViews)} visitas</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -513,7 +542,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm font-medium truncate">{performer.name}</p>
                           <p className="text-zinc-500 text-xs">
-                            {performer.videoCount} {performer.videoCount === 1 ? "video" : "videos"}
+                            {performer.videoCount} {performer.videoCount === 1 ? "vídeo" : "vídeos"}
+                            {performer.totalViews !== undefined && ` · ${formatViews(performer.totalViews)} visitas`}
                           </p>
                         </div>
                       </Link>

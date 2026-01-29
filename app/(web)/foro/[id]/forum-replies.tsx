@@ -548,7 +548,7 @@ export function ForumReplies({
         </div>
         {!userId && (
           <p className="text-white/40 text-xs mt-2 font-montserrat">
-            <Link href="/admin/login" className="text-[#00B1DE] hover:underline">Inicia sesión</Link> para dar like y participar
+            <Link href="/?login=true" className="text-[#00B1DE] hover:underline">Inicia sesión</Link> para dar like y participar
           </p>
         )}
       </div>
