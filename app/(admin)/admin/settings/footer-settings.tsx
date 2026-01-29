@@ -32,6 +32,7 @@ interface Page {
   id: string
   title: string
   slug: string
+  status?: string
 }
 
 interface FooterSettingsData {
@@ -113,7 +114,7 @@ export function FooterSettings() {
       // Load settings and pages in parallel
       const [settingsResponse, pagesResponse] = await Promise.all([
         fetch("/api/admin/settings/footer"),
-        fetch("/api/admin/pages?status=PUBLISHED"),
+        fetch("/api/admin/pages"),
       ])
 
       if (settingsResponse.ok) {
@@ -154,7 +155,15 @@ export function FooterSettings() {
 
       if (pagesResponse.ok) {
         const pagesData = await pagesResponse.json()
-        setPages(pagesData.pages || [])
+        console.log("Pages API response:", pagesData)
+        // API returns array directly, filter published pages
+        const publishedPages = Array.isArray(pagesData)
+          ? pagesData.filter((p: Page) => p.status === "PUBLISHED")
+          : []
+        console.log("Published pages:", publishedPages)
+        setPages(publishedPages)
+      } else {
+        console.error("Pages API error:", pagesResponse.status, await pagesResponse.text())
       }
     } catch (error) {
       console.error("Error loading footer settings:", error)
@@ -471,6 +480,9 @@ export function FooterSettings() {
 
             <div className="space-y-2">
               <Label>Tipo de enlace</Label>
+              <p className="text-xs text-muted-foreground">
+                (Debug: {pages.length} páginas cargadas)
+              </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
@@ -510,7 +522,9 @@ export function FooterSettings() {
             ) : (
               <div className="space-y-2">
                 <Label>Página</Label>
-                {pages.length > 0 ? (
+                {isLoading ? (
+                  <p className="text-sm text-muted-foreground">Cargando páginas...</p>
+                ) : pages.length > 0 ? (
                   <select
                     className="w-full px-3 py-2 border rounded-md bg-background"
                     value={privacyLinkPageId || ""}
@@ -525,7 +539,7 @@ export function FooterSettings() {
                   </select>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No hay páginas publicadas disponibles
+                    No hay páginas publicadas disponibles (verifica que tengas páginas con estado PUBLISHED)
                   </p>
                 )}
               </div>
