@@ -406,8 +406,11 @@ export async function Footer() {
   // Resolver la URL del enlace de privacidad
   let privacyLinkUrl = footerSettings.newsletter.privacyLinkUrl
   if (footerSettings.newsletter.privacyLinkPageId) {
-    const privacyPage = await prisma.page.findUnique({
-      where: { id: footerSettings.newsletter.privacyLinkPageId, status: "PUBLISHED" },
+    const privacyPage = await prisma.page.findFirst({
+      where: {
+        id: footerSettings.newsletter.privacyLinkPageId,
+        status: "PUBLISHED"
+      },
       select: { slug: true },
     })
     if (privacyPage) {
