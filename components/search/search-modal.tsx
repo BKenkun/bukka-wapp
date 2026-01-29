@@ -337,9 +337,11 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                             <Play className="w-5 h-5 text-zinc-600" />
                           </div>
                         )}
-                        <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium rounded">
-                          {formatDuration(video.duration)}
-                        </div>
+                        {video.duration > 0 && (
+                          <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium rounded">
+                            {formatDuration(video.duration)}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium truncate">{video.title}</p>
@@ -449,9 +451,11 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                               <Play className="w-5 h-5 text-zinc-600" />
                             </div>
                           )}
-                          <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium">
-                            {formatDuration(video.duration)}
-                          </div>
+                          {video.duration > 0 && (
+                            <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium">
+                              {formatDuration(video.duration)}
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm font-medium truncate">{video.title}</p>
