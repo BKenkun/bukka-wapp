@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { auth } from "@/auth"
 import { getHeaderMenu } from "@/lib/get-header-menu"
+import { getGuestMenu } from "@/lib/get-guest-menu"
 import { HeaderLogo } from "./header-logo"
 import { HeaderNav } from "./header-nav"
 import { HeaderActions } from "./header-actions"
@@ -18,7 +19,10 @@ function HeaderActionsFallback() {
 export async function Header() {
   const session = await auth()
   const userTierLevel = session?.user?.SubscriptionPlan?.level ?? null
-  const links = await getHeaderMenu({ userTierLevel })
+  const [links, guestMenu] = await Promise.all([
+    getHeaderMenu({ userTierLevel }),
+    getGuestMenu(),
+  ])
 
   return (
     <header className="sticky top-0 z-50 bg-black">
@@ -37,7 +41,7 @@ export async function Header() {
         {/* Actions */}
         <div className="flex-shrink-0">
           <Suspense fallback={<HeaderActionsFallback />}>
-            <HeaderActions />
+            <HeaderActions guestMenu={guestMenu} />
           </Suspense>
         </div>
       </div>

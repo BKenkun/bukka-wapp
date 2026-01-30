@@ -26,6 +26,12 @@ const SYSTEM_MENUS = [
     location: "Header",
   },
   {
+    slug: "header-guest",
+    name: "Menú Invitado (Header)",
+    description: "Dropdown que aparece al pasar el ratón sobre el icono de usuario cuando no está logueado",
+    location: "Header",
+  },
+  {
     slug: "footer-col-1",
     name: "Footer - Columna 1 (Servicios)",
     description: "Enlaces de servicios: Cursos, Tienda, Blog, etc.",
@@ -209,6 +215,9 @@ export default async function AdminMenusPage() {
           </p>
           <p>
             <strong>Menú Usuario:</strong> Los enlaces que aparecen en el dropdown del usuario logueado.
+          </p>
+          <p>
+            <strong>Menú Invitado:</strong> El dropdown que aparece al pasar el ratón sobre el icono de usuario cuando no está logueado. Incluye iconos destacados arriba (Registrarse, Iniciar Sesión) y enlaces normales abajo.
           </p>
           <p>
             <strong>Footer Columnas:</strong> Cada columna puede tener un título y enlaces personalizado.

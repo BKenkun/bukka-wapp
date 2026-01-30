@@ -37,6 +37,14 @@ import {
   IconInfoCircle,
   IconQuestionMark,
   IconLayoutGrid,
+  IconUserPlus,
+  IconUser,
+  IconThumbUp,
+  IconUpload,
+  IconWorld,
+  IconMapPin,
+  IconRss,
+  IconLogin,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -85,6 +93,15 @@ const AVAILABLE_ICONS = [
   { name: "IconMail", label: "Email", icon: IconMail },
   { name: "IconPhone", label: "Teléfono", icon: IconPhone },
   { name: "IconExternalLink", label: "Enlace externo", icon: IconExternalLink },
+  // Usuarios y autenticación
+  { name: "IconUserPlus", label: "Registrarse", icon: IconUserPlus },
+  { name: "IconUser", label: "Usuario", icon: IconUser },
+  { name: "IconLogin", label: "Iniciar sesión", icon: IconLogin },
+  { name: "IconThumbUp", label: "Me gusta", icon: IconThumbUp },
+  { name: "IconUpload", label: "Subir", icon: IconUpload },
+  { name: "IconWorld", label: "Idioma", icon: IconWorld },
+  { name: "IconMapPin", label: "Ubicación", icon: IconMapPin },
+  { name: "IconRss", label: "RSS/Feed", icon: IconRss },
   // Redes sociales
   { name: "IconBrandTwitter", label: "Twitter/X", icon: IconBrandTwitter },
   { name: "IconBrandInstagram", label: "Instagram", icon: IconBrandInstagram },

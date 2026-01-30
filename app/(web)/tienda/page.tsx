@@ -7,7 +7,6 @@ import { getShopSettings } from "@/lib/get-shop-settings"
 interface SearchParams {
   page?: string
   sort?: string
-  category?: string
 }
 
 interface ShopCategory {
@@ -27,13 +26,13 @@ export default async function TiendaPage({
   const pageSize = 12
   const skip = (page - 1) * pageSize
 
-  // Determinar ordenación
+  // Sort option
   const sortOption = params.sort || "newest"
   let orderBy: Record<string, string> = { createdAt: "desc" }
 
   switch (sortOption) {
     case "popular":
-      orderBy = { createdAt: "desc" } // TODO: añadir campo de popularidad/ventas
+      orderBy = { createdAt: "desc" }
       break
     case "price_asc":
       orderBy = { price: "asc" }
@@ -41,32 +40,15 @@ export default async function TiendaPage({
     case "price_desc":
       orderBy = { price: "desc" }
       break
-    case "name":
-      orderBy = { name: "asc" }
-      break
     case "newest":
     default:
       orderBy = { createdAt: "desc" }
   }
 
-  // Filtro por categoría
-  const categorySlug = params.category
-  const whereClause: Record<string, unknown> = {
-    status: "ACTIVE",
-  }
-
-  if (categorySlug) {
-    whereClause.ProductToCategory = {
-      some: {
-        category: { slug: categorySlug },
-      },
-    }
-  }
-
-  // Fetch productos, categorías y configuración en paralelo
-  const [productsRaw, totalCount, allCategories, selectedCategory, shopSettings] = await Promise.all([
+  // Fetch products, categories and settings
+  const [productsRaw, totalCount, categories, shopSettings] = await Promise.all([
     prisma.product.findMany({
-      where: whereClause,
+      where: { status: "ACTIVE" },
       skip,
       take: pageSize,
       orderBy,
@@ -84,25 +66,16 @@ export default async function TiendaPage({
         },
       },
     }),
-    prisma.product.count({ where: whereClause }),
+    prisma.product.count({ where: { status: "ACTIVE" } }),
     prisma.shopCategory.findMany({
       where: { parentId: null },
       orderBy: { order: "asc" },
       select: { id: true, slug: true, name: true, imageUrl: true },
     }),
-    categorySlug
-      ? prisma.shopCategory.findUnique({
-          where: { slug: categorySlug },
-          select: { name: true },
-        })
-      : null,
     getShopSettings(),
   ])
 
-  // Use all categories directly (managed in /admin/shop-categories)
-  const categories = allCategories
-
-  // Transform products to calculate correct stock for variable products
+  // Transform products
   const products = productsRaw.map((p) => {
     const effectiveStock = p.productType === "VARIABLE"
       ? p.variants.reduce((sum, v) => sum + v.stock, 0)
@@ -116,12 +89,10 @@ export default async function TiendaPage({
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
-  // Construir URL base para paginación
   const buildUrl = (newPage: number) => {
     const urlParams = new URLSearchParams()
     urlParams.set("page", newPage.toString())
     if (sortOption !== "newest") urlParams.set("sort", sortOption)
-    if (categorySlug) urlParams.set("category", categorySlug)
     return `/tienda?${urlParams.toString()}`
   }
 
@@ -129,15 +100,6 @@ export default async function TiendaPage({
     const urlParams = new URLSearchParams()
     urlParams.set("sort", sort)
     urlParams.set("page", "1")
-    if (categorySlug) urlParams.set("category", categorySlug)
-    return `/tienda?${urlParams.toString()}`
-  }
-
-  const buildCategoryUrl = (catSlug: string | null) => {
-    const urlParams = new URLSearchParams()
-    urlParams.set("page", "1")
-    if (sortOption !== "newest") urlParams.set("sort", sortOption)
-    if (catSlug) urlParams.set("category", catSlug)
     return `/tienda?${urlParams.toString()}`
   }
 
@@ -161,12 +123,10 @@ export default async function TiendaPage({
         {/* 2. Title + Description */}
         <div className="text-center mb-8">
           <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-white mb-3">
-            {selectedCategory ? selectedCategory.name : "Tienda"}
+            Tienda
           </h1>
           <p className="text-white/80 font-montserrat text-base max-w-2xl mx-auto">
-            {selectedCategory
-              ? `Productos de la categoría ${selectedCategory.name}`
-              : "Descubre nuestra colección exclusiva de productos"}
+            Descubre nuestra colección exclusiva de productos
           </p>
         </div>
 
@@ -177,10 +137,8 @@ export default async function TiendaPage({
               {categories.filter(c => c.imageUrl).map((cat) => (
                 <Link
                   key={cat.id}
-                  href={buildCategoryUrl(cat.slug)}
-                  className={`group relative aspect-[4/3] overflow-hidden ${
-                    categorySlug === cat.slug ? "ring-2 ring-[#FA4860]" : ""
-                  }`}
+                  href={`/tienda/categoria/${cat.slug}`}
+                  className="group relative aspect-[4/3] overflow-hidden"
                 >
                   <Image
                     src={cat.imageUrl!}
@@ -271,13 +229,13 @@ export default async function TiendaPage({
           </div>
         )}
 
-        {/* Paginación */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mb-8">
             {page > 1 && (
               <Link
                 href={buildUrl(page - 1)}
-                className="px-4 py-2 bg-[#00B1DE] text-white font-montserrat text-sm"
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
               >
                 Anterior
               </Link>
@@ -303,7 +261,7 @@ export default async function TiendaPage({
                     className={`px-3 py-2 font-montserrat text-sm ${
                       page === pageNum
                         ? "bg-[#FA4860] text-white"
-                        : "bg-gray-800 text-white hover:bg-gray-700"
+                        : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
                   >
                     {pageNum}
@@ -315,7 +273,7 @@ export default async function TiendaPage({
             {page < totalPages && (
               <Link
                 href={buildUrl(page + 1)}
-                className="px-4 py-2 bg-[#00B1DE] text-white font-montserrat text-sm"
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
               >
                 Siguiente
               </Link>
