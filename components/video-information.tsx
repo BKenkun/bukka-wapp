@@ -94,7 +94,7 @@ export function VideoInformation({ description, performers, tags, director, rele
               {categories.map((category, index) => (
                 <span key={category.id}>
                   <Link
-                    href={`/categorias/${category.slug}`}
+                    href={`/videos/${category.slug}`}
                     className="hover:text-[#FA4860] transition-colors"
                   >
                     {category.name}
