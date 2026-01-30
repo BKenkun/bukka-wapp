@@ -498,7 +498,7 @@ export function VideosDataTable({
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     >
-                      {column.id === "title" ? "Video" : column.id}
+                      {column.id === "title" ? "Vídeo" : column.id}
                     </DropdownMenuCheckboxItem>
                   )
                 })}

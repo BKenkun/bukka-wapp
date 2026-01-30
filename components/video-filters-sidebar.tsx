@@ -276,7 +276,7 @@ export function VideoFiltersSidebar({
         onClick={clearFilters}
         className="w-full bg-[#FA4860] text-white py-4 font-bold text-sm tracking-wide hover:bg-[#fa4860]/90 transition-colors"
       >
-        LIMPIAR TODOS LOS FILTROS
+        Borrar todos los filtros
       </button>
     </aside>
   )

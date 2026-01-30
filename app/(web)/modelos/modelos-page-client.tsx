@@ -127,7 +127,7 @@ export function ModelosPageClient({
                     className="bg-gray-700 hover:bg-gray-600 text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 transition-colors"
                   >
                     <X size={14} />
-                    Limpiar filtros
+                    Borrar todos los filtros
                   </button>
                 )}
               </div>
@@ -191,7 +191,7 @@ export function ModelosPageClient({
                   onClick={clearFilters}
                   className="w-full bg-[#FA4860] text-white py-4 font-bold text-sm tracking-wide hover:bg-[#fa4860]/90 transition-colors"
                 >
-                  LIMPIAR TODOS LOS FILTROS
+                  Borrar todos los filtros
                 </button>
               </aside>
             )}
@@ -207,7 +207,7 @@ export function ModelosPageClient({
                       onClick={clearFilters}
                       className="mt-4 text-[#00B1DE] hover:underline"
                     >
-                      Limpiar filtros y ver todas
+                      Borrar todos los filtros
                     </button>
                   )}
                 </div>

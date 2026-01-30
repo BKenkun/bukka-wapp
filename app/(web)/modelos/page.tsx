@@ -98,7 +98,7 @@ export default async function ModelosPage({
         slug: true,
         name: true,
         profileImage: true,
-        User: { select: { isVerified: true } },
+        verified: true,
         _count: { select: { VideoPerformer: true } },
         VideoPerformer: {
           select: {
@@ -124,7 +124,7 @@ export default async function ModelosPage({
     imageUrl: p.profileImage || "/woman-in-black-bikini-on-beach.jpg",
     videoCount: p._count.VideoPerformer,
     totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
-    verified: true, // All performers are verified by default
+    verified: p.verified,
   }))
 
   return (

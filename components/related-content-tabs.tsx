@@ -151,7 +151,7 @@ export function RelatedContentTabs({
             lineHeight: "48px",
           }}
         >
-          Videos relacionados
+          Vídeos relacionados
         </button>
         <button
           onClick={() => setActiveTab("comments")}
@@ -173,11 +173,11 @@ export function RelatedContentTabs({
         {activeTab === "videos" && (
           <div>
             {loadingVideos ? (
-              <div className="text-white text-center py-8">Cargando videos...</div>
+              <div className="text-white text-center py-8">Cargando vídeos...</div>
             ) : relatedVideos.length > 0 ? (
               <VideoGrid videos={relatedVideos} />
             ) : (
-              <div className="text-white/60 text-center py-8">No hay videos relacionados</div>
+              <div className="text-white/60 text-center py-8">No hay vídeos relacionados</div>
             )}
           </div>
         )}

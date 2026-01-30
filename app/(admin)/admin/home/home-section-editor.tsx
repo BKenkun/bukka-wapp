@@ -247,9 +247,9 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {config.source === "popular_weekly" && "Videos más vistos en los últimos 7 días"}
-                  {config.source === "trending" && "Videos con mayor crecimiento de vistas reciente"}
-                  {config.source === "tag" && "Videos que tengan el tag seleccionado"}
+                  {config.source === "popular_weekly" && "Vídeos más vistos en los últimos 7 días"}
+                  {config.source === "trending" && "Vídeos con mayor crecimiento de vistas reciente"}
+                  {config.source === "tag" && "Vídeos que tengan el tag seleccionado"}
                 </p>
               </div>
 

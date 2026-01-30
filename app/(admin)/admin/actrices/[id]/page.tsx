@@ -127,14 +127,14 @@ export default async function EditPerformerPage({ params }: Props) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Cuenta vinculada
+              Estado
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {performer.User ? (
-              <Badge variant="secondary">Verified</Badge>
+            {performer.verified ? (
+              <Badge className="bg-[#00aaff]/10 text-[#00aaff] border-[#00aaff]/20">Verificada</Badge>
             ) : (
-              <Badge variant="outline">Sin vincular</Badge>
+              <Badge variant="outline">No verificada</Badge>
             )}
           </CardContent>
         </Card>

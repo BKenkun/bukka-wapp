@@ -100,6 +100,7 @@ async function hydrateMegamenuData(config: {
           slug: true,
           name: true,
           profileImage: true,
+          verified: true,
           VideoPerformer: {
             select: {
               video: {
@@ -122,6 +123,7 @@ async function hydrateMegamenuData(config: {
     slug: p.slug,
     name: p.name,
     profileImage: p.profileImage,
+    verified: p.verified,
     videoCount: p._count.VideoPerformer,
     totalViews: p.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
   }))

@@ -73,6 +73,7 @@ interface PerformerRow {
   name: string
   bio: string | null
   profileImage: string | null
+  verified: boolean
   createdAt: Date
   _count: {
     VideoPerformer: number
@@ -157,10 +158,10 @@ export function PerformersDataTable({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-medium truncate">{performer.name}</p>
-                {performer.User && (
-                  <Badge variant="secondary" className="text-xs">
+                {performer.verified && (
+                  <Badge variant="secondary" className="text-xs bg-[#00aaff]/10 text-[#00aaff] border-[#00aaff]/20">
                     <IconCheck className="mr-1 size-3" />
-                    Verified
+                    Verificada
                   </Badge>
                 )}
               </div>

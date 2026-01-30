@@ -339,7 +339,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             {trending.videos.length > 0 && (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-white">Videos populares</span>
+                  <span className="text-sm font-semibold text-white">Vídeos populares</span>
                   <Link
                     href="/videos"
                     onClick={() => onOpenChange(false)}
@@ -452,7 +452,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Play className="w-4 h-4 text-[#FA4860]" />
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Videos</span>
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Vídeos</span>
                 </div>
                 <div className="space-y-2">
                   {results.videos.map((video) => {

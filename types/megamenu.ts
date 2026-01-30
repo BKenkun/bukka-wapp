@@ -28,6 +28,7 @@ export interface MegamenuPerformer {
   profileImage: string | null
   videoCount?: number
   totalViews?: number
+  verified?: boolean
 }
 
 export interface MegamenuVideo {

@@ -18,8 +18,8 @@ import { Badge } from "@/components/ui/badge"
 
 const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
-  "/admin/videos": "Videos",
-  "/admin/videos/new": "Nuevo Video",
+  "/admin/videos": "Vídeos",
+  "/admin/videos/new": "Nuevo Vídeo",
   "/admin/actrices": "Actrices",
   "/admin/actrices/new": "Nueva Actriz",
   "/admin/users": "Usuarios",
@@ -28,7 +28,7 @@ const pageTitles: Record<string, string> = {
   "/admin/orders": "Pedidos",
   "/admin/subscriptions": "Suscripciones",
   "/admin/payment-gateways": "Pasarelas de Pago",
-  "/admin/video-categories": "Categorías de Videos",
+  "/admin/video-categories": "Categorías de Vídeos",
   "/admin/shop-categories": "Categorías de Tienda",
   "/admin/banners": "Banners",
   "/admin/blog": "Blog",

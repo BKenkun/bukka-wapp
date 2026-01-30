@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       profileImage,
       coverImage,
       location,
+      verified,
     } = body
 
     // Verificar slug único
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
         profileImage: profileImage || null,
         coverImage: coverImage || null,
         location: location || null,
+        verified: verified ?? false,
       },
     })
 

@@ -143,13 +143,13 @@ export default function FavoritosPage() {
           ) : favorites.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400 mb-4">
-                No tienes {activeTab === "videos" ? "videos" : "actrices"} favoritos todavia
+                No tienes {activeTab === "videos" ? "vídeos" : "actrices"} favoritos todavia
               </p>
               <Link
                 href={activeTab === "videos" ? "/videos" : "/modelos"}
                 className="text-[#FA4860] hover:underline"
               >
-                Explorar {activeTab === "videos" ? "videos" : "modelos"}
+                Explorar {activeTab === "videos" ? "vídeos" : "modelos"}
               </Link>
             </div>
           ) : activeTab === "videos" ? (

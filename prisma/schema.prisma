@@ -386,6 +386,7 @@ model Performer {
   galleryImages    String[]
   location         String?            // e.g. "Los Angeles, California" or "Madrid, España"
   videoCount       Int                @default(0)
+  verified         Boolean            @default(false)
   userId           String?            @unique
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt

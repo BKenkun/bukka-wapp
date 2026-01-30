@@ -76,7 +76,7 @@ import type { VideoSourceType, Prisma } from "@prisma/client"
 // Iconos disponibles para los menús
 const AVAILABLE_ICONS = [
   { name: "IconHome", label: "Inicio", icon: IconHome },
-  { name: "IconVideo", label: "Videos", icon: IconVideo },
+  { name: "IconVideo", label: "Vídeos", icon: IconVideo },
   { name: "IconUsers", label: "Usuarios", icon: IconUsers },
   { name: "IconShoppingBag", label: "Tienda", icon: IconShoppingBag },
   { name: "IconMessage", label: "Mensaje", icon: IconMessage },

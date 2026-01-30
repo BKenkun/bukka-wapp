@@ -701,17 +701,16 @@ export async function Footer() {
           >
             {copyrightText}
           </p>
-          <p
-            className="text-white max-w-4xl mx-auto px-4"
+          <div
+            className="text-white max-w-4xl mx-auto px-4 [&_a]:text-[#FA4860] [&_a]:underline [&_a]:hover:opacity-80 [&_p]:mb-0"
             style={{
               fontFamily: "Montserrat",
               fontSize: "11px",
               fontWeight: 700,
               lineHeight: "28px",
             }}
-          >
-            {footerSettings.disclaimer.text}
-          </p>
+            dangerouslySetInnerHTML={{ __html: footerSettings.disclaimer.text }}
+          />
         </div>
       </div>
     </footer>

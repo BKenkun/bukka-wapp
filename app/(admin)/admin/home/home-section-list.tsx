@@ -36,7 +36,7 @@ interface TypeConfig {
 
 const sectionTypeConfig: Record<string, TypeConfig> = {
   HERO: { label: "Hero", icon: IconPhoto, color: "text-purple-500" },
-  VIDEO_GRID: { label: "Grid de Videos", icon: IconVideo, color: "text-blue-500" },
+  VIDEO_GRID: { label: "Grid de Vídeos", icon: IconVideo, color: "text-blue-500" },
   ACTRESS_GRID: { label: "Grid de Modelos", icon: IconUsers, color: "text-pink-500" },
   CTA_BANNER: { label: "Banner CTA", icon: IconBrandCampaignmonitor, color: "text-orange-500" },
   COUNTDOWN: { label: "Cuenta Atrás", icon: IconClock, color: "text-green-500" },

@@ -42,6 +42,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       profileImage,
       coverImage,
       location,
+      verified,
       galleryPhotos,
     } = body
 
@@ -68,6 +69,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         profileImage: profileImage || null,
         coverImage: coverImage || null,
         location: location || null,
+        verified: verified ?? existingPerformer.verified,
       },
     })
 

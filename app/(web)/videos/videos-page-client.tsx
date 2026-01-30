@@ -113,7 +113,7 @@ export function VideosPageClient({
         {/* Header */}
         <div className="flex flex-col items-start">
           <h2 className="text-white text-center font-montserrat text-[22px] font-bold leading-[48px] mb-[15px]">
-            {categoryTitle || activeFilters.category || "Videos"}
+            {categoryTitle || activeFilters.category || "Vídeos"}
             {(activeFilterCount > 0 || categoryTitle) && (
               <span className="text-[#6B7280] text-[16px] font-normal ml-2">
                 ({totalCount} resultados)
@@ -211,7 +211,7 @@ export function VideosPageClient({
                 onClick={() => router.push(basePath)}
                 className="text-[#6B7280] text-sm hover:text-white underline"
               >
-                Limpiar filtros
+                Borrar todos los filtros
               </button>
             </div>
           )}

@@ -12,6 +12,7 @@ import {
   IconX,
   IconPhoto,
   IconGripVertical,
+  IconRosetteDiscountCheck,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +34,7 @@ const performerSchema = z.object({
   profileImage: z.string().optional(),
   coverImage: z.string().optional(),
   location: z.string().optional(),
+  verified: z.boolean().optional(),
 })
 
 type PerformerFormData = z.infer<typeof performerSchema>
@@ -54,6 +56,7 @@ interface PerformerFormProps {
     profileImage: string | null
     coverImage: string | null
     location: string | null
+    verified: boolean
     PerformerPhoto?: {
       id: string
       imageUrl: string
@@ -201,8 +204,11 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       profileImage: performer?.profileImage || "",
       coverImage: performer?.coverImage || "",
       location: performer?.location || "",
+      verified: performer?.verified ?? false,
     },
   })
+
+  const watchVerified = watch("verified")
 
   const watchName = watch("name")
 
@@ -315,6 +321,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
         ...data,
         profileImage: profileImage || null,
         coverImage: coverImage || null,
+        verified: data.verified ?? false,
         galleryPhotos: galleryPhotos.map((photo, index) => ({
           id: photo.id,
           imageUrl: photo.imageUrl,
@@ -633,6 +640,58 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                   )}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Verified Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconRosetteDiscountCheck className="size-5 text-[#00aaff]" />
+                Estado de Verificación
+              </CardTitle>
+              <CardDescription>Marca la actriz como verificada</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                onClick={() => setValue("verified", !watchVerified)}
+                className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                  watchVerified
+                    ? "border-[#00aaff] bg-[#00aaff]/10"
+                    : "border-muted hover:border-muted-foreground/50"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`size-10 rounded-full flex items-center justify-center ${
+                    watchVerified ? "bg-[#00aaff]" : "bg-muted"
+                  }`}>
+                    <IconRosetteDiscountCheck className={`size-6 ${
+                      watchVerified ? "text-white" : "text-muted-foreground"
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {watchVerified ? "Verificada" : "No verificada"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {watchVerified
+                        ? "Se muestra el badge de verificación"
+                        : "Sin badge de verificación"}
+                    </p>
+                  </div>
+                </div>
+                <div className={`size-6 rounded-full border-2 flex items-center justify-center ${
+                  watchVerified
+                    ? "border-[#00aaff] bg-[#00aaff]"
+                    : "border-muted-foreground/50"
+                }`}>
+                  {watchVerified && (
+                    <svg className="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 

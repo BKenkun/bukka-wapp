@@ -69,7 +69,7 @@ export function Megamenu({ data }: MegamenuProps) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-white font-bold text-sm">Videos destacados</h3>
+          <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {videos.slice(0, 4).map((video) => (
@@ -119,7 +119,7 @@ export function Megamenu({ data }: MegamenuProps) {
           {/* Videos section - takes more space */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Videos destacados</h3>
+              <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {videos.slice(0, 4).map((video) => (
@@ -164,7 +164,7 @@ export function Megamenu({ data }: MegamenuProps) {
           {/* Videos section */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Videos destacados</h3>
+              <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {videos.slice(0, 4).map((video) => (
@@ -194,7 +194,7 @@ export function Megamenu({ data }: MegamenuProps) {
         {/* Videos section */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-bold text-sm">Videos destacados</h3>
+            <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
           </div>
           <div className="grid grid-cols-4 gap-3">
             {videos.slice(0, 4).map((video) => (

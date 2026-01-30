@@ -322,6 +322,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       slug: string
       name: string
       profileImage: string | null
+      verified: boolean
       _count: { VideoPerformer: number }
       VideoPerformer: Array<{ video: { viewCount: number } }>
     }>
@@ -331,6 +332,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       slug: true,
       name: true,
       profileImage: true,
+      verified: true,
       _count: { select: { VideoPerformer: true } },
       VideoPerformer: {
         select: {
@@ -373,7 +375,7 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       imageUrl: performer.profileImage || "/images/placeholder-performer.jpg",
       videoCount: performer._count.VideoPerformer,
       totalViews: performer.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
-      verified: true,
+      verified: performer.verified,
     }))
   } catch (error) {
     console.error("Error fetching performers for section:", error)

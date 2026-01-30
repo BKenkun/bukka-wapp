@@ -189,7 +189,7 @@ export default function TagsPage() {
             <TableRow>
               <TableHead>Nombre</TableHead>
               <TableHead>Slug</TableHead>
-              <TableHead>Videos</TableHead>
+              <TableHead>Vídeos</TableHead>
               <TableHead>Productos</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>

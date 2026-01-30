@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "sonner"
 import { LocalUploadButton } from "@/components/local-upload-button"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 interface SocialLink {
   id: string
@@ -803,17 +804,16 @@ export function FooterSettings() {
           <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="disclaimerText">Texto del Disclaimer / Aviso Legal</Label>
-            <Textarea
-              id="disclaimerText"
-              value={disclaimerText}
-              onChange={(e) => setDisclaimerText(e.target.value)}
+            <Label>Texto del Disclaimer / Aviso Legal</Label>
+            <RichTextEditor
+              content={disclaimerText}
+              onChange={setDisclaimerText}
               placeholder="All performers appearing on this website..."
-              rows={5}
+              className="min-h-[200px]"
             />
             <p className="text-xs text-muted-foreground">
               Este texto aparece al final del footer. Puedes incluir información legal, enlaces a
-              políticas, etc.
+              políticas, etc. Usa el editor para añadir enlaces y formato.
             </p>
           </div>
 
@@ -830,17 +830,16 @@ export function FooterSettings() {
               {copyrightText.replace("{year}", new Date().getFullYear().toString()) ||
                 "© 2026 . All Rights Reserved."}
             </p>
-            <p
-              className="text-white/80"
+            <div
+              className="text-white/80 prose prose-sm prose-invert max-w-none [&_a]:text-[#FA4860] [&_a]:underline"
               style={{
                 fontFamily: "Montserrat",
                 fontSize: "11px",
                 fontWeight: 700,
-                lineHeight: "28px",
+                lineHeight: "20px",
               }}
-            >
-              {disclaimerText || "Texto del disclaimer..."}
-            </p>
+              dangerouslySetInnerHTML={{ __html: disclaimerText || "<p>Texto del disclaimer...</p>" }}
+            />
           </div>
         </CardContent>
       </Card>

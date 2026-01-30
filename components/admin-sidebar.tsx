@@ -79,7 +79,7 @@ const navDashboard: NavItem[] = [
 // Contenido (Videos, Modelos, Blog, Categorías, Tags)
 const navContent: NavItem[] = [
   {
-    title: "Videos",
+    title: "Vídeos",
     url: "/admin/videos",
     icon: IconVideo,
     permission: "videos",

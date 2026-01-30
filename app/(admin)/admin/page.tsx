@@ -93,11 +93,11 @@ export default async function AdminDashboardPage() {
 
   const cards = [
     {
-      title: "Videos Totales",
+      title: "Vídeos Totales",
       value: stats.totalVideos.toLocaleString(),
       change: "+5",
       trend: "up" as const,
-      description: "Videos publicados",
+      description: "Vídeos publicados",
       href: "/admin/videos",
     },
     {

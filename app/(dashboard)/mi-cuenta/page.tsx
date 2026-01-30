@@ -172,7 +172,7 @@ export default async function MiCuentaPage() {
   const stats = [
     {
       id: 1,
-      title: "Videos Vistos",
+      title: "Vídeos Vistos",
       count: watchHistoryCount.toString().padStart(2, "0"),
     },
     {
