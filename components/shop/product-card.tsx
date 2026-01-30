@@ -14,6 +14,7 @@ interface ProductCardProps {
     images: string[]
     stock: number
     trackInventory: boolean
+    productType?: "SIMPLE" | "VARIABLE"
     performers?: {
       name: string
       slug: string
@@ -110,13 +111,31 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Add to Cart Button */}
-        <AddToCartButton
-          productId={product.id}
-          stock={product.stock}
-          trackInventory={product.trackInventory}
-          className="w-full mt-auto"
-        />
+        {/* Add to Cart Button or Select Variants */}
+        {product.productType === "VARIABLE" ? (
+          <Link
+            href={`/tienda/${product.slug}`}
+            className="w-full mt-auto text-white text-center block"
+            style={{
+              fontFamily: "Montserrat",
+              fontSize: "19.756px",
+              fontWeight: 400,
+              lineHeight: "normal",
+              background: "#FA4860",
+              border: "0 solid #E5E7EB",
+              padding: "12px 24px",
+            }}
+          >
+            Seleccionar variantes
+          </Link>
+        ) : (
+          <AddToCartButton
+            productId={product.id}
+            stock={product.stock}
+            trackInventory={product.trackInventory}
+            className="w-full mt-auto"
+          />
+        )}
       </div>
     </div>
   )

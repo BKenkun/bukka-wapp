@@ -266,6 +266,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                   images: product.images,
                   stock: product.stock,
                   trackInventory: product.trackInventory,
+                  productType: product.productType,
                   performers: product.performers.map((pp) => pp.performer),
                 }}
               />

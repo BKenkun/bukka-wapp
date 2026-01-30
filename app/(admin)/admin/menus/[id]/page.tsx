@@ -23,6 +23,10 @@ const SYSTEM_MENUS: Record<string, { name: string; description: string; defaultT
     name: "Menú Usuario (Header)",
     description: "Enlaces del menú de usuario logueado",
   },
+  "header-guest": {
+    name: "Menú Invitado (Header)",
+    description: "Dropdown que aparece al pasar el ratón sobre el icono de usuario cuando no está logueado",
+  },
   "footer-col-1": {
     name: "Footer - Columna 1 (Servicios)",
     description: "Enlaces de servicios: Cursos, Tienda, Blog, etc.",

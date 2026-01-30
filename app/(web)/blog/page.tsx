@@ -1,6 +1,5 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, MessageCircle } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { BlogCategoryFilter } from "./blog-category-filter"
 
@@ -121,37 +120,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                         {featuredPost.excerpt}
                       </p>
                     )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-400 rounded-full overflow-hidden relative">
-                          {featuredPost.user.image && (
-                            <Image
-                              src={featuredPost.user.image}
-                              alt={featuredPost.user.name || ""}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-white text-sm font-medium font-['Montserrat']">
-                            {featuredPost.user.name}
-                          </div>
-                          <div className="text-white text-xs font-['Montserrat']">
-                            {featuredPost.publishedAt && formatDate(featuredPost.publishedAt)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-4 h-4 text-white" />
-                          <span className="text-white text-sm font-['Montserrat']">{featuredPost.likeCount}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle className="w-4 h-4 text-white" />
-                          <span className="text-white text-sm font-['Montserrat']">0</span>
-                        </div>
-                      </div>
+                    <div className="text-white text-sm font-['Montserrat']">
+                      {featuredPost.publishedAt && formatDate(featuredPost.publishedAt)}
                     </div>
                   </div>
                 </div>
@@ -212,35 +182,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                           )}
                         </div>
 
-                        {/* Author and Stats */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 overflow-hidden relative rounded-full bg-gray-600">
-                              {post.user.image && (
-                                <Image
-                                  src={post.user.image}
-                                  alt={post.user.name || ""}
-                                  fill
-                                  className="object-cover"
-                                />
-                              )}
-                            </div>
-                            <span className="text-white text-sm font-medium font-['Montserrat']">
-                              {post.user.name}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1 text-white">
-                              <Heart className="w-4 h-4" />
-                              <span className="text-sm font-['Montserrat']">{post.likeCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-white">
-                              <MessageCircle className="w-4 h-4" />
-                              <span className="text-sm font-['Montserrat']">0</span>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </article>
                   </Link>

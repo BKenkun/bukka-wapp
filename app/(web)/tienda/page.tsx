@@ -218,6 +218,7 @@ export default async function TiendaPage({
                   images: product.images,
                   stock: product.stock,
                   trackInventory: product.trackInventory,
+                  productType: product.productType,
                   performers: product.performers.map((pp) => pp.performer),
                 }}
               />
