@@ -78,7 +78,7 @@ export function VideoInformation({ description, performers, tags, director, rele
           </div>
         )}
 
-        {duration && duration > 0 && (
+        {duration !== null && duration !== undefined && duration > 0 && (
           <div>
             <span className="font-bold text-base leading-6">Duración: </span>
             <span className="font-normal text-base leading-6">{formatDuration(duration)}</span>

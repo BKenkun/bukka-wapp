@@ -400,7 +400,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
               slug: true,
               name: true,
               profileImage: true,
-              User: { select: { isVerified: true } },
+              verified: true,
             },
           },
         },
@@ -573,7 +573,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
     slug: performer.slug,
     name: performer.name,
     imageUrl: performer.profileImage || "/woman-in-black-bikini-on-beach.jpg",
-    verified: performer.User?.isVerified || false,
+    verified: performer.verified || false,
   }))
 
   const sidebarProducts = video.relatedProducts

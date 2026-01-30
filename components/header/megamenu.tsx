@@ -50,16 +50,48 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  // CASE 2: Only links (no videos, no performers)
+  // CASE 2: Only links (no videos, no performers) - 4 balanced columns
   if (hasLinks && !hasVideos && !hasPerformers) {
+    const totalLinks = links.length
+    const basePerColumn = Math.floor(totalLinks / 4)
+    const remainder = totalLinks % 4
+
+    const col1Count = basePerColumn + (remainder >= 1 ? 1 : 0)
+    const col2Count = basePerColumn + (remainder >= 2 ? 1 : 0)
+    const col3Count = basePerColumn + (remainder >= 3 ? 1 : 0)
+
+    const col1 = links.slice(0, col1Count)
+    const col2 = links.slice(col1Count, col1Count + col2Count)
+    const col3 = links.slice(col1Count + col2Count, col1Count + col2Count + col3Count)
+    const col4 = links.slice(col1Count + col2Count + col3Count)
+
     return (
       <div className="w-full px-8 py-6">
-        <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
-        <nav className="flex flex-wrap gap-x-8 gap-y-1">
-          {links.map((link) => (
-            <MegamenuLinkItem key={link.id} link={link} />
-          ))}
-        </nav>
+        {linksSectionTitle && (
+          <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
+        )}
+        <div className="grid grid-cols-4 gap-8">
+          <nav className="space-y-1">
+            {col1.map((link) => (
+              <MegamenuLinkItem key={link.id} link={link} />
+            ))}
+          </nav>
+          <nav className="space-y-1">
+            {col2.map((link) => (
+              <MegamenuLinkItem key={link.id} link={link} />
+            ))}
+          </nav>
+          <nav className="space-y-1">
+            {col3.map((link) => (
+              <MegamenuLinkItem key={link.id} link={link} />
+            ))}
+          </nav>
+          <nav className="space-y-1">
+            {col4.map((link) => (
+              <MegamenuLinkItem key={link.id} link={link} />
+            ))}
+          </nav>
+        </div>
       </div>
     )
   }
