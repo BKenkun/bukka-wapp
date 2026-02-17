@@ -36,13 +36,6 @@ export async function GET() {
           supportEmail: "",
           maintenanceMode: false,
         },
-        discountBanner: {
-          enabled: true,
-          text: "DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%",
-          buttonText: "SUBSCRÍBETE AHORA",
-          buttonUrl: "/registro",
-          backgroundColor: "#00B1DE",
-        },
       })
     }
 
@@ -75,22 +68,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { site, discountBanner } = body
+    const { site } = body
 
     await prisma.siteSettings.upsert({
       where: { key: SETTINGS_KEY },
       create: {
         key: SETTINGS_KEY,
-        value: {
-          site: site || {},
-          discountBanner: discountBanner || {},
-        },
+        value: { site: site || {} },
       },
       update: {
-        value: {
-          site: site || {},
-          discountBanner: discountBanner || {},
-        },
+        value: { site: site || {} },
       },
     })
 

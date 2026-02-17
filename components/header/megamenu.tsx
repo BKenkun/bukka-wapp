@@ -1,24 +1,37 @@
 "use client"
 
 import { useState } from "react"
-import type { MegamenuData } from "@/types/megamenu"
+import type { MegamenuData, MegamenuPerformer, MegamenuProduct } from "@/types/megamenu"
 import { MegamenuPerformerCard } from "./megamenu-performer-card"
+import { MegamenuProductCard } from "./megamenu-product-card"
 import { MegamenuVideoCard } from "./megamenu-video-card"
 import { MegamenuLinkItem } from "./megamenu-link-item"
+
+type FeaturedItem =
+  | { type: "performer"; data: MegamenuPerformer }
+  | { type: "product"; data: MegamenuProduct }
 
 interface MegamenuProps {
   data: MegamenuData
 }
 
 export function Megamenu({ data }: MegamenuProps) {
-  const { performers, videos, links, linksSectionTitle } = data
-  const [currentPerformerIndex, setCurrentPerformerIndex] = useState(0)
+  const { performers, products, videos, links, linksSectionTitle } = data
+  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0)
 
   const hasPerformers = performers.length > 0
+  const hasProducts = (products ?? []).length > 0
+  const hasFeatured = hasPerformers || hasProducts
   const hasVideos = videos.length > 0
   const hasLinks = links.length > 0
 
-  if (!hasPerformers && !hasVideos && !hasLinks) {
+  // Build combined featured items list (performers first, then products)
+  const featuredItems: FeaturedItem[] = [
+    ...performers.map((p): FeaturedItem => ({ type: "performer", data: p })),
+    ...(products ?? []).map((p): FeaturedItem => ({ type: "product", data: p })),
+  ]
+
+  if (!hasFeatured && !hasVideos && !hasLinks) {
     return (
       <div className="w-full px-8 py-8 text-center text-zinc-500">
         <p className="text-sm">Configura el megamenu desde el panel de administración</p>
@@ -26,32 +39,43 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  const nextPerformer = () => {
-    setCurrentPerformerIndex((prev) => (prev + 1) % performers.length)
+  const nextFeatured = () => {
+    setCurrentFeaturedIndex((prev) => (prev + 1) % featuredItems.length)
   }
 
-  const prevPerformer = () => {
-    setCurrentPerformerIndex((prev) => (prev - 1 + performers.length) % performers.length)
+  const prevFeatured = () => {
+    setCurrentFeaturedIndex((prev) => (prev - 1 + featuredItems.length) % featuredItems.length)
   }
 
-  // CASE 1: Only performers (no videos, no links) - show side by side
-  if (hasPerformers && !hasVideos && !hasLinks) {
+  // Determine featured section title
+  const featuredTitle = hasPerformers && hasProducts
+    ? "Destacados"
+    : hasProducts
+      ? "Productos"
+      : "Modelos"
+
+  // CASE 1: Only featured (no videos, no links) - show in grid
+  if (hasFeatured && !hasVideos && !hasLinks) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-white font-bold text-sm">Modelos</h3>
+          <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
         </div>
         <div className="grid grid-cols-4 gap-4 max-w-3xl">
-          {performers.map((performer) => (
-            <MegamenuPerformerCard key={performer.id} performer={performer} />
-          ))}
+          {featuredItems.map((item) =>
+            item.type === "performer" ? (
+              <MegamenuPerformerCard key={item.data.id} performer={item.data} />
+            ) : (
+              <MegamenuProductCard key={item.data.id} product={item.data} />
+            )
+          )}
         </div>
       </div>
     )
   }
 
-  // CASE 2: Only links (no videos, no performers) - 4 balanced columns
-  if (hasLinks && !hasVideos && !hasPerformers) {
+  // CASE 2: Only links (no videos, no featured) - 4 balanced columns
+  if (hasLinks && !hasVideos && !hasFeatured) {
     const totalLinks = links.length
     const basePerColumn = Math.floor(totalLinks / 4)
     const remainder = totalLinks % 4
@@ -68,7 +92,7 @@ export function Megamenu({ data }: MegamenuProps) {
     return (
       <div className="w-full px-8 py-6">
         {linksSectionTitle && (
-          <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
+          <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{linksSectionTitle}</h3>
         )}
         <div className="grid grid-cols-4 gap-8">
           <nav className="space-y-1">
@@ -97,11 +121,11 @@ export function Megamenu({ data }: MegamenuProps) {
   }
 
   // CASE 3: Only videos
-  if (hasVideos && !hasPerformers && !hasLinks) {
+  if (hasVideos && !hasFeatured && !hasLinks) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
+          <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {videos.slice(0, 4).map((video) => (
@@ -112,14 +136,14 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  // CASE 4: Performers + Links (no videos) - links first, then performers side by side
-  if (hasPerformers && hasLinks && !hasVideos) {
+  // CASE 4: Featured + Links (no videos) - links first, then featured in grid
+  if (hasFeatured && hasLinks && !hasVideos) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex gap-8">
           {/* Links section */}
           <div className="w-44 flex-shrink-0">
-            <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
+            <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{linksSectionTitle}</h3>
             <nav className="space-y-1">
               {links.map((link) => (
                 <MegamenuLinkItem key={link.id} link={link} />
@@ -127,15 +151,19 @@ export function Megamenu({ data }: MegamenuProps) {
             </nav>
           </div>
 
-          {/* Performers side by side */}
+          {/* Featured items grid */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Modelos</h3>
+              <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
             </div>
             <div className="grid grid-cols-4 gap-4">
-              {performers.map((performer) => (
-                <MegamenuPerformerCard key={performer.id} performer={performer} />
-              ))}
+              {featuredItems.map((item) =>
+                item.type === "performer" ? (
+                  <MegamenuPerformerCard key={item.data.id} performer={item.data} />
+                ) : (
+                  <MegamenuProductCard key={item.data.id} product={item.data} />
+                )
+              )}
             </div>
           </div>
         </div>
@@ -143,15 +171,15 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  // CASE 5: Performers + Videos (no links) - split in half
-  if (hasPerformers && hasVideos && !hasLinks) {
+  // CASE 5: Featured + Videos (no links)
+  if (hasFeatured && hasVideos && !hasLinks) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex gap-8">
-          {/* Videos section - takes more space */}
+          {/* Videos section */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
+              <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {videos.slice(0, 4).map((video) => (
@@ -160,17 +188,17 @@ export function Megamenu({ data }: MegamenuProps) {
             </div>
           </div>
 
-          {/* Performers carousel */}
+          {/* Featured carousel */}
           <div className="w-48 flex-shrink-0">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Modelos</h3>
+              <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
             </div>
-            <PerformerCarousel
-              performers={performers}
-              currentIndex={currentPerformerIndex}
-              onNext={nextPerformer}
-              onPrev={prevPerformer}
-              onDotClick={setCurrentPerformerIndex}
+            <FeaturedCarousel
+              items={featuredItems}
+              currentIndex={currentFeaturedIndex}
+              onNext={nextFeatured}
+              onPrev={prevFeatured}
+              onDotClick={setCurrentFeaturedIndex}
             />
           </div>
         </div>
@@ -178,14 +206,14 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  // CASE 6: Links + Videos (no performers)
-  if (hasLinks && hasVideos && !hasPerformers) {
+  // CASE 6: Links + Videos (no featured)
+  if (hasLinks && hasVideos && !hasFeatured) {
     return (
       <div className="w-full px-8 py-6">
         <div className="flex gap-8">
           {/* Links section */}
           <div className="w-44 flex-shrink-0">
-            <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
+            <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{linksSectionTitle}</h3>
             <nav className="space-y-1">
               {links.map((link) => (
                 <MegamenuLinkItem key={link.id} link={link} />
@@ -196,7 +224,7 @@ export function Megamenu({ data }: MegamenuProps) {
           {/* Videos section */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
+              <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {videos.slice(0, 4).map((video) => (
@@ -209,13 +237,13 @@ export function Megamenu({ data }: MegamenuProps) {
     )
   }
 
-  // CASE 7: All three - Links, Videos, Performers (carousel)
+  // CASE 7: All three - Links, Videos, Featured (carousel)
   return (
     <div className="w-full px-8 py-6">
       <div className="flex gap-6">
         {/* Links section */}
         <div className="w-44 flex-shrink-0">
-          <h3 className="text-white font-bold text-sm mb-4">{linksSectionTitle}</h3>
+          <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{linksSectionTitle}</h3>
           <nav className="space-y-1">
             {links.map((link) => (
               <MegamenuLinkItem key={link.id} link={link} />
@@ -226,7 +254,7 @@ export function Megamenu({ data }: MegamenuProps) {
         {/* Videos section */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-bold text-sm">Vídeos destacados</h3>
+            <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
           </div>
           <div className="grid grid-cols-4 gap-3">
             {videos.slice(0, 4).map((video) => (
@@ -235,17 +263,17 @@ export function Megamenu({ data }: MegamenuProps) {
           </div>
         </div>
 
-        {/* Performers carousel */}
+        {/* Featured carousel */}
         <div className="w-48 flex-shrink-0">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-bold text-sm">Modelos</h3>
+            <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
           </div>
-          <PerformerCarousel
-            performers={performers}
-            currentIndex={currentPerformerIndex}
-            onNext={nextPerformer}
-            onPrev={prevPerformer}
-            onDotClick={setCurrentPerformerIndex}
+          <FeaturedCarousel
+            items={featuredItems}
+            currentIndex={currentFeaturedIndex}
+            onNext={nextFeatured}
+            onPrev={prevFeatured}
+            onDotClick={setCurrentFeaturedIndex}
           />
         </div>
       </div>
@@ -253,30 +281,32 @@ export function Megamenu({ data }: MegamenuProps) {
   )
 }
 
-// Extracted carousel component for reuse
-function PerformerCarousel({
-  performers,
+// Generic carousel that renders both performer and product cards
+function FeaturedCarousel({
+  items,
   currentIndex,
   onNext,
   onPrev,
   onDotClick,
 }: {
-  performers: MegamenuData["performers"]
+  items: FeaturedItem[]
   currentIndex: number
   onNext: () => void
   onPrev: () => void
   onDotClick: (index: number) => void
 }) {
+  const current = items[currentIndex]
+
   return (
     <div className="relative">
       {/* Navigation arrows */}
-      {performers.length > 1 && (
+      {items.length > 1 && (
         <>
           <button
             onClick={onPrev}
             className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors cursor-pointer"
           >
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -284,28 +314,31 @@ function PerformerCarousel({
             onClick={onNext}
             className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors cursor-pointer"
           >
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </>
       )}
 
-      {/* Performer card */}
+      {/* Card */}
       <div className="overflow-hidden">
-        <MegamenuPerformerCard performer={performers[currentIndex]} />
+        {current.type === "performer" ? (
+          <MegamenuPerformerCard performer={current.data} />
+        ) : (
+          <MegamenuProductCard product={current.data} />
+        )}
       </div>
 
       {/* Dots indicator */}
-      {performers.length > 1 && (
+      {items.length > 1 && (
         <div className="flex justify-center gap-1.5 mt-3">
-          {performers.map((_, index) => (
+          {items.map((_, index) => (
             <button
               key={index}
               onClick={() => onDotClick(index)}
-              className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer ${
-                index === currentIndex ? 'bg-[#FA4860]' : 'bg-zinc-600'
-              }`}
+              className="w-1.5 h-1.5 rounded-full transition-colors cursor-pointer"
+              style={{ backgroundColor: index === currentIndex ? 'var(--brand-color)' : 'var(--text-muted)' }}
             />
           ))}
         </div>

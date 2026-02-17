@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { ModelosPageClient } from "./modelos-page-client"
+import { HomeSectionRenderer } from "@/components/home/home-section-renderer"
 
 interface SearchParams {
   page?: string
@@ -87,7 +88,7 @@ export default async function ModelosPage({
       }
     : {}
 
-  const [performers, totalCount] = await Promise.all([
+  const [performers, totalCount, ctaSection] = await Promise.all([
     prisma.performer.findMany({
       where: prismaWhere,
       skip,
@@ -112,6 +113,10 @@ export default async function ModelosPage({
       },
     }),
     prisma.performer.count({ where: prismaWhere }),
+    prisma.homeSection.findFirst({
+      where: { type: "CTA_BANNER", enabled: true },
+      select: { id: true, type: true, title: true, enabled: true, order: true, config: true },
+    }),
   ])
 
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -128,15 +133,25 @@ export default async function ModelosPage({
   }))
 
   return (
-    <ModelosPageClient
-      actresses={actresses}
-      totalCount={totalCount}
-      currentPage={page}
-      totalPages={totalPages}
-      sortOption={sortOption}
-      letterFilter={letterFilter}
-      skip={skip}
-      pageSize={pageSize}
-    />
+    <>
+      <ModelosPageClient
+        actresses={actresses}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        sortOption={sortOption}
+        letterFilter={letterFilter}
+        skip={skip}
+        pageSize={pageSize}
+      />
+      {ctaSection && (
+        <HomeSectionRenderer
+          section={{
+            ...ctaSection,
+            config: ctaSection.config as Record<string, unknown> | null,
+          }}
+        />
+      )}
+    </>
   )
 }

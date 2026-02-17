@@ -57,14 +57,15 @@ export default async function CmsPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen">
       <div className="container mx-auto px-4 py-12 md:py-16">
         <article className="max-w-4xl mx-auto">
           <header className="mb-12">
             <h1
-              className="text-white font-black text-3xl md:text-4xl lg:text-5xl mb-4"
+              className="font-black text-3xl md:text-4xl lg:text-5xl mb-4"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--text-primary)",
+                fontFamily: "var(--global-font)",
                 fontWeight: 900,
                 lineHeight: 1.2,
               }}
@@ -72,9 +73,10 @@ export default async function CmsPage({ params }: PageProps) {
               {page.title}
             </h1>
             <div
-              className="text-white/60 text-sm"
+              className="text-sm"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--text-muted)",
+                fontFamily: "var(--global-font)",
                 fontWeight: 500,
               }}
             >

@@ -91,6 +91,13 @@ export default async function EditMenuPage({ params }: Props) {
     orderBy: { name: "asc" },
   })
 
+  // Obtener productos para el selector de megamenu
+  const products = await prisma.product.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true, name: true, slug: true, images: true },
+    orderBy: { name: "asc" },
+  })
+
   // Transform menu to properly type megamenuConfig.links
   const transformedMenu = menu ? {
     ...menu,
@@ -137,6 +144,7 @@ export default async function EditMenuPage({ params }: Props) {
         pages={pages}
         subscriptionPlans={subscriptionPlans}
         performers={performers}
+        products={products}
         videoCategories={videoCategories}
       />
     </div>

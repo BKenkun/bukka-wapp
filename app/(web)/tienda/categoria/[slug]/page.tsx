@@ -130,7 +130,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       <div className="w-full mx-auto px-4 md:px-6 pt-6">
         {/* Category Banner */}
         {category.imageUrl && (
@@ -145,11 +145,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-              <h1 className="font-montserrat font-bold text-3xl md:text-5xl text-white">
+              <h1 className="font-bold text-3xl md:text-5xl" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
                 {category.name}
               </h1>
               {category.description && (
-                <p className="text-white/80 font-montserrat text-base md:text-lg mt-2 max-w-2xl">
+                <p className="text-base md:text-lg mt-2 max-w-2xl" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
                   {category.description}
                 </p>
               )}
@@ -160,11 +160,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         {/* Title if no banner */}
         {!category.imageUrl && (
           <div className="text-center mb-8">
-            <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-white mb-3">
+            <h1 className="font-bold text-3xl md:text-4xl mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
               {category.name}
             </h1>
             {category.description && (
-              <p className="text-white/80 font-montserrat text-base max-w-2xl mx-auto">
+              <p className="text-base max-w-2xl mx-auto" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
                 {category.description}
               </p>
             )}
@@ -190,7 +190,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                    <span className="text-white font-montserrat font-semibold text-base">
+                    <span className="font-semibold text-base" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
                       {cat.name}
                     </span>
                   </div>
@@ -205,11 +205,12 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           <div className="flex items-center gap-4">
             <Link
               href="/tienda"
-              className="text-[#FA4860] font-montserrat text-sm hover:underline"
+              className="text-sm hover:underline"
+              style={{ color: "var(--brand-color)", fontFamily: "var(--global-font)" }}
             >
               ← Volver a Tienda
             </Link>
-            <p className="text-white/60 font-montserrat text-sm">
+            <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
               {totalCount} {totalCount === 1 ? "producto" : "productos"}
             </p>
           </div>
@@ -218,33 +219,29 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           <div className="flex gap-2 flex-wrap">
             <Link
               href={buildSortUrl("newest")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "newest" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "newest" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Recientes
             </Link>
             <Link
               href={buildSortUrl("popular")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "popular" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "popular" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Populares
             </Link>
             <Link
               href={buildSortUrl("price_asc")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "price_asc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_asc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Precio ↑
             </Link>
             <Link
               href={buildSortUrl("price_desc")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "price_desc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_desc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Precio ↓
             </Link>
@@ -274,10 +271,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           </div>
         ) : (
           <div className="text-center py-12 mb-8">
-            <p className="text-gray-400">No hay productos en esta categoría</p>
+            <p style={{ color: "var(--text-muted)" }}>No hay productos en esta categoría</p>
             <Link
               href="/tienda"
-              className="text-[#FA4860] font-montserrat text-sm hover:underline mt-4 inline-block"
+              className="text-sm hover:underline mt-4 inline-block"
+              style={{ color: "var(--brand-color)", fontFamily: "var(--global-font)" }}
             >
               Ver todos los productos
             </Link>
@@ -290,7 +288,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             {page > 1 && (
               <Link
                 href={buildUrl(page - 1)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
+                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
               >
                 Anterior
               </Link>
@@ -313,11 +312,12 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                   <Link
                     key={pageNum}
                     href={buildUrl(pageNum)}
-                    className={`px-3 py-2 font-montserrat text-sm ${
-                      page === pageNum
-                        ? "bg-[#FA4860] text-white"
-                        : "bg-zinc-800 text-white hover:bg-zinc-700"
-                    }`}
+                    className="px-3 py-2 text-sm transition-colors"
+                    style={{
+                      fontFamily: "var(--global-font)",
+                      color: "var(--text-primary)",
+                      backgroundColor: page === pageNum ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+                    }}
                   >
                     {pageNum}
                   </Link>
@@ -328,7 +328,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             {page < totalPages && (
               <Link
                 href={buildUrl(page + 1)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
+                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
               >
                 Siguiente
               </Link>

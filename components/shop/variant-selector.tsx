@@ -115,11 +115,6 @@ export function VariantSelector({
     }))
   }
 
-  const getValueById = (attributeId: string, valueId: string) => {
-    const attr = attributes.find((a) => a.id === attributeId)
-    return attr?.values.find((v) => v.id === valueId)
-  }
-
   return (
     <div className={cn("space-y-4", className)}>
       {attributes.map((attr) => (
@@ -203,12 +198,6 @@ export function VariantSelector({
             </div>
           )}
 
-          {/* Show selected value name for COLOR and IMAGE */}
-          {(attr.type === "COLOR" || attr.type === "IMAGE") && selectedValues[attr.id] && (
-            <p className="text-sm text-muted-foreground">
-              {getValueById(attr.id, selectedValues[attr.id])?.value}
-            </p>
-          )}
         </div>
       ))}
 
@@ -217,15 +206,8 @@ export function VariantSelector({
         <p className="text-sm text-muted-foreground animate-pulse">Buscando variante...</p>
       )}
 
-      {!isLoading && currentVariant && (
-        <div className="pt-2 space-y-1">
-          {currentVariant.sku && (
-            <p className="text-xs text-muted-foreground">SKU: {currentVariant.sku}</p>
-          )}
-          {!currentVariant.isAvailable && (
-            <p className="text-sm text-destructive font-medium">Agotado</p>
-          )}
-        </div>
+      {!isLoading && currentVariant && !currentVariant.isAvailable && (
+        <p className="text-sm font-medium pt-2" style={{ color: "var(--error-color)" }}>Agotado</p>
       )}
     </div>
   )

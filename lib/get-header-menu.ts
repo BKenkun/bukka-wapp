@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import type { NavItemWithMegamenu, MegamenuData, MegamenuPerformer, MegamenuVideo, MegamenuLinkResolved, MegamenuLink } from "@/types/megamenu"
+import type { NavItemWithMegamenu, MegamenuData, MegamenuPerformer, MegamenuProduct, MegamenuVideo, MegamenuLinkResolved, MegamenuLink } from "@/types/megamenu"
 
 interface GetHeaderMenuOptions {
   userTierLevel: number | null
@@ -85,6 +85,7 @@ export async function getHeaderMenu({ userTierLevel }: GetHeaderMenuOptions): Pr
 
 async function hydrateMegamenuData(config: {
   featuredPerformerIds: string[]
+  featuredProductIds: string[]
   videoSource: string
   videoIds: string[]
   videoCategoryId: string | null
@@ -213,6 +214,34 @@ async function hydrateMegamenuData(config: {
       break
   }
 
+  // Fetch products
+  const productIds = config.featuredProductIds || []
+  let sortedProducts: MegamenuProduct[] = []
+  if (productIds.length > 0) {
+    const fetchedProducts = await prisma.product.findMany({
+      where: { id: { in: productIds }, status: "ACTIVE" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        price: true,
+        compareAtPrice: true,
+        images: true,
+      },
+    })
+    sortedProducts = productIds
+      .map(id => fetchedProducts.find(p => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined)
+      .map(p => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        price: Number(p.price),
+        compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+        images: p.images,
+      }))
+  }
+
   // Process links
   const rawLinks = (config.links || []) as MegamenuLink[]
   const links: MegamenuLinkResolved[] = await Promise.all(
@@ -249,6 +278,7 @@ async function hydrateMegamenuData(config: {
 
   return {
     performers: sortedPerformers,
+    products: sortedProducts,
     videos,
     links,
     linksSectionTitle: config.linksSectionTitle || "Descubre",

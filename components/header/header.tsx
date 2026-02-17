@@ -25,7 +25,7 @@ export async function Header() {
   ])
 
   return (
-    <header className="sticky top-0 z-50 bg-black">
+    <header className="sticky top-0 z-50" style={{ backgroundColor: "var(--global-bg)" }}>
       <div className="flex items-center justify-between px-4 md:px-8 py-4">
         {/* Mobile Menu + Logo */}
         <div className="flex items-center gap-3">

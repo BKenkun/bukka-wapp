@@ -14,6 +14,7 @@ export interface MegamenuConfigData {
   id: string
   menuItemId: string
   featuredPerformerIds: string[]
+  featuredProductIds: string[]
   videoSource: VideoSourceType
   videoIds: string[]
   videoCategoryId: string | null
@@ -39,6 +40,15 @@ export interface MegamenuVideo {
   duration: number
 }
 
+export interface MegamenuProduct {
+  id: string
+  slug: string
+  name: string
+  price: number
+  compareAtPrice: number | null
+  images: string[]
+}
+
 export interface MegamenuLinkResolved {
   id: string
   label: string
@@ -48,6 +58,7 @@ export interface MegamenuLinkResolved {
 
 export interface MegamenuData {
   performers: MegamenuPerformer[]
+  products: MegamenuProduct[]
   videos: MegamenuVideo[]
   links: MegamenuLinkResolved[]
   linksSectionTitle: string

@@ -16,10 +16,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const status = searchParams.get("status")
+    const orderNumber = searchParams.get("orderNumber")
 
     const where = {
       userId: session.user.id,
       ...(status && { status: status as "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED" }),
+      ...(orderNumber && { orderNumber }),
     }
 
     const [orders, total] = await Promise.all([
@@ -111,6 +113,7 @@ const createOrderSchema = z.object({
   shippingCost: z.number().min(0).default(0),
   promoCode: z.string().nullable().optional(),
   promoDiscount: z.number().min(0).default(0),
+  paymentGateway: z.string().optional(),
 })
 
 // POST - Crear orden desde el carrito
@@ -131,7 +134,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount } = validatedData.data
+    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount, paymentGateway } = validatedData.data
 
     // Get cart with items
     const cart = await prisma.cart.findUnique({
@@ -281,6 +284,7 @@ export async function POST(request: NextRequest) {
           shippingAddress: shippingAddress as object,
           billingAddress: (sameAsBilling ? shippingAddress : billingAddress) as object,
           shippingMethod: shippingMethod || null,
+          paymentGateway: paymentGateway || null,
           OrderItem: {
             create: cart.items.map((item) => {
               // Build variant snapshot for variable products

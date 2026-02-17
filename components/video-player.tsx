@@ -65,8 +65,8 @@ export function VideoPlayer({
       {/* Access Denied Overlay */}
       {isLocked && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-[#FA4860]/20 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-[#FA4860]" />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)" }}>
+            <Lock className="w-8 h-8" style={{ color: "var(--brand-color)" }} />
           </div>
           <div className="max-w-md space-y-4">
             <h2 className={`text-white ${config.titleFontSize} ${config.titleFontWeight}`}>
@@ -76,9 +76,9 @@ export function VideoPlayer({
               {config.description}
             </p>
             {config.showTierBadge && requiredTier && (
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 Requiere suscripción{" "}
-                <span className="text-[#FA4860] font-semibold">{requiredTier}</span> o
+                <span className="font-semibold" style={{ color: "var(--brand-color)" }}>{requiredTier}</span> o
                 superior
               </p>
             )}

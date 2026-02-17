@@ -11,10 +11,10 @@ export function VideoSidebar() {
   const alphabetGroups = ["Todo", "A-C", "D-F", "G-I", "M-O", "P-R", "S-U", "V-Z"]
 
   return (
-    <aside className="w-full text-white font-montserrat">
-      <h3 className="text-white font-montserrat text-[18px] font-semibold leading-[28px] mb-6">Filtros:</h3>
+    <aside className="w-full" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
+      <h3 className="text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Filtros:</h3>
 
-      <p className="text-white font-montserrat text-[14px] font-medium leading-[20px] mb-3">Alfabético:</p>
+      <p className="text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Alfabético:</p>
 
       {/* Alphabet Filter */}
       <div className="grid grid-cols-4 gap-2 mb-12">
@@ -22,10 +22,11 @@ export function VideoSidebar() {
           <button
             key={group}
             onClick={() => setActiveGroup(group)}
-            className={cn(
-              "h-10 text-sm font-medium transition-colors",
-              activeGroup === group ? "bg-[#00B1DE] text-white" : "bg-[#F3F4F6] text-[#374151]",
-            )}
+            className="h-10 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: activeGroup === group ? "var(--accent-color)" : "#F3F4F6",
+              color: activeGroup === group ? "var(--text-primary)" : "#374151",
+            }}
           >
             {group}
           </button>
@@ -38,8 +39,8 @@ export function VideoSidebar() {
           <label key={`radio-${i}`} className="flex items-center gap-3 cursor-pointer group">
             <div
               className={cn(
-                "w-5 h-5 rounded-full border border-[#FA4860] flex items-center justify-center transition-colors",
-                selectedRadio === `radio-${i}` ? "bg-[#00B1DE] border-[#00B1DE]" : "",
+                "w-5 h-5 rounded-full border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                selectedRadio === `radio-${i}` ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : "",
               )}
             >
               {selectedRadio === `radio-${i}` && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
@@ -62,8 +63,8 @@ export function VideoSidebar() {
           <label key={`check1-${i}`} className="flex items-center gap-3 cursor-pointer group">
             <div
               className={cn(
-                "w-5 h-5 border border-[#FA4860] flex items-center justify-center transition-colors",
-                selectedChecks.includes(`check1-${i}`) ? "bg-[#00B1DE] border-[#00B1DE]" : "",
+                "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                selectedChecks.includes(`check1-${i}`) ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : "",
               )}
             >
               {selectedChecks.includes(`check1-${i}`) && (
@@ -99,8 +100,8 @@ export function VideoSidebar() {
           <label key={`check2-${i}`} className="flex items-center gap-3 cursor-pointer group">
             <div
               className={cn(
-                "w-5 h-5 border border-[#FA4860] flex items-center justify-center transition-colors",
-                selectedChecks.includes(`check2-${i}`) ? "bg-[#00B1DE] border-[#00B1DE]" : "",
+                "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                selectedChecks.includes(`check2-${i}`) ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : "",
               )}
             >
               {selectedChecks.includes(`check2-${i}`) && (
@@ -136,7 +137,8 @@ export function VideoSidebar() {
           setSelectedChecks([])
           setActiveGroup("Todo")
         }}
-        className="w-full bg-[#FA4860] text-white py-4 font-bold text-sm tracking-wide hover:bg-[#fa4860]/90 transition-colors"
+        className="w-full py-4 font-bold text-sm tracking-wide hover:opacity-90 transition-colors"
+        style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
       >
         Borrar todos los filtros
       </button>

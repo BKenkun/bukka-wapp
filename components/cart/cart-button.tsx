@@ -160,7 +160,7 @@ export function CartButton() {
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
         {cart && cart.itemCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-[#FA4860] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
             {cart.itemCount > 9 ? "9+" : cart.itemCount}
           </span>
         )}
@@ -178,8 +178,8 @@ export function CartButton() {
           )}
 
           <div
-            className="absolute right-0 top-full mt-2 bg-[#1a1a1a] border border-gray-800 shadow-xl z-50"
-            style={{ width: isEmpty ? "200px" : "350px" }}
+            className="absolute right-0 top-full mt-2 shadow-xl z-50"
+            style={{ backgroundColor: "var(--surface-bg)", borderWidth: "1px", borderStyle: "solid", borderColor: "var(--border-color)", width: isEmpty ? "200px" : "350px" }}
             onMouseEnter={isEmpty ? handleMouseEnter : undefined}
             onMouseLeave={isEmpty ? handleMouseLeave : undefined}
           >
@@ -187,12 +187,12 @@ export function CartButton() {
               {isEmpty ? (
                 // Empty cart state - simple message
                 <div className="text-center py-2">
-                  <p className="text-gray-400 text-sm">Carrito vacío</p>
+                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>Carrito vacío</p>
                 </div>
               ) : (
                 // Cart with items
                 <>
-                  <h3 className="text-white font-semibold text-lg mb-4">
+                  <h3 className="font-semibold text-lg mb-4" style={{ color: "var(--text-primary)" }}>
                     Tu Carrito ({cart?.itemCount || 0})
                   </h3>
 
@@ -208,25 +208,28 @@ export function CartButton() {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-white text-sm font-medium truncate">
+                          <h4 className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                             {item.product.name}
                           </h4>
                           {item.variantLabel && (
-                            <p className="text-gray-500 text-xs truncate">
+                            <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
                               {item.variantLabel}
                             </p>
                           )}
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                             {item.quantity} x {item.product.price.toFixed(2)} €
                           </p>
                           {!item.product.available && (
-                            <p className="text-red-500 text-xs">No disponible</p>
+                            <p className="text-xs" style={{ color: "var(--error-color)" }}>No disponible</p>
                           )}
                         </div>
                         <button
                           onClick={() => handleRemoveItem(item.id)}
                           disabled={loading}
-                          className="text-gray-400 hover:text-red-500 p-1"
+                          className="p-1 transition-colors"
+                          style={{ color: "var(--cart-remove-btn)" }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = "var(--cart-remove-btn-hover)"}
+                          onMouseLeave={(e) => e.currentTarget.style.color = "var(--cart-remove-btn)"}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -244,18 +247,18 @@ export function CartButton() {
                     ))}
                   </div>
 
-                  <div className="border-t border-gray-700 mt-4 pt-4">
+                  <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
                     {cart.discountPercent > 0 && (
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-400">
+                        <span style={{ color: "var(--cart-summary-label)" }}>
                           Descuento ({cart.discountPercent}%)
                         </span>
-                        <span className="text-green-500">
+                        <span style={{ color: "var(--success-color)" }}>
                           -{cart.discount.toFixed(2)} €
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between text-white font-semibold mb-4">
+                    <div className="flex justify-between font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
                       <span>Total</span>
                       <span>{cart.total.toFixed(2)} €</span>
                     </div>
@@ -264,14 +267,14 @@ export function CartButton() {
                       <Link
                         href="/carrito"
                         onClick={() => setIsOpen(false)}
-                        className="block w-full text-center bg-transparent border border-[#FA4860] text-[#FA4860] py-2 font-semibold hover:bg-[#FA4860]/10 transition-colors"
+                        className="btn-secondary block w-full text-center"
                       >
                         Ver Carrito
                       </Link>
                       <Link
                         href="/checkout"
                         onClick={() => setIsOpen(false)}
-                        className="block w-full text-center bg-[#FA4860] text-white py-2 font-semibold hover:bg-[#e8415a] transition-colors"
+                        className="btn-primary block w-full text-center"
                       >
                         Finalizar Compra
                       </Link>

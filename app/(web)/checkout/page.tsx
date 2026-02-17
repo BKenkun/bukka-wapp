@@ -210,12 +210,13 @@ export default function CheckoutPage() {
     setSubmitting(true)
 
     try {
+      // Step 1: Create the order
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shippingAddress,
-          paymentGateway: paymentMethod,
+          paymentGateway: paymentMethod === "card" ? "easierpay" : paymentMethod,
           shippingRateId: selectedShippingRate?.id,
           shippingMethod: selectedShippingRate?.name,
           shippingCost: selectedShippingRate?.price ?? 0,
@@ -225,18 +226,47 @@ export default function CheckoutPage() {
         }),
       })
 
-      if (res.ok) {
-        const data = await res.json()
-        setConfirmedOrder({
-          orderNumber: data.order.orderNumber,
-          total: data.order.total,
-        })
-        setStep("confirmation")
-        toast.success("¡Pedido realizado con éxito!")
-      } else {
+      if (!res.ok) {
         const error = await res.json()
         toast.error(error.error || "Error al procesar el pedido")
+        return
       }
+
+      const data = await res.json()
+
+      // Step 2: For card payments, redirect to EasierPay
+      if (paymentMethod === "card") {
+        toast.info("Redirigiendo a la pasarela de pago...")
+
+        const payRes = await fetch("/api/payments/easierpay/initiate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: data.order.id }),
+        })
+
+        if (payRes.ok) {
+          const payData = await payRes.json()
+          if (payData.payLink) {
+            window.location.href = payData.payLink
+            return
+          }
+        }
+
+        // If EasierPay initiation fails, show error but order is created
+        const payError = await payRes.json().catch(() => null)
+        toast.error(payError?.error || "Error al conectar con la pasarela de pago. Puedes reintentar desde tu historial de pedidos.")
+        // Redirect to result page with failed status
+        router.push(`/checkout/resultado?order=${data.order.orderNumber}&status=failed`)
+        return
+      }
+
+      // For transfer payments, show inline confirmation
+      setConfirmedOrder({
+        orderNumber: data.order.orderNumber,
+        total: data.order.total,
+      })
+      setStep("confirmation")
+      toast.success("¡Pedido realizado con éxito!")
     } catch (error) {
       console.error("Error placing order:", error)
       toast.error("Error al procesar el pedido")
@@ -247,7 +277,7 @@ export default function CheckoutPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white">
+      <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-12">Cargando...</div>
         </div>
@@ -257,11 +287,11 @@ export default function CheckoutPage() {
 
   if (step === "confirmation") {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white">
+      <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             {/* Success Animation */}
-            <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
+            <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse" style={{ backgroundColor: "var(--success-color)" }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="48"
@@ -277,32 +307,32 @@ export default function CheckoutPage() {
               </svg>
             </div>
 
-            <h1 className="text-4xl font-bold text-white mb-4 font-montserrat">
+            <h1 className="text-4xl font-bold mb-4 font-montserrat" style={{ color: "var(--text-primary)" }}>
               ¡Gracias por tu compra!
             </h1>
 
             {confirmedOrder && (
-              <div className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-lg mb-8 text-left max-w-md mx-auto">
-                <p className="text-gray-400 text-sm mb-2">Número de pedido:</p>
-                <p className="text-white text-xl font-bold mb-4">{confirmedOrder.orderNumber}</p>
-                <p className="text-gray-400 text-sm mb-2">Total:</p>
-                <p className="text-[#FA4860] text-2xl font-bold">{confirmedOrder.total.toFixed(2)} €</p>
+              <div className="p-6 rounded-lg mb-8 text-left max-w-md mx-auto" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+                <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Número de pedido:</p>
+                <p className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>{confirmedOrder.orderNumber}</p>
+                <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Total:</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--brand-color)" }}>{confirmedOrder.total.toFixed(2)} €</p>
               </div>
             )}
 
-            <p className="text-gray-400 mb-4 max-w-md mx-auto">
+            <p className="mb-4 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
               Hemos enviado un email de confirmación con los detalles de tu pedido a tu correo electrónico.
             </p>
 
             {paymentMethod === "transfer" && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg mb-8 max-w-md mx-auto">
-                <p className="text-yellow-400 font-medium mb-2">Pago por Transferencia Bancaria</p>
-                <p className="text-gray-300 text-sm mb-2">
+              <div className="p-4 rounded-lg mb-8 max-w-md mx-auto" style={{ backgroundColor: "color-mix(in srgb, var(--warning-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--warning-color) 30%, transparent)" }}>
+                <p className="font-medium mb-2" style={{ color: "var(--warning-color)" }}>Pago por Transferencia Bancaria</p>
+                <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
                   Realiza la transferencia a la siguiente cuenta:
                 </p>
-                <p className="text-white font-mono text-sm mb-1">IBAN: ES12 1234 5678 9012 3456 7890</p>
-                <p className="text-white font-mono text-sm mb-2">Concepto: {confirmedOrder?.orderNumber}</p>
-                <p className="text-gray-400 text-xs">
+                <p className="font-mono text-sm mb-1" style={{ color: "var(--text-primary)" }}>IBAN: ES12 1234 5678 9012 3456 7890</p>
+                <p className="font-mono text-sm mb-2" style={{ color: "var(--text-primary)" }}>Concepto: {confirmedOrder?.orderNumber}</p>
+                <p className="text-xs" style={{ color: "var(--cart-summary-label)" }}>
                   Tu pedido se procesará una vez recibido el pago.
                 </p>
               </div>
@@ -329,39 +359,35 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
         {/* Header */}
-        <h1 className="font-montserrat font-bold text-[30px] leading-[36px] text-[#E5E7EB] mb-8">
+        <h1 className="font-montserrat font-bold text-[30px] leading-[36px] mb-8" style={{ color: "var(--text-secondary)" }}>
           Checkout
         </h1>
 
         {/* Progress Steps */}
         <div className="flex items-center gap-4 mb-12">
           <div
-            className={`flex items-center gap-2 ${
-              step === "shipping" ? "text-[#FA4860]" : "text-gray-400"
-            }`}
+            className="flex items-center gap-2"
+            style={{ color: step === "shipping" ? "var(--brand-color)" : "var(--cart-summary-label)" }}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === "shipping" ? "bg-[#FA4860] text-white" : "bg-gray-700 text-gray-400"
-              }`}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={step === "shipping" ? { backgroundColor: "var(--brand-color)", color: "var(--text-primary)" } : { backgroundColor: "var(--border-color)", color: "var(--cart-summary-label)" }}
             >
               1
             </div>
             <span className="font-medium">Envio</span>
           </div>
-          <div className="flex-1 h-px bg-gray-700" />
+          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-color)" }} />
           <div
-            className={`flex items-center gap-2 ${
-              step === "payment" ? "text-[#FA4860]" : "text-gray-400"
-            }`}
+            className="flex items-center gap-2"
+            style={{ color: step === "payment" ? "var(--brand-color)" : "var(--cart-summary-label)" }}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === "payment" ? "bg-[#FA4860] text-white" : "bg-gray-700 text-gray-400"
-              }`}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={step === "payment" ? { backgroundColor: "var(--brand-color)", color: "var(--text-primary)" } : { backgroundColor: "var(--border-color)", color: "var(--cart-summary-label)" }}
             >
               2
             </div>
@@ -373,31 +399,37 @@ export default function CheckoutPage() {
           {/* Form Section */}
           <div className="lg:col-span-2">
             {step === "shipping" && (
-              <form onSubmit={handleShippingSubmit} className="bg-[#1a1a1a] border border-gray-800 p-6">
-                <h2 className="text-xl font-bold text-white mb-6">Direccion de Envio</h2>
+              <form onSubmit={handleShippingSubmit} className="p-6" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Direccion de Envio</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Nombre *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Nombre *</label>
                     <input
                       type="text"
                       value={shippingAddress.firstName}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, firstName: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Apellidos *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Apellidos *</label>
                     <input
                       type="text"
                       value={shippingAddress.lastName}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, lastName: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                       required
                     />
                   </div>
@@ -405,39 +437,48 @@ export default function CheckoutPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Email *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Email *</label>
                     <input
                       type="email"
                       value={shippingAddress.email}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, email: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Telefono</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Telefono</label>
                     <input
                       type="tel"
                       value={shippingAddress.phone}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, phone: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                     />
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-gray-400 text-sm mb-2">Direccion *</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Direccion *</label>
                   <input
                     type="text"
                     value={shippingAddress.address}
                     onChange={(e) =>
                       setShippingAddress({ ...shippingAddress, address: e.target.value })
                     }
-                    className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                    className="w-full px-4 py-3 focus:outline-none"
+                    style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                     placeholder="Calle, numero, piso..."
                     required
                   />
@@ -445,37 +486,46 @@ export default function CheckoutPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Ciudad *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Ciudad *</label>
                     <input
                       type="text"
                       value={shippingAddress.city}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, city: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Codigo Postal *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Codigo Postal *</label>
                     <input
                       type="text"
                       value={shippingAddress.postalCode}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, postalCode: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Pais</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Pais</label>
                     <select
                       value={shippingAddress.country}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, country: e.target.value })
                       }
-                      className="w-full bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#FA4860] focus:outline-none"
+                      className="w-full px-4 py-3 focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                     >
                       <option value="ES">Espana</option>
                       <option value="PT">Portugal</option>
@@ -488,8 +538,8 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Shipping Calculator */}
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <h3 className="text-lg font-bold text-white mb-4">Opciones de Envio</h3>
+                <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--border-color)" }}>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>Opciones de Envio</h3>
                   <ShippingCalculator
                     postalCode={shippingAddress.postalCode}
                     country={shippingAddress.country}
@@ -505,7 +555,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={!selectedShippingRate}
-                  className="mt-6 w-full bg-[#FA4860] text-white font-semibold py-3 hover:bg-[#e8415a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary mt-6 w-full"
                 >
                   Continuar al Pago
                 </button>
@@ -513,26 +563,26 @@ export default function CheckoutPage() {
             )}
 
             {step === "payment" && (
-              <div className="bg-[#1a1a1a] border border-gray-800 p-6">
-                <h2 className="text-xl font-bold text-white mb-6">Metodo de Pago</h2>
+              <div className="p-6" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Metodo de Pago</h2>
 
                 {/* Shipping Address Summary */}
-                <div className="bg-black border border-gray-700 p-4 mb-6">
+                <div className="p-4 mb-6" style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)" }}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-gray-400 text-sm mb-1">Enviar a:</p>
-                      <p className="text-white">
+                      <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Enviar a:</p>
+                      <p style={{ color: "var(--text-primary)" }}>
                         {shippingAddress.firstName} {shippingAddress.lastName}
                       </p>
-                      <p className="text-gray-400 text-sm">{shippingAddress.address}</p>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-sm" style={{ color: "var(--form-label-color)" }}>{shippingAddress.address}</p>
+                      <p className="text-sm" style={{ color: "var(--form-label-color)" }}>
                         {shippingAddress.postalCode} {shippingAddress.city}
                       </p>
                       {selectedShippingRate && (
-                        <div className="mt-3 pt-3 border-t border-gray-700">
-                          <p className="text-gray-400 text-sm mb-1">Metodo de envio:</p>
-                          <p className="text-white">{selectedShippingRate.name}</p>
-                          <p className="text-[#FA4860] font-medium">
+                        <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border-color)" }}>
+                          <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Metodo de envio:</p>
+                          <p style={{ color: "var(--text-primary)" }}>{selectedShippingRate.name}</p>
+                          <p className="font-medium" style={{ color: "var(--brand-color)" }}>
                             {selectedShippingRate.isFree ? "GRATIS" : `${selectedShippingRate.price.toFixed(2)} €`}
                           </p>
                         </div>
@@ -540,7 +590,8 @@ export default function CheckoutPage() {
                     </div>
                     <button
                       onClick={() => setStep("shipping")}
-                      className="text-[#00B1DE] text-sm hover:underline"
+                      className="text-sm hover:underline"
+                      style={{ color: "var(--accent-color)" }}
                     >
                       Editar
                     </button>
@@ -550,11 +601,8 @@ export default function CheckoutPage() {
                 {/* Payment Methods */}
                 <div className="space-y-4">
                   <label
-                    className={`block border p-4 cursor-pointer ${
-                      paymentMethod === "card"
-                        ? "border-[#FA4860] bg-[#FA4860]/10"
-                        : "border-gray-700"
-                    }`}
+                    className="block border p-4 cursor-pointer"
+                    style={paymentMethod === "card" ? { borderColor: "var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" } : { borderColor: "var(--border-color)" }}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -563,7 +611,7 @@ export default function CheckoutPage() {
                         value="card"
                         checked={paymentMethod === "card"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#FA4860]"
+                        style={{ accentColor: "var(--brand-color)" }}
                       />
                       <div className="flex items-center gap-2">
                         <svg
@@ -574,22 +622,19 @@ export default function CheckoutPage() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="text-white"
+                          style={{ color: "var(--text-primary)" }}
                         >
                           <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                           <line x1="1" y1="10" x2="23" y2="10" />
                         </svg>
-                        <span className="text-white font-medium">Tarjeta de Credito/Debito</span>
+                        <span className="font-medium" style={{ color: "var(--text-primary)" }}>Tarjeta de Credito/Debito</span>
                       </div>
                     </div>
                   </label>
 
                   <label
-                    className={`block border p-4 cursor-pointer ${
-                      paymentMethod === "paypal"
-                        ? "border-[#FA4860] bg-[#FA4860]/10"
-                        : "border-gray-700"
-                    }`}
+                    className="block border p-4 cursor-pointer"
+                    style={paymentMethod === "paypal" ? { borderColor: "var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" } : { borderColor: "var(--border-color)" }}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -598,18 +643,15 @@ export default function CheckoutPage() {
                         value="paypal"
                         checked={paymentMethod === "paypal"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#FA4860]"
+                        style={{ accentColor: "var(--brand-color)" }}
                       />
-                      <span className="text-white font-medium">PayPal</span>
+                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>PayPal</span>
                     </div>
                   </label>
 
                   <label
-                    className={`block border p-4 cursor-pointer ${
-                      paymentMethod === "transfer"
-                        ? "border-[#FA4860] bg-[#FA4860]/10"
-                        : "border-gray-700"
-                    }`}
+                    className="block border p-4 cursor-pointer"
+                    style={paymentMethod === "transfer" ? { borderColor: "var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" } : { borderColor: "var(--border-color)" }}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -618,20 +660,20 @@ export default function CheckoutPage() {
                         value="transfer"
                         checked={paymentMethod === "transfer"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#FA4860]"
+                        style={{ accentColor: "var(--brand-color)" }}
                       />
-                      <span className="text-white font-medium">Transferencia Bancaria</span>
+                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>Transferencia Bancaria</span>
                     </div>
                   </label>
                 </div>
 
-                <p className="text-gray-400 text-sm mt-4">
+                <p className="text-sm mt-4" style={{ color: "var(--form-label-color)" }}>
                   Al hacer clic en &quot;Confirmar Pedido&quot;, aceptas nuestros{" "}
-                  <Link href="/terminos" className="text-[#00B1DE] hover:underline">
+                  <Link href="/terminos" className="hover:underline" style={{ color: "var(--accent-color)" }}>
                     Terminos y Condiciones
                   </Link>{" "}
                   y{" "}
-                  <Link href="/privacidad" className="text-[#00B1DE] hover:underline">
+                  <Link href="/privacidad" className="hover:underline" style={{ color: "var(--accent-color)" }}>
                     Politica de Privacidad
                   </Link>
                   .
@@ -640,14 +682,14 @@ export default function CheckoutPage() {
                 <div className="flex gap-4 mt-6">
                   <button
                     onClick={() => setStep("shipping")}
-                    className="flex-1 border border-gray-700 text-white font-semibold py-3 hover:bg-gray-800 transition-colors"
+                    className="btn-secondary flex-1"
                   >
                     Volver
                   </button>
                   <button
                     onClick={handlePlaceOrder}
                     disabled={submitting}
-                    className="flex-1 bg-[#FA4860] text-white font-semibold py-3 hover:bg-[#e8415a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary flex-1"
                   >
                     {submitting ? "Procesando..." : "Confirmar Pedido"}
                   </button>
@@ -658,8 +700,8 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-[#1a1a1a] border border-gray-800 p-6 sticky top-4">
-              <h2 className="text-white font-montserrat font-bold text-xl mb-6">Tu Pedido</h2>
+            <div className="p-6 sticky top-4" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+              <h2 className="font-montserrat font-bold text-xl mb-6" style={{ color: "var(--text-primary)" }}>Tu Pedido</h2>
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
@@ -672,60 +714,60 @@ export default function CheckoutPage() {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute -top-2 -right-2 bg-[#FA4860] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                      <div className="absolute -top-2 -right-2 text-xs w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
                         {item.quantity}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-white text-sm font-medium truncate">{item.product.name}</h4>
+                      <h4 className="text-sm font-medium truncate" style={{ color: "var(--cart-item-name)" }}>{item.product.name}</h4>
                       {item.variantLabel && (
-                        <p className="text-gray-500 text-xs truncate">{item.variantLabel}</p>
+                        <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{item.variantLabel}</p>
                       )}
-                      <p className="text-gray-400 text-sm">{item.product.price.toFixed(2)} €</p>
+                      <p className="text-sm" style={{ color: "var(--cart-item-meta)" }}>{item.product.price.toFixed(2)} €</p>
                       {!item.product.available && (
-                        <p className="text-red-500 text-xs">No disponible</p>
+                        <p className="text-xs" style={{ color: "var(--error-color)" }}>No disponible</p>
                       )}
                     </div>
-                    <div className="text-white font-medium">
+                    <div className="font-medium" style={{ color: "var(--text-primary)" }}>
                       {(item.product.price * item.quantity).toFixed(2)} €
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-gray-700 pt-4 space-y-3">
-                <div className="flex justify-between text-gray-400">
+              <div className="pt-4 space-y-3" style={{ borderTop: "1px solid var(--border-color)" }}>
+                <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
                   <span>Subtotal</span>
-                  <span className="text-white">{cart?.subtotal.toFixed(2)} €</span>
+                  <span style={{ color: "var(--text-primary)" }}>{cart?.subtotal.toFixed(2)} €</span>
                 </div>
 
                 {cart && cart.discountPercent > 0 && (
-                  <div className="flex justify-between text-green-500">
+                  <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
                     <span>Descuento miembro ({cart.discountPercent}%)</span>
                     <span>-{cart.discount.toFixed(2)} €</span>
                   </div>
                 )}
 
                 {appliedPromoCode && (
-                  <div className="flex justify-between text-green-500">
+                  <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
                     <span>Código {appliedPromoCode.code}</span>
                     <span>-{appliedPromoCode.discountAmount.toFixed(2)} €</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-gray-400">
+                <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
                   <span>Envio</span>
                   {selectedShippingRate ? (
-                    <span className={selectedShippingRate.isFree ? "text-green-500" : "text-white"}>
+                    <span style={{ color: selectedShippingRate.isFree ? "var(--success-color)" : "var(--text-primary)" }}>
                       {selectedShippingRate.isFree ? "GRATIS" : `${shippingCost.toFixed(2)} €`}
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-sm">Selecciona codigo postal</span>
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>Selecciona codigo postal</span>
                   )}
                 </div>
 
-                <div className="border-t border-gray-700 pt-3">
-                  <div className="flex justify-between text-white font-bold text-xl">
+                <div className="pt-3" style={{ borderTop: "1px solid var(--border-color)" }}>
+                  <div className="flex justify-between font-bold text-xl" style={{ color: "var(--text-primary)" }}>
                     <span>Total</span>
                     <span>{grandTotal.toFixed(2)} €</span>
                   </div>
@@ -733,19 +775,22 @@ export default function CheckoutPage() {
               </div>
 
               {/* Promo Code Section */}
-              <div className="border-t border-gray-700 pt-4 mt-4">
-                <p className="text-white font-medium mb-3">Código Promocional</p>
+              <div className="pt-4 mt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+                <p className="font-medium mb-3" style={{ color: "var(--text-primary)" }}>Código Promocional</p>
                 {appliedPromoCode ? (
-                  <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 p-3">
+                  <div className="flex items-center justify-between p-3" style={{ backgroundColor: "color-mix(in srgb, var(--success-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--success-color) 30%, transparent)" }}>
                     <div>
-                      <p className="text-green-400 font-medium">{appliedPromoCode.code}</p>
-                      <p className="text-green-300 text-sm">
+                      <p className="font-medium" style={{ color: "var(--success-color)" }}>{appliedPromoCode.code}</p>
+                      <p className="text-sm" style={{ color: "var(--success-color)" }}>
                         -{appliedPromoCode.discountAmount.toFixed(2)} €
                       </p>
                     </div>
                     <button
                       onClick={handleRemovePromoCode}
-                      className="text-gray-400 hover:text-white text-sm"
+                      className="text-sm transition-colors"
+                      style={{ color: "var(--cart-summary-label)" }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                      onMouseLeave={(e) => e.currentTarget.style.color = "var(--cart-summary-label)"}
                     >
                       Quitar
                     </button>
@@ -760,25 +805,30 @@ export default function CheckoutPage() {
                         setPromoCodeError(null)
                       }}
                       placeholder="Introduce código"
-                      className="flex-1 bg-black border border-gray-700 text-white px-3 py-2 text-sm focus:border-[#FA4860] focus:outline-none"
+                      className="flex-1 px-3 py-2 text-sm focus:outline-none"
+                      style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                     />
                     <button
                       onClick={handleApplyPromoCode}
                       disabled={promoCodeLoading || !promoCodeInput.trim()}
-                      className="bg-[#00B1DE] text-white px-4 py-2 text-sm font-medium hover:bg-[#00B1DE]/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}
                     >
                       {promoCodeLoading ? "..." : "Aplicar"}
                     </button>
                   </div>
                 )}
                 {promoCodeError && (
-                  <p className="text-red-400 text-xs mt-2">{promoCodeError}</p>
+                  <p className="text-xs mt-2" style={{ color: "var(--error-color)" }}>{promoCodeError}</p>
                 )}
               </div>
 
               <Link
                 href="/carrito"
-                className="block text-center text-[#00B1DE] text-sm mt-4 hover:underline"
+                className="block text-center text-sm mt-4 hover:underline"
+                style={{ color: "var(--accent-color)" }}
               >
                 Editar Carrito
               </Link>

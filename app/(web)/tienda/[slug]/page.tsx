@@ -161,7 +161,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     : product.stock
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       <div className="w-full mx-auto px-4 md:px-8 mt-8 mb-12">
         {/* Categories */}
         {product.ProductToCategory.length > 0 && (
@@ -170,7 +170,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <Link
                 key={ShopCategory.id}
                 href={`/tienda?category=${ShopCategory.slug}`}
-                className="text-sm px-3 py-1 bg-gray-800 hover:bg-gray-700 transition-colors"
+                className="text-sm px-3 py-1 transition-colors hover:opacity-80"
+                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)" }}
               >
                 {ShopCategory.name}
               </Link>
@@ -198,7 +199,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
         {/* Related Videos */}
         {product.VideoProduct.length > 0 && (
-          <div className="mt-12 pt-6 border-t border-gray-800">
+          <div className="mt-12 pt-6 border-t" style={{ borderColor: "var(--footer-border-color)" }}>
             <h3 className="text-lg font-semibold mb-4">Aparece en estos videos</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {product.VideoProduct.map(({ video }) => (
@@ -218,7 +219,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       />
                     )}
                   </div>
-                  <p className="text-sm text-white/80 line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
+                  <p className="text-sm line-clamp-1 hover:opacity-80 transition-colors" style={{ color: "var(--text-secondary)" }}>
                     {video.title}
                   </p>
                 </Link>
@@ -253,11 +254,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       </div>
                     )}
                   </div>
-                  <h3 className="text-sm font-medium line-clamp-1 group-hover:text-[#00B1DE] transition-colors">
+                  <h3 className="text-sm font-medium line-clamp-1 hover:opacity-80 transition-colors" style={{ color: "var(--text-primary)" }}>
                     {relProduct.name}
                   </h3>
                   {relProduct.performers.length > 0 && (
-                    <p className="text-xs text-white/60">
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                       {relProduct.performers.map(pp => pp.performer.name).join(", ")}
                     </p>
                   )}

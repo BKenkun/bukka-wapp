@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 
 interface BannerSettings {
@@ -12,37 +13,36 @@ interface BannerSettings {
 }
 
 export function DiscountBanner() {
+  const { data: session, status } = useSession()
   const [settings, setSettings] = useState<BannerSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const planId = session?.user?.SubscriptionPlan?.id || "guest"
+
   useEffect(() => {
+    // Wait until session status is resolved
+    if (status === "loading") return
+
     const fetchSettings = async () => {
       try {
-        const response = await fetch("/api/settings/discount-banner")
+        const response = await fetch(`/api/settings/discount-banner?planId=${planId}`)
         if (response.ok) {
           const data = await response.json()
           setSettings(data)
         }
       } catch (error) {
         console.error("Error fetching banner settings:", error)
-        // Use defaults on error
-        setSettings({
-          enabled: true,
-          text: "DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%",
-          buttonText: "SUBSCRÍBETE AHORA",
-          buttonUrl: "/registro",
-          backgroundColor: "#00B1DE",
-        })
+        setSettings({ enabled: false, text: "", buttonText: "", buttonUrl: "", backgroundColor: "" })
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchSettings()
-  }, [])
+  }, [status, planId])
 
   // Don't render while loading or if disabled
-  if (isLoading || !settings?.enabled) {
+  if (isLoading || status === "loading" || !settings?.enabled) {
     return null
   }
 

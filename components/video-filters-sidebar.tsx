@@ -116,22 +116,22 @@ export function VideoFiltersSidebar({
   }, [localCategory, localPerformers, localTags])
 
   return (
-    <aside className="w-full text-white font-montserrat">
-      <h3 className="text-white font-montserrat text-[18px] font-semibold leading-[28px] mb-6">
+    <aside className="w-full font-montserrat" style={{ color: "var(--text-primary)" }}>
+      <h3 className="font-montserrat text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)" }}>
         Filtros:
       </h3>
 
       {/* Categories */}
       <div className="mb-8">
-        <p className="text-white font-montserrat text-[14px] font-medium leading-[20px] mb-3">
+        <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
           Categorías:
         </p>
         <div className="space-y-3">
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               className={cn(
-                "w-5 h-5 rounded-full border border-[#FA4860] flex items-center justify-center transition-colors",
-                !localCategory ? "bg-[#00B1DE] border-[#00B1DE]" : ""
+                "w-5 h-5 rounded-full border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                !localCategory ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
               )}
             >
               {!localCategory && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
@@ -149,8 +149,8 @@ export function VideoFiltersSidebar({
             <label key={category.id} className="flex items-center gap-3 cursor-pointer">
               <div
                 className={cn(
-                  "w-5 h-5 rounded-full border border-[#FA4860] flex items-center justify-center transition-colors",
-                  localCategory === category.slug ? "bg-[#00B1DE] border-[#00B1DE]" : ""
+                  "w-5 h-5 rounded-full border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                  localCategory === category.slug ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
                 )}
               >
                 {localCategory === category.slug && (
@@ -172,7 +172,7 @@ export function VideoFiltersSidebar({
 
       {/* Performers/Actrices */}
       <div className="mb-8">
-        <p className="text-white font-montserrat text-[14px] font-medium leading-[20px] mb-3">
+        <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
           Actrices:
         </p>
 
@@ -182,12 +182,11 @@ export function VideoFiltersSidebar({
             <button
               key={group}
               onClick={() => setActiveAlphabet(group)}
-              className={cn(
-                "h-8 text-xs font-medium transition-colors",
-                activeAlphabet === group
-                  ? "bg-[#00B1DE] text-white"
-                  : "bg-[#F3F4F6] text-[#374151]"
-              )}
+              className="h-8 text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: activeAlphabet === group ? "var(--accent-color)" : "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+                color: "var(--text-primary)",
+              }}
             >
               {group}
             </button>
@@ -199,9 +198,9 @@ export function VideoFiltersSidebar({
             <label key={performer.id} className="flex items-center gap-3 cursor-pointer">
               <div
                 className={cn(
-                  "w-5 h-5 border border-[#FA4860] flex items-center justify-center transition-colors",
+                  "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
                   localPerformers.includes(performer.slug)
-                    ? "bg-[#00B1DE] border-[#00B1DE]"
+                    ? "bg-[var(--accent-color)] border-[var(--accent-color)]"
                     : ""
                 )}
               >
@@ -228,14 +227,14 @@ export function VideoFiltersSidebar({
             </label>
           ))}
           {filteredPerformers.length === 0 && (
-            <p className="text-gray-500 text-sm">No hay actrices en este rango</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No hay actrices en este rango</p>
           )}
         </div>
       </div>
 
       {/* Tags */}
       <div className="mb-8">
-        <p className="text-white font-montserrat text-[14px] font-medium leading-[20px] mb-3">
+        <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
           Etiquetas:
         </p>
         <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
@@ -243,8 +242,8 @@ export function VideoFiltersSidebar({
             <label key={tag.id} className="flex items-center gap-3 cursor-pointer">
               <div
                 className={cn(
-                  "w-5 h-5 border border-[#FA4860] flex items-center justify-center transition-colors",
-                  localTags.includes(tag.slug) ? "bg-[#00B1DE] border-[#00B1DE]" : ""
+                  "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
+                  localTags.includes(tag.slug) ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
                 )}
               >
                 {localTags.includes(tag.slug) && (
@@ -274,7 +273,8 @@ export function VideoFiltersSidebar({
 
       <button
         onClick={clearFilters}
-        className="w-full bg-[#FA4860] text-white py-4 font-bold text-sm tracking-wide hover:bg-[#fa4860]/90 transition-colors"
+        className="w-full py-4 font-bold text-sm tracking-wide hover:opacity-90 transition-colors"
+        style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
       >
         Borrar todos los filtros
       </button>

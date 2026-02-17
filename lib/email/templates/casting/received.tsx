@@ -29,7 +29,7 @@ export function CastingReceivedTemplate({
 
       <EmailText>
         Hemos recibido correctamente tu solicitud para unirte a nuestro equipo
-        de performers. ¡Gracias por tu interés en BUKKAKERY!
+        de actrices. ¡Gracias por tu interés en BUKKAKERY!
       </EmailText>
 
       <EmailInfoBox variant="success">

@@ -36,7 +36,7 @@ export function VideoInformation({ description, performers, tags, director, rele
 
   return (
     <div className="mt-6 space-y-6">
-      <div className="space-y-4 text-white">
+      <div className="space-y-4" style={{ color: "var(--text-primary)" }}>
         {performers.length > 0 && (
           <div>
             <span className="font-bold text-base leading-6">
@@ -47,7 +47,7 @@ export function VideoInformation({ description, performers, tags, director, rele
                 <span key={performer.id}>
                   <Link
                     href={`/modelos/${performer.slug}`}
-                    className="hover:text-[#FA4860] transition-colors"
+                    className="hover:opacity-80 transition-colors"
                   >
                     {performer.name}
                   </Link>
@@ -95,7 +95,7 @@ export function VideoInformation({ description, performers, tags, director, rele
                 <span key={category.id}>
                   <Link
                     href={`/videos/${category.slug}`}
-                    className="hover:text-[#FA4860] transition-colors"
+                    className="hover:opacity-80 transition-colors"
                   >
                     {category.name}
                   </Link>
@@ -118,8 +118,8 @@ export function VideoInformation({ description, performers, tags, director, rele
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="font-normal text-[#00B1DE] hover:text-[#FA4860] cursor-pointer transition-colors"
-                style={{ fontSize: "15.206px", lineHeight: "22.809px" }}
+                className="font-normal hover:opacity-80 cursor-pointer transition-colors"
+                style={{ color: "var(--accent-color)", fontSize: "15.206px", lineHeight: "22.809px" }}
               >
                 #{tag}
               </span>

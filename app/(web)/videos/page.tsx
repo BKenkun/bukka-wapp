@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { CtaBanner } from "@/components/cta-banner"
+import { HomeSectionRenderer } from "@/components/home/home-section-renderer"
 import { VideosPageClient } from "./videos-page-client"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 
@@ -74,7 +74,7 @@ export default async function VideosPage({
   }
 
   // Fetch all data in parallel
-  const [videos, totalCount, categories, performers, tags, selectedCategory] = await Promise.all([
+  const [videos, totalCount, categories, performers, tags, selectedCategory, ctaSection] = await Promise.all([
     prisma.video.findMany({
       where: whereClause,
       skip,
@@ -129,6 +129,10 @@ export default async function VideosPage({
           select: { name: true },
         })
       : null,
+    prisma.homeSection.findFirst({
+      where: { type: "CTA_BANNER", enabled: true },
+      select: { id: true, type: true, title: true, enabled: true, order: true, config: true },
+    }),
   ])
 
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -175,7 +179,7 @@ export default async function VideosPage({
   }
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col font-sans">
       <VideosPageClient
         videos={transformedVideos}
         categories={categories}
@@ -191,13 +195,15 @@ export default async function VideosPage({
         activeFilters={activeFilters}
       />
 
-      {/* CTA Banner */}
-      <CtaBanner
-        title="The Bukkake Degree"
-        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
-        buttonText="SUBSCRÍBETE"
-        backgroundImage="/images/red-lips-bg.jpg"
-      />
+      {/* CTA Banner from home config */}
+      {ctaSection && (
+        <HomeSectionRenderer
+          section={{
+            ...ctaSection,
+            config: ctaSection.config as Record<string, unknown> | null,
+          }}
+        />
+      )}
     </main>
   )
 }

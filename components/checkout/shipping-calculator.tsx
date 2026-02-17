@@ -126,7 +126,7 @@ export function ShippingCalculator({
 
       {/* Postal Code Input */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--form-label-color)" }}>
           Codigo Postal
         </label>
         <div className="flex gap-2">
@@ -137,13 +137,15 @@ export function ShippingCalculator({
             onBlur={handlePostalCodeBlur}
             onKeyDown={handlePostalCodeKeyDown}
             placeholder="Ej: 28001"
-            className="flex-1 bg-[#1a1a1a] border border-gray-700 text-white px-4 py-2 focus:outline-none focus:border-[#FA4860]"
+            className="flex-1 px-4 py-2 focus:outline-none"
+            style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
+            onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
             maxLength={5}
           />
           <button
             onClick={calculateShipping}
             disabled={loading || postalCode.length < 4}
-            className="bg-[#FA4860] text-white px-4 py-2 font-medium hover:bg-[#e8415a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary px-4 py-2"
           >
             {loading ? "..." : "Calcular"}
           </button>
@@ -152,25 +154,26 @@ export function ShippingCalculator({
 
       {/* Error */}
       {error && (
-        <p className="text-red-500 text-sm">{error}</p>
+        <p className="text-sm" style={{ color: "var(--error-color)" }}>{error}</p>
       )}
 
       {/* Shipping Rates */}
       {rates.length > 0 && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">
+          <label className="block text-sm font-medium" style={{ color: "var(--form-label-color)" }}>
             Metodo de envio
           </label>
           {rates.map((rate) => (
             <label
               key={rate.id}
               className={cn(
-                "flex items-center justify-between p-4 border cursor-pointer transition-colors",
-                selectedRateId === rate.id
-                  ? "border-[#FA4860] bg-[#FA4860]/10"
-                  : "border-gray-700 bg-[#1a1a1a] hover:border-gray-600",
+                "flex items-center justify-between p-4 cursor-pointer transition-colors",
                 !rate.isAvailable && "opacity-50 cursor-not-allowed"
               )}
+              style={selectedRateId === rate.id
+                ? { border: "1px solid var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" }
+                : { border: "1px solid var(--border-color)", backgroundColor: "var(--surface-bg)" }
+              }
             >
               <div className="flex items-center gap-3">
                 <input
@@ -179,15 +182,16 @@ export function ShippingCalculator({
                   checked={selectedRateId === rate.id}
                   onChange={() => rate.isAvailable && onShippingRateSelect(rate)}
                   disabled={!rate.isAvailable}
-                  className="w-4 h-4 accent-[#FA4860]"
+                  className="w-4 h-4"
+                  style={{ accentColor: "var(--brand-color)" }}
                 />
                 <div>
-                  <p className="text-white font-medium">{rate.name}</p>
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>{rate.name}</p>
                   {rate.description && (
-                    <p className="text-gray-400 text-sm">{rate.description}</p>
+                    <p className="text-sm" style={{ color: "var(--form-label-color)" }}>{rate.description}</p>
                   )}
                   {rate.estimatedDays && (
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                       Entrega en {rate.estimatedDays} {rate.estimatedDays === 1 ? "dia" : "dias"}
                     </p>
                   )}
@@ -197,14 +201,14 @@ export function ShippingCalculator({
                 {rate.isFree ? (
                   <div>
                     {rate.originalPrice > 0 && (
-                      <span className="text-gray-500 line-through text-sm mr-2">
+                      <span className="line-through text-sm mr-2" style={{ color: "var(--text-muted)" }}>
                         {rate.originalPrice.toFixed(2)} €
                       </span>
                     )}
-                    <span className="text-green-500 font-bold">GRATIS</span>
+                    <span className="font-bold" style={{ color: "var(--success-color)" }}>GRATIS</span>
                   </div>
                 ) : (
-                  <span className="text-white font-bold">{rate.price.toFixed(2)} €</span>
+                  <span className="font-bold" style={{ color: "var(--text-primary)" }}>{rate.price.toFixed(2)} €</span>
                 )}
               </div>
             </label>
@@ -214,7 +218,7 @@ export function ShippingCalculator({
 
       {/* No shipping available message */}
       {hasCalculated && rates.length === 0 && !error && (
-        <p className="text-yellow-500 text-sm">
+        <p className="text-sm" style={{ color: "var(--warning-color)" }}>
           No hay opciones de envio disponibles para este codigo postal
         </p>
       )}
@@ -231,7 +235,7 @@ interface FreeShippingProgressProps {
 
 export function FreeShippingProgress({ remaining, percentage, threshold }: FreeShippingProgressProps) {
   return (
-    <div className="bg-[#1a1a1a] border border-gray-700 p-4">
+    <div className="p-4" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
       <div className="flex items-center gap-2 mb-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -243,33 +247,33 @@ export function FreeShippingProgress({ remaining, percentage, threshold }: FreeS
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-[#FA4860]"
+          style={{ color: "var(--brand-color)" }}
         >
           <rect x="1" y="3" width="15" height="13" />
           <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
           <circle cx="5.5" cy="18.5" r="2.5" />
           <circle cx="18.5" cy="18.5" r="2.5" />
         </svg>
-        <p className="text-white text-sm">
+        <p className="text-sm" style={{ color: "var(--text-primary)" }}>
           {remaining > 0 ? (
             <>
-              Anade <span className="text-[#FA4860] font-bold">{remaining.toFixed(2)} €</span> mas para envio GRATIS
+              Anade <span className="font-bold" style={{ color: "var(--brand-color)" }}>{remaining.toFixed(2)} €</span> mas para envio GRATIS
             </>
           ) : (
-            <span className="text-green-500 font-medium">Tienes envio GRATIS!</span>
+            <span className="font-medium" style={{ color: "var(--success-color)" }}>Tienes envio GRATIS!</span>
           )}
         </p>
       </div>
-      <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+      <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--border-color)" }}>
         <div
-          className={cn(
-            "h-full transition-all duration-500",
-            percentage >= 100 ? "bg-green-500" : "bg-[#FA4860]"
-          )}
-          style={{ width: `${Math.min(100, percentage)}%` }}
+          className="h-full transition-all duration-500"
+          style={{
+            width: `${Math.min(100, percentage)}%`,
+            backgroundColor: percentage >= 100 ? "var(--success-color)" : "var(--brand-color)",
+          }}
         />
       </div>
-      <p className="text-gray-500 text-xs mt-1 text-right">
+      <p className="text-xs mt-1 text-right" style={{ color: "var(--text-muted)" }}>
         Envio gratis desde {threshold.toFixed(2)} €
       </p>
     </div>

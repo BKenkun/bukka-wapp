@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconLoader2, IconDeviceFloppy, IconUsers, IconVideo, IconLink } from "@tabler/icons-react"
+import { IconLoader2, IconDeviceFloppy, IconUsers, IconVideo, IconLink, IconShoppingBag } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PerformerSearch } from "@/components/admin/performer-search"
+import { ProductSearch } from "@/components/admin/product-search"
 import { VideoSelector } from "@/components/admin/video-selector"
 import { MegamenuLinksEditor } from "@/components/admin/megamenu-links-editor"
 import { toast } from "sonner"
@@ -33,6 +34,13 @@ interface Performer {
   name: string
   slug: string
   profileImage?: string | null
+}
+
+interface Product {
+  id: string
+  name: string
+  slug: string
+  images?: string[]
 }
 
 interface VideoCategory {
@@ -56,6 +64,7 @@ interface SystemCollection {
 interface MegamenuConfig {
   id?: string
   featuredPerformerIds: string[]
+  featuredProductIds: string[]
   videoSource: VideoSourceType
   videoIds: string[]
   videoCategoryId: string | null
@@ -70,6 +79,7 @@ interface MegamenuEditorProps {
   menuItemLabel: string
   initialConfig?: MegamenuConfig | null
   performers: Performer[]
+  products: Product[]
   videoCategories: VideoCategory[]
   pages: Page[]
   onSave: (config: MegamenuConfig) => Promise<void>
@@ -82,6 +92,7 @@ export function MegamenuEditor({
   menuItemLabel,
   initialConfig,
   performers,
+  products,
   videoCategories,
   pages,
   onSave,
@@ -100,6 +111,7 @@ export function MegamenuEditor({
   }, [open])
   const [config, setConfig] = React.useState<MegamenuConfig>({
     featuredPerformerIds: initialConfig?.featuredPerformerIds || [],
+    featuredProductIds: initialConfig?.featuredProductIds || [],
     videoSource: initialConfig?.videoSource || "MANUAL",
     videoIds: initialConfig?.videoIds || [],
     videoCategoryId: initialConfig?.videoCategoryId || null,
@@ -111,6 +123,7 @@ export function MegamenuEditor({
     if (initialConfig) {
       setConfig({
         featuredPerformerIds: initialConfig.featuredPerformerIds || [],
+        featuredProductIds: initialConfig.featuredProductIds || [],
         videoSource: initialConfig.videoSource || "MANUAL",
         videoIds: initialConfig.videoIds || [],
         videoCategoryId: initialConfig.videoCategoryId || null,
@@ -139,6 +152,12 @@ export function MegamenuEditor({
     setConfig((prev) => ({ ...prev, featuredPerformerIds: limitedIds }))
   }
 
+  const handleProductChange = (ids: string[]) => {
+    // Limit to 2 products
+    const limitedIds = ids.slice(0, 2)
+    setConfig((prev) => ({ ...prev, featuredProductIds: limitedIds }))
+  }
+
   const handleVideoSourceChange = (source: VideoSourceType) => {
     setConfig((prev) => ({
       ...prev,
@@ -160,10 +179,14 @@ export function MegamenuEditor({
         </DialogHeader>
 
         <Tabs defaultValue="performers" className="w-full">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="performers" className="flex items-center gap-2">
               <IconUsers className="size-4" />
               Modelos
+            </TabsTrigger>
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <IconShoppingBag className="size-4" />
+              Productos
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <IconVideo className="size-4" />
@@ -190,6 +213,25 @@ export function MegamenuEditor({
             {config.featuredPerformerIds.length >= 2 && (
               <p className="text-xs text-amber-500">
                 Has alcanzado el máximo de 2 modelos
+              </p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="products" className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Productos destacados (máx. 2)</Label>
+              <p className="text-xs text-muted-foreground">
+                Selecciona hasta 2 productos para mostrar en el megamenu
+              </p>
+            </div>
+            <ProductSearch
+              products={products}
+              selectedIds={config.featuredProductIds}
+              onChange={handleProductChange}
+            />
+            {config.featuredProductIds.length >= 2 && (
+              <p className="text-xs text-amber-500">
+                Has alcanzado el máximo de 2 productos
               </p>
             )}
           </TabsContent>

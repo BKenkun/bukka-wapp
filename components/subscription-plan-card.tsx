@@ -10,6 +10,9 @@ interface SubscriptionPlanCardProps {
   features: FeatureItem[]
   buttonText: string
   isCurrentPlan?: boolean
+  planId?: string
+  onSubscribe?: (planId: string) => void
+  subscribing?: boolean
 }
 
 const CheckIcon = () => (
@@ -56,6 +59,9 @@ export function SubscriptionPlanCard({
   features,
   buttonText,
   isCurrentPlan = false,
+  planId,
+  onSubscribe,
+  subscribing = false,
 }: SubscriptionPlanCardProps) {
   const showButton = buttonText !== ""
 
@@ -86,13 +92,19 @@ export function SubscriptionPlanCard({
 
       {showButton && (
         <button
+          onClick={() => {
+            if (!isCurrentPlan && planId && onSubscribe) {
+              onSubscribe(planId)
+            }
+          }}
+          disabled={subscribing || isCurrentPlan}
           className={`mt-6 w-full ${
             isCurrentPlan
               ? "btn-primary"
               : "btn-secondary"
-          }`}
+          } ${subscribing ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          {buttonText}
+          {subscribing ? "Redirigiendo..." : buttonText}
         </button>
       )}
     </div>

@@ -5,7 +5,6 @@ import { HomeSectionRenderer } from "@/components/home/home-section-renderer"
 import { Hero } from "@/components/hero"
 import { SectionHeader } from "@/components/section-header"
 import { VideoGrid } from "@/components/video-grid"
-import { CtaBanner } from "@/components/cta-banner"
 import { ActressesGrid } from "@/components/actresses-grid"
 import { CountdownTimer } from "@/components/countdown-timer"
 
@@ -28,16 +27,10 @@ export default async function Page() {
   // If no sections in DB, render the hardcoded fallback
   if (!sections || sections.length === 0) {
     return (
-      <main className="min-h-screen flex flex-col gap-[5px] font-sans bg-black text-white">
+      <main className="min-h-screen flex flex-col gap-[5px] font-sans">
         <Hero />
         <SectionHeader title="ÚLTIMOS VÍDEOS AÑADIDOS" />
         <VideoGrid />
-        <CtaBanner
-          title="The Bukkake Degree"
-          description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
-          buttonText="SUBSCRÍBETE"
-          backgroundImage="/images/red-lips-bg.jpg"
-        />
         <SectionHeader title="ACTRICES" />
         <ActressesGrid />
         <SectionHeader title="ÚLTIMAS PUBLICACIONES" />
@@ -55,7 +48,7 @@ export default async function Page() {
 
   // Render dynamic sections from database
   return (
-    <main className="min-h-screen flex flex-col gap-[5px] font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col gap-[5px] font-sans">
       {sections.map((section) => (
         <HomeSectionRenderer
           key={section.id}

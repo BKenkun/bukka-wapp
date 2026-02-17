@@ -115,19 +115,23 @@ const AVAILABLE_ICONS = [
 interface MegamenuConfigInput {
   id?: string
   featuredPerformerIds: string[]
+  featuredProductIds: string[]
   videoSource: VideoSourceType
   videoIds: string[]
   videoCategoryId: string | null
   links: MegamenuLink[]
+  linksSectionTitle: string
 }
 
 interface MegamenuConfigFromDB {
   id: string
   featuredPerformerIds: string[]
+  featuredProductIds: string[]
   videoSource: VideoSourceType
   videoIds: string[]
   videoCategoryId: string | null
   links: Prisma.JsonValue
+  linksSectionTitle: string
 }
 
 interface MenuItem {
@@ -175,6 +179,13 @@ interface Performer {
   profileImage?: string | null
 }
 
+interface Product {
+  id: string
+  name: string
+  slug: string
+  images: string[]
+}
+
 interface VideoCategory {
   id: string
   name: string
@@ -189,10 +200,11 @@ interface MenuEditorProps {
   pages: Page[]
   subscriptionPlans: SubscriptionPlan[]
   performers: Performer[]
+  products: Product[]
   videoCategories: VideoCategory[]
 }
 
-export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pages, subscriptionPlans, performers, videoCategories }: MenuEditorProps) {
+export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pages, subscriptionPlans, performers, products, videoCategories }: MenuEditorProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [items, setItems] = React.useState<MenuItem[]>(
@@ -766,6 +778,7 @@ export function MenuEditor({ menuSlug, menuName, defaultTitle, existingMenu, pag
           menuItemLabel={megamenuEditorItem.label}
           initialConfig={megamenuEditorItem.megamenuConfig || null}
           performers={performers}
+          products={products}
           videoCategories={videoCategories}
           pages={pages}
           onSave={async (config) => {

@@ -11,7 +11,7 @@ import { RelatedContentTabs } from "@/components/related-content-tabs"
 import { MuxVideoPlayer } from "@/components/mux-video-player"
 import { VideoPlayer } from "@/components/video-player"
 import { getVideoAccessSettings } from "@/lib/get-video-access-settings"
-import { CtaBanner } from "@/components/cta-banner"
+import { HomeSectionRenderer } from "@/components/home/home-section-renderer"
 import { VideosPageClient } from "../videos-page-client"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 import {
@@ -160,7 +160,7 @@ async function CategoryPage({
     }
   }
 
-  const [videos, totalCount, categories, performers, tags] = await Promise.all([
+  const [videos, totalCount, categories, performers, tags, ctaSection] = await Promise.all([
     prisma.video.findMany({
       where: whereClause,
       skip,
@@ -209,6 +209,10 @@ async function CategoryPage({
       orderBy: { name: "asc" },
       select: { id: true, slug: true, name: true },
     }),
+    prisma.homeSection.findFirst({
+      where: { type: "CTA_BANNER", enabled: true },
+      select: { id: true, type: true, title: true, enabled: true, order: true, config: true },
+    }),
   ])
 
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -250,7 +254,7 @@ async function CategoryPage({
   }
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col font-sans">
       <VideosPageClient
         videos={transformedVideos}
         categories={categories}
@@ -269,12 +273,14 @@ async function CategoryPage({
         basePath={`/videos/${category.slug}`}
       />
 
-      <CtaBanner
-        title="The Bukkake Degree"
-        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
-        buttonText="SUBSCRÍBETE"
-        backgroundImage="/images/red-lips-bg.jpg"
-      />
+      {ctaSection && (
+        <HomeSectionRenderer
+          section={{
+            ...ctaSection,
+            config: ctaSection.config as Record<string, unknown> | null,
+          }}
+        />
+      )}
     </main>
   )
 }
@@ -301,7 +307,7 @@ async function SystemCollectionPage({
   const skip = (page - 1) * pageSize
 
   // Get videos for this system collection
-  const [videos, totalCount, categories, performers, tags] = await Promise.all([
+  const [videos, totalCount, categories, performers, tags, ctaSection] = await Promise.all([
     getVideosForSystemCollection(collection.type as import("@prisma/client").SystemCollectionType, {
       skip,
       take: pageSize,
@@ -319,6 +325,10 @@ async function SystemCollectionPage({
     prisma.tag.findMany({
       orderBy: { name: "asc" },
       select: { id: true, slug: true, name: true },
+    }),
+    prisma.homeSection.findFirst({
+      where: { type: "CTA_BANNER", enabled: true },
+      select: { id: true, type: true, title: true, enabled: true, order: true, config: true },
     }),
   ])
 
@@ -356,7 +366,7 @@ async function SystemCollectionPage({
   )
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col font-sans">
       <VideosPageClient
         videos={transformedVideos}
         categories={categories}
@@ -374,12 +384,14 @@ async function SystemCollectionPage({
         basePath={`/videos/${collection.slug}`}
       />
 
-      <CtaBanner
-        title="The Bukkake Degree"
-        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
-        buttonText="SUBSCRÍBETE"
-        backgroundImage="/images/red-lips-bg.jpg"
-      />
+      {ctaSection && (
+        <HomeSectionRenderer
+          section={{
+            ...ctaSection,
+            config: ctaSection.config as Record<string, unknown> | null,
+          }}
+        />
+      )}
     </main>
   )
 }
@@ -630,7 +642,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
   const lockConfig = videoAccessSettings.lockScreen
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       <div className="px-4 md:px-8 flex-1 w-full">
         <div className="w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">

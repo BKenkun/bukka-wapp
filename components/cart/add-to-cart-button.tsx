@@ -61,14 +61,15 @@ export function AddToCartButton({
     <button
       onClick={handleAddToCart}
       disabled={loading || isOutOfStock}
-      className={`text-white text-center disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`text-center disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       style={{
-        fontFamily: "Montserrat",
+        color: "var(--text-primary)",
+        fontFamily: "var(--global-font)",
         fontSize: "19.756px",
         fontWeight: 400,
         lineHeight: "normal",
-        background: isOutOfStock ? "#6B7280" : "#FA4860",
-        border: "0 solid #E5E7EB",
+        background: isOutOfStock ? "color-mix(in srgb, var(--text-primary) 40%, transparent)" : "var(--brand-color)",
+        border: "none",
         padding: "12px 72px",
       }}
     >

@@ -22,8 +22,10 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { FileDropzone } from "@/components/ui/file-dropzone"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IconLink, IconFileText } from "@tabler/icons-react"
 import { VideoSelector } from "@/components/admin/video-selector"
+import { MuxVideoPlayer } from "@/components/mux-video-player"
 
 interface HomeSection {
   id: string
@@ -60,6 +62,7 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
     (section.config as Record<string, unknown>) || {}
   )
   const [isSaving, setIsSaving] = useState(false)
+  const [ctaTab, setCtaTab] = useState("fondo")
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -381,7 +384,7 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                         e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
                       )
                     }
-                    placeholder="performer-id-1, performer-id-2"
+                    placeholder="actriz-id-1, actriz-id-2"
                   />
                 </div>
               )}
@@ -408,72 +411,387 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
 
           {/* CTA_BANNER Config */}
           {section.type === "CTA_BANNER" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="ctaTitle">Título del banner</Label>
-                <Input
-                  id="ctaTitle"
-                  value={(config.title as string) || ""}
-                  onChange={(e) => updateConfig("title", e.target.value)}
-                  placeholder="BUKKAKE PARTIES"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={(config.description as string) || ""}
-                  onChange={(e) => updateConfig("description", e.target.value)}
-                  placeholder="Apúntate a los bukkakes más salvajes del país."
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <Tabs value={ctaTab} onValueChange={setCtaTab} className="w-full">
+              <TabsList className={`grid w-full ${config.bgSource === "dbVideo" ? "grid-cols-2" : "grid-cols-3"}`}>
+                {config.bgSource !== "dbVideo" && (
+                  <TabsTrigger value="contenido">Contenido</TabsTrigger>
+                )}
+                <TabsTrigger value="fondo">Fondo</TabsTrigger>
+                <TabsTrigger value="estilo">Estilo</TabsTrigger>
+              </TabsList>
+
+              {/* Tab Contenido — solo cuando NO es vídeo de la web */}
+              {config.bgSource !== "dbVideo" && (
+                <TabsContent value="contenido" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ctaTitle">Título del banner</Label>
+                    <Input
+                      id="ctaTitle"
+                      value={(config.title as string) || ""}
+                      onChange={(e) => updateConfig("title", e.target.value)}
+                      placeholder="BUKKAKE PARTIES"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descripción</Label>
+                    <Textarea
+                      id="description"
+                      value={(config.description as string) || ""}
+                      onChange={(e) => updateConfig("description", e.target.value)}
+                      placeholder="Apúntate a los bukkakes más salvajes del país."
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="buttonText">Texto del botón</Label>
+                      <Input
+                        id="buttonText"
+                        value={(config.buttonText as string) || ""}
+                        onChange={(e) => updateConfig("buttonText", e.target.value)}
+                        placeholder="Ver Eventos"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="buttonUrl">URL del botón</Label>
+                      <Input
+                        id="buttonUrl"
+                        value={(config.buttonUrl as string) || ""}
+                        onChange={(e) => updateConfig("buttonUrl", e.target.value)}
+                        placeholder="/eventos"
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              {/* Tab Fondo */}
+              <TabsContent value="fondo" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="buttonText">Texto del botón</Label>
-                  <Input
-                    id="buttonText"
-                    value={(config.buttonText as string) || ""}
-                    onChange={(e) => updateConfig("buttonText", e.target.value)}
-                    placeholder="Ver Eventos"
-                  />
+                  <Label>Fuente del fondo</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { value: "image", label: "Imagen" },
+                      { value: "uploadedVideo", label: "Video subido" },
+                      { value: "dbVideo", label: "Vídeo de la web" },
+                    ] as const).map((option) => (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant={(config.bgSource as string) === option.value ? "secondary" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          updateConfig("bgSource", option.value)
+                          if (option.value === "dbVideo" && ctaTab === "contenido") {
+                            setCtaTab("fondo")
+                          }
+                        }}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="buttonUrl">URL del botón</Label>
-                  <Input
-                    id="buttonUrl"
-                    value={(config.buttonUrl as string) || ""}
-                    onChange={(e) => updateConfig("buttonUrl", e.target.value)}
-                    placeholder="/eventos"
-                  />
+
+                {/* Image background */}
+                {(!config.bgSource || config.bgSource === "image") && (
+                  <div className="space-y-2">
+                    <Label>Imagen de fondo</Label>
+                    <FileDropzone
+                      value={(config.backgroundImage as string) || null}
+                      onChange={(url) => updateConfig("backgroundImage", url || "")}
+                      accept="image"
+                      folder="cta"
+                      placeholder="Arrastra una imagen de fondo aquí"
+                    />
+                  </div>
+                )}
+
+                {/* Uploaded video background */}
+                {config.bgSource === "uploadedVideo" && (
+                  <div className="space-y-2">
+                    <Label>Video de fondo</Label>
+                    <FileDropzone
+                      value={(config.videoUrl as string) || null}
+                      onChange={(url) => updateConfig("videoUrl", url || "")}
+                      accept="video"
+                      folder="cta"
+                      placeholder="Arrastra un video aquí (autoplay, sin sonido)"
+                    />
+                  </div>
+                )}
+
+                {/* DB Video selector */}
+                {config.bgSource === "dbVideo" && (
+                  <div className="space-y-2">
+                    <Label>Seleccionar vídeo</Label>
+                    <VideoSelector
+                      value={config.dbVideoId ? [config.dbVideoId as string] : []}
+                      onChange={(ids) => {
+                        if (ids.length === 0) {
+                          updateMultipleConfig({
+                            dbVideoId: null,
+                            dbVideoSlug: null,
+                            dbVideoTitle: null,
+                            dbVideoThumbnail: null,
+                            dbVideoMuxPlaybackId: null,
+                          })
+                          return
+                        }
+                        // Take only the last selected (single mode)
+                        const selectedId = ids[ids.length - 1]
+                        // Fetch video details
+                        fetch(`/api/admin/videos/search?ids=${selectedId}`)
+                          .then((res) => res.json())
+                          .then((data) => {
+                            const video = data.videos?.[0]
+                            if (video) {
+                              updateMultipleConfig({
+                                dbVideoId: video.id,
+                                dbVideoSlug: video.slug,
+                                dbVideoTitle: video.title,
+                                dbVideoThumbnail: video.thumbnailUrl,
+                                dbVideoMuxPlaybackId: video.muxPlaybackId,
+                                title: video.title,
+                                buttonText: "Ver Vídeo",
+                                buttonUrl: `/videos/${video.slug}`,
+                              })
+                            }
+                          })
+                      }}
+                      placeholder="Buscar vídeo por título..."
+                    />
+                    {!!config.dbVideoId && !!config.dbVideoSlug && (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          {String(config.dbVideoTitle)}
+                        </p>
+                        {config.dbVideoMuxPlaybackId ? (
+                          <div className="rounded-md overflow-hidden border">
+                            <MuxVideoPlayer
+                              videoId={config.dbVideoId as string}
+                              videoSlug={config.dbVideoSlug as string}
+                              playbackId={config.dbVideoMuxPlaybackId as string}
+                              title={String(config.dbVideoTitle)}
+                              thumbnailUrl={(config.dbVideoThumbnail as string) || undefined}
+                              autoPlay
+                              muted
+                              loop
+                            />
+                          </div>
+                        ) : config.dbVideoThumbnail ? (
+                          <div className="relative w-full h-32 rounded-md overflow-hidden border">
+                            <img
+                              src={config.dbVideoThumbnail as string}
+                              alt={String(config.dbVideoTitle)}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                    {/* Descripción opcional cuando hay vídeo seleccionado */}
+                    {!!config.dbVideoId && (
+                      <div className="space-y-2 pt-3 border-t">
+                        <Label htmlFor="description">Descripción (opcional)</Label>
+                        <Textarea
+                          id="description"
+                          value={(config.description as string) || ""}
+                          onChange={(e) => updateConfig("description", e.target.value)}
+                          placeholder="Texto adicional bajo el título del vídeo..."
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Overlay controls */}
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="overlayEnabled">Overlay oscuro</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Oscurecer el fondo para mejorar la legibilidad
+                      </p>
+                    </div>
+                    <Switch
+                      id="overlayEnabled"
+                      checked={(config.overlayEnabled as boolean) ?? true}
+                      onCheckedChange={(checked) => updateConfig("overlayEnabled", checked)}
+                    />
+                  </div>
+                  {(config.overlayEnabled ?? true) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="overlayOpacity">Intensidad del overlay ({((config.overlayOpacity as number) ?? 0.5).toFixed(1)})</Label>
+                      <input
+                        id="overlayOpacity"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={(config.overlayOpacity as number) ?? 0.5}
+                        onChange={(e) => updateConfig("overlayOpacity", parseFloat(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0 (sin overlay)</span>
+                        <span>1 (negro total)</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Imagen de fondo</Label>
-                <FileDropzone
-                  value={(config.backgroundImage as string) || null}
-                  onChange={(url) => updateConfig("backgroundImage", url || "")}
-                  accept="image"
-                  folder="cta"
-                  placeholder="Arrastra una imagen de fondo aquí"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Se usará como fondo si no hay video configurado
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Video de fondo (opcional)</Label>
-                <FileDropzone
-                  value={(config.videoUrl as string) || null}
-                  onChange={(url) => updateConfig("videoUrl", url || "")}
-                  accept="video"
-                  folder="cta"
-                  placeholder="Arrastra un video aquí para usarlo como fondo (autoplay, sin sonido)"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Si se sube un video, se mostrará en lugar de la imagen con autoplay y sin sonido
-                </p>
-              </div>
-            </>
+
+                {/* Blur controls */}
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="blurEnabled">Desenfoque</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Difuminar el fondo para destacar el contenido
+                      </p>
+                    </div>
+                    <Switch
+                      id="blurEnabled"
+                      checked={(config.blurEnabled as boolean) ?? false}
+                      onCheckedChange={(checked) => updateConfig("blurEnabled", checked)}
+                    />
+                  </div>
+                  {!!config.blurEnabled && (
+                    <div className="space-y-2">
+                      <Label htmlFor="blurIntensity">Intensidad ({(config.blurIntensity as number) ?? 4}px)</Label>
+                      <input
+                        id="blurIntensity"
+                        type="range"
+                        min="1"
+                        max="20"
+                        step="1"
+                        value={(config.blurIntensity as number) ?? 4}
+                        onChange={(e) => updateConfig("blurIntensity", parseInt(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>1px (sutil)</span>
+                        <span>20px (muy difuso)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Tab Estilo */}
+              <TabsContent value="estilo" className="space-y-4 mt-4">
+                {/* Title typography */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Tipografía del título</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="titleFontFamily" className="text-xs text-muted-foreground">Fuente</Label>
+                      <Select
+                        value={(config.titleFontFamily as string) || "Montserrat"}
+                        onValueChange={(value) => updateConfig("titleFontFamily", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Montserrat">Montserrat</SelectItem>
+                          <SelectItem value="Inter">Inter</SelectItem>
+                          <SelectItem value="Playfair Display">Playfair Display</SelectItem>
+                          <SelectItem value="Oswald">Oswald</SelectItem>
+                          <SelectItem value="Bebas Neue">Bebas Neue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="titleFontSize" className="text-xs text-muted-foreground">Tamaño (px)</Label>
+                      <Input
+                        id="titleFontSize"
+                        type="number"
+                        min={16}
+                        max={72}
+                        value={(config.titleFontSize as number) || 40}
+                        onChange={(e) => updateConfig("titleFontSize", parseInt(e.target.value) || 40)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Button colors */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="text-sm font-medium">Colores del botón</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Fondo</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={(config.buttonBgColor as string) || "#FA4860"}
+                          onChange={(e) => updateConfig("buttonBgColor", e.target.value)}
+                          className="w-10 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={(config.buttonBgColor as string) || "#FA4860"}
+                          onChange={(e) => updateConfig("buttonBgColor", e.target.value)}
+                          placeholder="#FA4860"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Fondo hover</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={(config.buttonHoverColor as string) || "#e03e54"}
+                          onChange={(e) => updateConfig("buttonHoverColor", e.target.value)}
+                          className="w-10 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={(config.buttonHoverColor as string) || "#e03e54"}
+                          onChange={(e) => updateConfig("buttonHoverColor", e.target.value)}
+                          placeholder="#e03e54"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Texto</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={(config.buttonTextColor as string) || "#FFFFFF"}
+                          onChange={(e) => updateConfig("buttonTextColor", e.target.value)}
+                          className="w-10 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={(config.buttonTextColor as string) || "#FFFFFF"}
+                          onChange={(e) => updateConfig("buttonTextColor", e.target.value)}
+                          placeholder="#FFFFFF"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Texto hover</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={(config.buttonHoverTextColor as string) || "#FFFFFF"}
+                          onChange={(e) => updateConfig("buttonHoverTextColor", e.target.value)}
+                          className="w-10 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={(config.buttonHoverTextColor as string) || "#FFFFFF"}
+                          onChange={(e) => updateConfig("buttonHoverTextColor", e.target.value)}
+                          placeholder="#FFFFFF"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* COUNTDOWN Config */}

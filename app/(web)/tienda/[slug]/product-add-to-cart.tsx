@@ -141,20 +141,22 @@ export function ProductAddToCart({
       <div className="flex items-center gap-4">
         {/* Quantity Selector */}
         {!isOutOfStock && (
-          <div className="flex items-center border border-gray-700">
+          <div className="flex items-center" style={{ border: "1px solid color-mix(in srgb, var(--text-primary) 30%, transparent)" }}>
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
+              className="px-4 py-3 transition-colors hover:opacity-80"
+              style={{ color: "var(--text-primary)" }}
               disabled={quantity <= 1}
             >
               -
             </button>
-            <span className="px-4 py-3 text-white font-medium min-w-[50px] text-center">
+            <span className="px-4 py-3 font-medium min-w-[50px] text-center" style={{ color: "var(--text-primary)" }}>
               {quantity}
             </span>
             <button
               onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-              className="px-4 py-3 text-white hover:bg-gray-800 transition-colors"
+              className="px-4 py-3 transition-colors hover:opacity-80"
+              style={{ color: "var(--text-primary)" }}
               disabled={quantity >= maxQuantity}
             >
               +
@@ -166,12 +168,13 @@ export function ProductAddToCart({
         <button
           onClick={handleAddToCart}
           disabled={loading || isOutOfStock}
-          className="text-white text-center disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+          className="text-center disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
           style={{
-            fontFamily: "Montserrat",
+            color: "var(--text-primary)",
+            fontFamily: "var(--global-font)",
             fontSize: "16px",
             fontWeight: 500,
-            background: isOutOfStock ? "#6B7280" : "#FA4860",
+            background: isOutOfStock ? "color-mix(in srgb, var(--text-primary) 40%, transparent)" : "var(--brand-color)",
             padding: "14px 28px",
           }}
         >

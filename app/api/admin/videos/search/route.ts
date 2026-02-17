@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
           title: true,
           slug: true,
           thumbnailUrl: true,
+          muxPlaybackId: true,
           status: true,
         },
       })
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
         title: true,
         slug: true,
         thumbnailUrl: true,
+        muxPlaybackId: true,
         status: true,
       },
       orderBy: { createdAt: "desc" },

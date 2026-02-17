@@ -51,6 +51,22 @@ interface CtaBannerConfig {
   buttonUrl?: string
   backgroundImage?: string
   videoUrl?: string
+  bgSource?: "image" | "uploadedVideo" | "dbVideo"
+  dbVideoId?: string
+  dbVideoSlug?: string
+  dbVideoTitle?: string
+  dbVideoThumbnail?: string
+  dbVideoMuxPlaybackId?: string
+  titleFontFamily?: string
+  titleFontSize?: number
+  buttonBgColor?: string
+  buttonHoverColor?: string
+  buttonTextColor?: string
+  buttonHoverTextColor?: string
+  overlayEnabled?: boolean
+  overlayOpacity?: number
+  blurEnabled?: boolean
+  blurIntensity?: number
 }
 
 interface CountdownConfig {
@@ -457,14 +473,36 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
 
     case "CTA_BANNER": {
       const ctaConfig = config as CtaBannerConfig
+
+      // Si es vídeo de la BD con Mux, generar URL firmada para reproducción
+      let dbVideoUrl: string | undefined
+      if (ctaConfig.bgSource === "dbVideo" && ctaConfig.dbVideoMuxPlaybackId) {
+        try {
+          const token = await getVideoToken(ctaConfig.dbVideoMuxPlaybackId)
+          dbVideoUrl = getVideoPreviewUrl(ctaConfig.dbVideoMuxPlaybackId, token, "high")
+        } catch (error) {
+          console.warn("Failed to generate CTA banner video URL:", error)
+        }
+      }
+
       return (
         <CtaBanner
           title={ctaConfig.title || ""}
           description={ctaConfig.description || ""}
           buttonText={ctaConfig.buttonText || "Ver más"}
           buttonUrl={ctaConfig.buttonUrl}
-          backgroundImage={ctaConfig.backgroundImage}
-          videoUrl={ctaConfig.videoUrl}
+          backgroundImage={ctaConfig.bgSource === "image" || !ctaConfig.bgSource ? ctaConfig.backgroundImage : undefined}
+          videoUrl={ctaConfig.bgSource === "uploadedVideo" ? ctaConfig.videoUrl : dbVideoUrl}
+          titleFontFamily={ctaConfig.titleFontFamily}
+          titleFontSize={ctaConfig.titleFontSize}
+          buttonBgColor={ctaConfig.buttonBgColor}
+          buttonHoverColor={ctaConfig.buttonHoverColor}
+          buttonTextColor={ctaConfig.buttonTextColor}
+          buttonHoverTextColor={ctaConfig.buttonHoverTextColor}
+          overlayEnabled={ctaConfig.overlayEnabled}
+          overlayOpacity={ctaConfig.overlayOpacity}
+          blurEnabled={ctaConfig.blurEnabled}
+          blurIntensity={ctaConfig.blurIntensity}
         />
       )
     }

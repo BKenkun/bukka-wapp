@@ -55,15 +55,14 @@ export function StickyHeader({ children, topBar, searchBar, discountBanner }: St
   const showBackground = !isHome || scrolled
   const showTopBar = !isHome || scrolled
   const showSearchBar = false // Search is now an icon in header actions
-  const showDiscountBanner = !isHome && !scrolled
+  const showDiscountBanner = !scrolled
 
   return (
     <>
       <div
         ref={headerRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          showBackground ? "bg-black" : "bg-transparent"
-        }`}
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{ backgroundColor: showBackground ? "var(--global-bg)" : "transparent" }}
       >
         {/* Top Bar */}
         <div

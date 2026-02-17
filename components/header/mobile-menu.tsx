@@ -26,7 +26,8 @@ export function MobileMenu({ links }: MobileMenuProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden text-white hover:bg-zinc-800"
+          className="lg:hidden hover:opacity-80"
+          style={{ color: "var(--header-nav-text)" }}
         >
           <IconMenu2 className="size-6" />
           <span className="sr-only">Abrir menú</span>
@@ -34,10 +35,11 @@ export function MobileMenu({ links }: MobileMenuProps) {
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="w-[300px] bg-black border-zinc-800 p-0"
+        className="w-[300px] p-0"
+        style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--footer-border-color)" }}
       >
-        <SheetHeader className="p-4 border-b border-zinc-800">
-          <SheetTitle className="text-white text-left">Menú</SheetTitle>
+        <SheetHeader className="p-4 border-b" style={{ borderColor: "var(--footer-border-color)" }}>
+          <SheetTitle className="text-left" style={{ color: "var(--text-primary)" }}>Menú</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col py-4">
           {links.map((link, index) => (
@@ -47,8 +49,12 @@ export function MobileMenu({ links }: MobileMenuProps) {
               target={link.openInNewTab ? "_blank" : undefined}
               rel={link.openInNewTab ? "noopener noreferrer" : undefined}
               onClick={() => setOpen(false)}
-              className="px-4 py-3 text-white font-bold font-['Montserrat'] hover:bg-zinc-800 transition-colors"
-              style={link.highlight && link.highlightColor ? { color: link.highlightColor } : undefined}
+              className="px-4 py-3 hover:opacity-80 transition-colors"
+              style={{
+                color: link.highlight && link.highlightColor ? link.highlightColor : "var(--header-nav-text)",
+                fontWeight: "var(--header-nav-font-weight)" as React.CSSProperties["fontWeight"],
+                fontFamily: "var(--global-font)",
+              }}
             >
               {link.label}
             </Link>

@@ -72,9 +72,11 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
             />
             {product.tag && (
               <span
-                className="absolute top-3 left-3 bg-[#00B1DE] text-white px-3 py-1 z-10"
+                className="absolute top-3 left-3 px-3 py-1 z-10"
                 style={{
-                  fontFamily: "Montserrat",
+                  backgroundColor: "var(--accent-color)",
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--global-font)",
                   fontSize: "12px",
                   fontWeight: 600,
                 }}
@@ -87,7 +89,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
               <h3
                 className="text-white mb-2"
                 style={{
-                  fontFamily: "Montserrat",
+                  fontFamily: "var(--global-font)",
                   fontSize: "17.201px",
                   fontWeight: 500,
                   lineHeight: "25.801px",
@@ -98,7 +100,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
               <p
                 className="text-white mb-4"
                 style={{
-                  fontFamily: "Montserrat",
+                  fontFamily: "var(--global-font)",
                   fontSize: "17.201px",
                   fontWeight: 400,
                   lineHeight: "25.801px",
@@ -109,10 +111,10 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
               <button
                 className="text-white text-center cursor-pointer w-full disabled:opacity-50"
                 style={{
-                  fontFamily: "Montserrat",
+                  fontFamily: "var(--global-font)",
                   fontSize: "16px",
                   fontWeight: 600,
-                  background: "#FA4860",
+                  background: "var(--brand-color)",
                   padding: "10px 20px",
                   border: "0 solid #E5E7EB",
                 }}

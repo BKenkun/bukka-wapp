@@ -36,12 +36,13 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Discount Badge */}
         {hasDiscount && discountPercent > 0 && (
           <div
-            className="absolute top-4 right-4 z-10 px-3 py-1 text-white text-center"
+            className="absolute top-4 right-4 z-10 px-3 py-1 text-center"
             style={{
-              fontFamily: "Montserrat",
+              color: "var(--text-primary)",
+              fontFamily: "var(--global-font)",
               fontSize: "12px",
               fontWeight: 600,
-              background: "#FA4860",
+              background: "var(--brand-color)",
             }}
           >
             -{discountPercent}%
@@ -67,13 +68,14 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Product Info */}
-      <div className="mt-4 bg-black flex flex-col">
+      <div className="mt-4 flex flex-col" style={{ backgroundColor: "var(--global-bg)" }}>
         {/* Product Title */}
         <Link href={`/tienda/${product.slug}`}>
           <h3
-            className="text-white mb-2 hover:opacity-80 transition-opacity line-clamp-1"
+            className="mb-2 hover:opacity-80 transition-opacity line-clamp-1"
             style={{
-              fontFamily: "Montserrat",
+              color: "var(--text-primary)",
+              fontFamily: "var(--global-font)",
               fontSize: "19.756px",
               fontWeight: 400,
               lineHeight: "29.634px",
@@ -86,9 +88,9 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Pricing */}
         <div className="flex items-baseline gap-2 mb-4">
           <span
-            className="text-white"
             style={{
-              fontFamily: "Montserrat",
+              color: "var(--text-primary)",
+              fontFamily: "var(--global-font)",
               fontSize: "22.226px",
               fontWeight: 700,
               lineHeight: "34.573px",
@@ -98,9 +100,10 @@ export function ProductCard({ product }: ProductCardProps) {
           </span>
           {product.compareAtPrice && Number(product.compareAtPrice) > Number(product.price) && (
             <span
-              className="text-white line-through opacity-60"
+              className="line-through"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--text-muted)",
+                fontFamily: "var(--global-font)",
                 fontSize: "17.287px",
                 fontWeight: 400,
                 lineHeight: "24.695px",
@@ -115,13 +118,14 @@ export function ProductCard({ product }: ProductCardProps) {
         {product.productType === "VARIABLE" ? (
           <Link
             href={`/tienda/${product.slug}`}
-            className="w-full mt-auto text-white text-center block"
+            className="w-full mt-auto text-center block"
             style={{
-              fontFamily: "Montserrat",
+              color: "var(--text-primary)",
+              fontFamily: "var(--global-font)",
               fontSize: "19.756px",
               fontWeight: 400,
               lineHeight: "normal",
-              background: "#FA4860",
+              background: "var(--brand-color)",
               border: "0 solid #E5E7EB",
               padding: "12px 24px",
             }}

@@ -304,6 +304,7 @@ model MegamenuConfig {
   id                   String          @id @default(cuid())
   menuItemId           String          @unique
   featuredPerformerIds String[]
+  featuredProductIds   String[]        @default([])
   videoSource          VideoSourceType @default(MANUAL)
   videoIds             String[]
   videoCategoryId      String?
@@ -573,6 +574,7 @@ model User {
   subscriptionEnd                              DateTime?
   ccbillSubscriptionId                         String?
   epochMemberId                                String?
+  easierpaySubscriptionId                      String?
   bio                                          String?
   forumSignature                               String?
   relationshipStatus                           RelationshipStatus?

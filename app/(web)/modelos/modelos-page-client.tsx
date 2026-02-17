@@ -3,10 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ActressesGrid } from "@/components/actresses-grid"
-import { CtaBanner } from "@/components/cta-banner"
 import { ArrowUpDown, Filter, X } from "lucide-react"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+
 
 interface Actress {
   id: string
@@ -75,7 +74,7 @@ export function ModelosPageClient({
   const activeLetterGroup = letterFilter || "Todo"
 
   return (
-    <main className="min-h-screen flex flex-col font-sans bg-black text-white">
+    <main className="min-h-screen flex flex-col font-sans">
       <div className="pt-8 pb-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
         <div className="w-full">
           <div className="flex flex-col gap-4">
@@ -84,17 +83,17 @@ export function ModelosPageClient({
               <h1
                 className="font-montserrat font-bold"
                 style={{
-                  color: "#E5E7EB",
+                  color: "var(--text-secondary)",
                   fontSize: "30px",
                   lineHeight: "36px",
                 }}
               >
                 Actrices
               </h1>
-              <p className="text-white font-montserrat text-base font-normal">
+              <p className="text-base font-normal" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
                 Descubre talentosos intérpretes en nuestra base de medios
               </p>
-              <p className="text-white font-montserrat text-sm font-normal">
+              <p className="text-sm font-normal" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
                 Mostrando {totalCount > 0 ? skip + 1 : 0}-{Math.min(skip + pageSize, totalCount)} de{" "}
                 {totalCount.toLocaleString()} modelos
               </p>
@@ -105,18 +104,24 @@ export function ModelosPageClient({
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => handleSortChange("popularity")}
-                  className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 transition-colors ${
-                    sortOption === "popularity" ? "bg-[#FA4860]" : "bg-[#00B1DE] hover:bg-[#00a0c8]"
-                  }`}
+                  className="text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 transition-colors"
+                  style={{
+                    color: "var(--text-primary)",
+                    fontFamily: "var(--global-font)",
+                    backgroundColor: sortOption === "popularity" ? "var(--brand-color)" : "var(--accent-color)",
+                  }}
                 >
                   <ArrowUpDown size={14} />
                   Relevancia
                 </button>
                 <button
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  className={`text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] cursor-pointer flex items-center gap-2 transition-colors ${
-                    isFilterOpen ? "bg-[#FA4860]" : "bg-[#00B1DE] hover:bg-[#00a0c8]"
-                  }`}
+                  className="text-[14px] font-normal leading-[14px] px-[18px] py-[7px] cursor-pointer flex items-center gap-2 transition-colors"
+                  style={{
+                    color: "var(--text-primary)",
+                    fontFamily: "var(--global-font)",
+                    backgroundColor: isFilterOpen ? "var(--brand-color)" : "var(--accent-color)",
+                  }}
                 >
                   <Filter size={14} />
                   Filtrar
@@ -124,7 +129,12 @@ export function ModelosPageClient({
                 {(letterFilter && letterFilter !== "Todo") && (
                   <button
                     onClick={clearFilters}
-                    className="bg-gray-700 hover:bg-gray-600 text-white font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 transition-colors"
+                    className="text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 transition-colors hover:opacity-80"
+                    style={{
+                      color: "var(--text-primary)",
+                      fontFamily: "var(--global-font)",
+                      backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+                    }}
                   >
                     <X size={14} />
                     Borrar todos los filtros
@@ -135,9 +145,11 @@ export function ModelosPageClient({
               {/* Right side - sort dropdown */}
               <div className="flex items-center gap-4">
                 <select
-                  className="font-montserrat text-white text-base font-normal cursor-pointer"
+                  className="text-base font-normal cursor-pointer"
                   style={{
-                    background: "#00B1DE",
+                    fontFamily: "var(--global-font)",
+                    color: "var(--text-primary)",
+                    background: "var(--accent-color)",
                     padding: "8px 12px",
                     border: "none",
                     outline: "none",
@@ -160,12 +172,12 @@ export function ModelosPageClient({
             }`}
           >
             {isFilterOpen && (
-              <aside className="w-full text-white font-montserrat">
-                <h3 className="text-white font-montserrat text-[18px] font-semibold leading-[28px] mb-6">
+              <aside className="w-full" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
+                <h3 className="text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)" }}>
                   Filtros:
                 </h3>
 
-                <p className="text-white font-montserrat text-[14px] font-medium leading-[20px] mb-3">
+                <p className="text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
                   Alfabético:
                 </p>
 
@@ -175,12 +187,11 @@ export function ModelosPageClient({
                     <button
                       key={group}
                       onClick={() => handleLetterChange(group)}
-                      className={cn(
-                        "h-10 text-sm font-medium transition-colors",
-                        activeLetterGroup === group
-                          ? "bg-[#FA4860] text-white"
-                          : "bg-[#00B1DE] text-white hover:bg-[#00a0c8]"
-                      )}
+                      className="h-10 text-sm font-medium transition-colors"
+                      style={{
+                        color: "var(--text-primary)",
+                        backgroundColor: activeLetterGroup === group ? "var(--brand-color)" : "var(--accent-color)",
+                      }}
                     >
                       {group}
                     </button>
@@ -189,7 +200,8 @@ export function ModelosPageClient({
 
                 <button
                   onClick={clearFilters}
-                  className="w-full bg-[#FA4860] text-white py-4 font-bold text-sm tracking-wide hover:bg-[#fa4860]/90 transition-colors"
+                  className="w-full py-4 font-bold text-sm tracking-wide hover:opacity-90 transition-colors"
+                  style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
                 >
                   Borrar todos los filtros
                 </button>
@@ -201,11 +213,12 @@ export function ModelosPageClient({
                 <ActressesGrid actresses={actresses} isFilterOpen={isFilterOpen} />
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-400 text-lg">No hay actrices disponibles</p>
+                  <p className="text-lg" style={{ color: "var(--text-muted)" }}>No hay actrices disponibles</p>
                   {letterFilter && letterFilter !== "Todo" && (
                     <button
                       onClick={clearFilters}
-                      className="mt-4 text-[#00B1DE] hover:underline"
+                      className="mt-4 hover:underline"
+                      style={{ color: "var(--accent-color)" }}
                     >
                       Borrar todos los filtros
                     </button>
@@ -221,7 +234,8 @@ export function ModelosPageClient({
               {currentPage > 1 && (
                 <Link
                   href={buildUrl({ page: currentPage - 1 })}
-                  className="px-4 py-2 bg-[#00B1DE] text-white font-montserrat text-sm hover:bg-[#00a0c8] transition-colors"
+                  className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                  style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
                 >
                   Anterior
                 </Link>
@@ -244,11 +258,12 @@ export function ModelosPageClient({
                     <Link
                       key={pageNum}
                       href={buildUrl({ page: pageNum })}
-                      className={`px-3 py-2 font-montserrat text-sm transition-colors ${
-                        currentPage === pageNum
-                          ? "bg-[#FA4860] text-white"
-                          : "bg-gray-800 text-white hover:bg-gray-700"
-                      }`}
+                      className="px-3 py-2 text-sm transition-colors"
+                      style={{
+                        fontFamily: "var(--global-font)",
+                        color: "var(--text-primary)",
+                        backgroundColor: currentPage === pageNum ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+                      }}
                     >
                       {pageNum}
                     </Link>
@@ -259,7 +274,8 @@ export function ModelosPageClient({
               {currentPage < totalPages && (
                 <Link
                   href={buildUrl({ page: currentPage + 1 })}
-                  className="px-4 py-2 bg-[#00B1DE] text-white font-montserrat text-sm hover:bg-[#00a0c8] transition-colors"
+                  className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                  style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
                 >
                   Siguiente
                 </Link>
@@ -269,13 +285,6 @@ export function ModelosPageClient({
         </div>
       </div>
 
-      {/* CTA Banner at the bottom */}
-      <CtaBanner
-        title="The Bukkake Degree"
-        description="Lorem ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur."
-        buttonText="SUBSCRÍBETE"
-        backgroundImage="/images/red-lips-bg.jpg"
-      />
     </main>
   )
 }

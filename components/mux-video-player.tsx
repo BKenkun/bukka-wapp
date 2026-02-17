@@ -146,7 +146,7 @@ export function MuxVideoPlayer({
   if (loading) {
     return (
       <div className="relative aspect-video bg-black flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#FA4860] animate-spin" />
+        <Loader2 className="w-12 h-12 animate-spin" style={{ color: "var(--brand-color)" }} />
       </div>
     )
   }
@@ -167,8 +167,8 @@ export function MuxVideoPlayer({
           </>
         )}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center z-10">
-          <div className="w-16 h-16 rounded-full bg-[#FA4860]/20 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-[#FA4860]" />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)" }}>
+            <Lock className="w-8 h-8" style={{ color: "var(--brand-color)" }} />
           </div>
           <div className="max-w-md space-y-4">
             <h3 className={`text-white ${config.titleFontSize} ${config.titleFontWeight}`}>
@@ -178,9 +178,9 @@ export function MuxVideoPlayer({
               {config.description}
             </p>
             {config.showTierBadge && requiredTier && (
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 Requiere suscripción{" "}
-                <span className="text-[#FA4860] font-semibold">{requiredTier}</span> o
+                <span className="font-semibold" style={{ color: "var(--brand-color)" }}>{requiredTier}</span> o
                 superior
               </p>
             )}
@@ -210,7 +210,8 @@ export function MuxVideoPlayer({
         <p className="text-white text-center">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-[#FA4860] text-white font-medium hover:bg-[#FA4860]/90 transition-colors"
+          className="px-4 py-2 font-medium transition-colors"
+          style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
         >
           Reintentar
         </button>
@@ -222,7 +223,7 @@ export function MuxVideoPlayer({
   if (!playbackToken) {
     return (
       <div className="relative aspect-video bg-black flex items-center justify-center">
-        <p className="text-gray-400">Video no disponible</p>
+        <p style={{ color: "var(--text-muted)" }}>Video no disponible</p>
       </div>
     )
   }

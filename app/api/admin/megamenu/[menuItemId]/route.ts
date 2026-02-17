@@ -19,6 +19,7 @@ const megamenuLinkSchema = z.object({
 
 const megamenuConfigSchema = z.object({
   featuredPerformerIds: z.array(z.string()).max(2),
+  featuredProductIds: z.array(z.string()).max(2).default([]),
   videoSource: z.enum(["MANUAL", "CATEGORY", "LATEST", "POPULAR"]),
   videoIds: z.array(z.string()).max(4),
   videoCategoryId: z.string().nullable(),
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       where: { menuItemId },
       update: {
         featuredPerformerIds: data.featuredPerformerIds,
+        featuredProductIds: data.featuredProductIds,
         videoSource: data.videoSource as VideoSourceType,
         videoIds: data.videoIds,
         videoCategoryId: data.videoCategoryId,
@@ -100,6 +102,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       create: {
         menuItemId,
         featuredPerformerIds: data.featuredPerformerIds,
+        featuredProductIds: data.featuredProductIds,
         videoSource: data.videoSource as VideoSourceType,
         videoIds: data.videoIds,
         videoCategoryId: data.videoCategoryId,

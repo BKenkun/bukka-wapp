@@ -1,6 +1,6 @@
 import { AccountNav } from "@/components/account-nav"
 import { SectionHeader } from "@/components/section-header"
-import { SubscriptionPlanCard } from "@/components/subscription-plan-card"
+import { SubscriptionPlansClient } from "./subscription-plans-client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
@@ -88,6 +88,7 @@ export default async function SuscripcionPage() {
     }
 
     return {
+      id: plan.id,
       name: plan.name,
       slug: plan.slug,
       price: priceDisplay,
@@ -281,19 +282,7 @@ export default async function SuscripcionPage() {
 
             {/* Pricing Table */}
             <div className="mt-[70px] w-full">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {transformedPlans.map((plan) => (
-                  <SubscriptionPlanCard
-                    key={plan.slug}
-                    name={plan.name}
-                    price={plan.price}
-                    description={plan.description}
-                    features={plan.features}
-                    buttonText={plan.buttonText}
-                    isCurrentPlan={plan.isCurrentPlan}
-                  />
-                ))}
-              </div>
+              <SubscriptionPlansClient plans={transformedPlans} />
             </div>
 
             {/* Billing History */}

@@ -138,16 +138,17 @@ export function VideoCard({
   // Trailer limit overlay component
   const TrailerLimitOverlay = () => (
     <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-20 p-4 text-center">
-      <Lock className="w-12 h-12 text-[#FA4860] mb-3" />
+      <Lock className="w-12 h-12 mb-3" style={{ color: "var(--brand-color)" }} />
       <h4 className="text-white font-bold text-lg mb-2">Límite de trailers alcanzado</h4>
-      <p className="text-gray-400 text-sm mb-4">
+      <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
         {isAuthenticated
           ? "Has alcanzado tu límite diario de trailers. Mejora tu plan para ver más."
           : "Los visitantes pueden ver 3 trailers. Regístrate para ver más."}
       </p>
       <Link
         href={isAuthenticated ? "/suscripciones" : "/?register=true"}
-        className="bg-[#FA4860] text-white px-6 py-2 text-sm font-medium hover:bg-[#FA4860]/80 transition-colors"
+        className="text-white px-6 py-2 text-sm font-medium transition-colors"
+        style={{ backgroundColor: "var(--brand-color)" }}
       >
         {isAuthenticated ? "Ver Suscripciones" : "Registrarse Gratis"}
       </Link>
@@ -163,7 +164,10 @@ export function VideoCard({
           <span key={performer.slug} className="flex items-center">
             <span
               onClick={(e) => handlePerformerClick(e, performer.slug)}
-              className="hover:text-[#FA4860] transition-colors cursor-pointer"
+              className="transition-colors cursor-pointer"
+              style={{ ["--hover-color" as string]: "var(--vc-hover-accent)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--vc-hover-accent)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "")}
             >
               {performer.name}
             </span>
@@ -239,10 +243,10 @@ export function VideoCard({
         {/* Content below */}
         <div className="flex flex-col">
           {/* Title */}
-          <h3 className="text-white font-bold text-lg leading-tight mb-1 line-clamp-1">{title}</h3>
+          <h3 className="font-bold text-lg leading-tight mb-1 line-clamp-1" style={{ color: "var(--vc-title-color)" }}>{title}</h3>
 
           {/* Views and Date */}
-          <div className="flex items-center gap-3 text-white/60 text-sm">
+          <div className="flex items-center gap-3 text-sm" style={{ color: "var(--vc-meta-color)" }}>
             <div className="flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
               <span>{views}</span>
@@ -325,7 +329,7 @@ export function VideoCard({
         {/* Content overlay */}
         <div className="absolute inset-0 p-4 flex flex-col justify-end">
           {/* Title */}
-          <h3 className="text-white font-bold text-lg leading-tight mb-2">{title}</h3>
+          <h3 className="font-bold text-lg leading-tight mb-2" style={{ color: "var(--vc-title-color)" }}>{title}</h3>
 
           {/* Views and Date */}
           <div className="flex items-center gap-3 text-white text-sm">

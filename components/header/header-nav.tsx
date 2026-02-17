@@ -23,8 +23,13 @@ function NavLink({ href, children, openInNewTab, highlight, highlightColor }: Na
       href={href}
       target={openInNewTab ? "_blank" : undefined}
       rel={openInNewTab ? "noopener noreferrer" : undefined}
-      className="text-white text-sm xl:text-base font-bold font-['Montserrat'] leading-6 hover:opacity-80 transition-opacity whitespace-nowrap"
-      style={highlight && highlightColor ? { color: highlightColor } : undefined}
+      className="text-sm xl:text-base leading-6 hover:opacity-80 transition-opacity whitespace-nowrap"
+      style={{
+        color: highlight && highlightColor ? highlightColor : "var(--header-nav-text)",
+        fontSize: "var(--header-nav-font-size)",
+        fontWeight: "var(--header-nav-font-weight)" as React.CSSProperties["fontWeight"],
+        fontFamily: "var(--global-font)",
+      }}
     >
       {children}
     </Link>
@@ -76,8 +81,13 @@ export function HeaderNav({ links }: HeaderNavProps) {
                   rel={link.openInNewTab ? "noopener noreferrer" : undefined}
                   onMouseEnter={() => handleMouseEnter(key)}
                   onMouseLeave={handleMouseLeave}
-                  className="text-white text-sm xl:text-base font-bold font-['Montserrat'] leading-6 hover:opacity-80 transition-opacity whitespace-nowrap flex items-center gap-1"
-                  style={link.highlight && link.highlightColor ? { color: link.highlightColor } : undefined}
+                  className="text-sm xl:text-base leading-6 hover:opacity-80 transition-opacity whitespace-nowrap flex items-center gap-1"
+                  style={{
+                    color: link.highlight && link.highlightColor ? link.highlightColor : "var(--header-nav-text)",
+                    fontSize: "var(--header-nav-font-size)",
+                    fontWeight: "var(--header-nav-font-weight)" as React.CSSProperties["fontWeight"],
+                    fontFamily: "var(--global-font)",
+                  }}
                 >
                   {link.label}
                   <svg
@@ -110,7 +120,8 @@ export function HeaderNav({ links }: HeaderNavProps) {
       {/* Megamenu dropdown - full width */}
       {megamenuLink?.megamenu && (
         <div
-          className="fixed left-0 right-0 top-[72px] z-50 bg-black"
+          className="fixed left-0 right-0 top-[72px] z-50"
+          style={{ backgroundColor: "var(--global-bg)" }}
           onMouseEnter={handleMegamenuEnter}
           onMouseLeave={handleMouseLeave}
         >

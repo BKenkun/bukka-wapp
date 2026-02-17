@@ -220,7 +220,7 @@ export function ProductDetailClient({
                 onClick={() => setCurrentImageIndex(index)}
                 className={`relative aspect-square overflow-hidden transition-all ${
                   index === currentImageIndex
-                    ? "ring-2 ring-[#00B1DE]"
+                    ? "ring-2 ring-[var(--accent-color)]"
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
@@ -241,9 +241,9 @@ export function ProductDetailClient({
       <div className="flex flex-col space-y-6">
         {/* Title */}
         <h1
-          className="text-[#E5E7EB]"
           style={{
-            fontFamily: "Montserrat",
+            color: "var(--text-secondary)",
+            fontFamily: "var(--global-font)",
             fontSize: "30px",
             fontWeight: 700,
             lineHeight: "36px",
@@ -252,27 +252,12 @@ export function ProductDetailClient({
           {product.name}
         </h1>
 
-        {/* SKU */}
-        {currentSku && (
-          <p
-            className="text-white"
-            style={{
-              fontFamily: "Montserrat",
-              fontSize: "16px",
-              fontWeight: 400,
-              lineHeight: "24px",
-            }}
-          >
-            SKU: {currentSku}
-          </p>
-        )}
-
         {/* Stock Status */}
         {product.trackInventory && (
           <p
-            className={currentStock > 0 ? "text-[#16A34A]" : "text-[#DC2626]"}
             style={{
-              fontFamily: "Montserrat",
+              color: currentStock > 0 ? "var(--success-color)" : "var(--error-color)",
+              fontFamily: "var(--global-font)",
               fontSize: "16px",
               fontWeight: 500,
               lineHeight: "24px",
@@ -289,9 +274,9 @@ export function ProductDetailClient({
         {/* Description */}
         {product.description && (
           <p
-            className="text-white"
             style={{
-              fontFamily: "Montserrat",
+              color: "var(--text-primary)",
+              fontFamily: "var(--global-font)",
               fontSize: "16px",
               fontWeight: 400,
               lineHeight: "26px",
@@ -305,9 +290,9 @@ export function ProductDetailClient({
         {hasDiscount && (
           <div className="flex items-baseline gap-3">
             <span
-              className="text-white"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--text-primary)",
+                fontFamily: "var(--global-font)",
                 fontSize: "24px",
                 fontWeight: 700,
               }}
@@ -315,9 +300,10 @@ export function ProductDetailClient({
               {currentPrice.toFixed(2)}€
             </span>
             <span
-              className="text-white/50 line-through"
+              className="line-through"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--text-muted)",
+                fontFamily: "var(--global-font)",
                 fontSize: "18px",
                 fontWeight: 400,
               }}
@@ -325,9 +311,10 @@ export function ProductDetailClient({
               {currentCompareAtPrice?.toFixed(2)}€
             </span>
             <span
-              className="text-[#16A34A] font-medium"
+              className="font-medium"
               style={{
-                fontFamily: "Montserrat",
+                color: "var(--success-color)",
+                fontFamily: "var(--global-font)",
                 fontSize: "14px",
               }}
             >
@@ -352,7 +339,8 @@ export function ProductDetailClient({
         <button
           onClick={handleAddToCart}
           disabled={loading || isOutOfStock}
-          className={`btn-primary text-center w-fit ${isOutOfStock ? "!bg-gray-500" : ""}`}
+          className="btn-primary text-center w-fit"
+          style={isOutOfStock ? { backgroundColor: "color-mix(in srgb, var(--text-primary) 40%, transparent)" } : undefined}
         >
           {loading
             ? "Añadiendo..."

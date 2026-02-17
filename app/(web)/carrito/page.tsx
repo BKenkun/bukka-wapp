@@ -122,7 +122,7 @@ export default function CarritoPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="flex-1 flex flex-col bg-black text-white">
+      <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-12">Cargando...</div>
         </div>
@@ -131,14 +131,14 @@ export default function CarritoPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
 
       <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
         {/* Header */}
-        <h1 className="font-montserrat font-bold text-[30px] leading-[36px] text-[#E5E7EB] mb-2">
+        <h1 className="font-montserrat font-bold text-[30px] leading-[36px] mb-2" style={{ color: "var(--text-secondary)" }}>
           Tu Carrito
         </h1>
-        <p className="text-white font-montserrat text-base mb-8">
+        <p className="font-montserrat text-base mb-8" style={{ color: "var(--text-primary)" }}>
           {cart?.itemCount || 0} {cart?.itemCount === 1 ? "producto" : "productos"} en tu carrito
         </p>
 
@@ -154,16 +154,17 @@ export default function CarritoPage() {
               strokeWidth="1"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mx-auto mb-6 text-gray-600"
+              className="mx-auto mb-6"
+              style={{ color: "var(--cart-empty-icon)" }}
             >
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
-            <p className="text-gray-400 text-lg mb-6">Tu carrito esta vacio</p>
+            <p className="text-lg mb-6" style={{ color: "var(--cart-empty-text)" }}>Tu carrito esta vacio</p>
             <Link
               href="/tienda"
-              className="inline-block bg-[#FA4860] text-white font-montserrat font-semibold px-8 py-3 hover:bg-[#e8415a] transition-colors"
+              className="btn-primary inline-block"
             >
               Explorar Tienda
             </Link>
@@ -175,7 +176,8 @@ export default function CarritoPage() {
               {cart.items.map((item) => (
                 <div
                   key={item.id}
-                  className={`bg-[#1a1a1a] border border-gray-800 p-4 flex gap-4 ${!item.product.available ? "opacity-60" : ""}`}
+                  className={`p-4 flex gap-4 ${!item.product.available ? "opacity-60" : ""}`}
+                  style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}
                 >
                   {/* Product Image */}
                   <Link href={`/tienda/${item.product.slug}`} className="flex-shrink-0">
@@ -192,29 +194,32 @@ export default function CarritoPage() {
                   {/* Product Details */}
                   <div className="flex-1 min-w-0">
                     <Link href={`/tienda/${item.product.slug}`}>
-                      <h3 className="text-white font-montserrat font-medium text-lg hover:text-[#FA4860] transition-colors truncate">
+                      <h3 className="font-montserrat font-medium text-lg transition-colors truncate" style={{ color: "var(--cart-item-name)" }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = "var(--brand-color)"}
+                        onMouseLeave={(e) => e.currentTarget.style.color = "var(--cart-item-name)"}
+                      >
                         {item.product.name}
                       </h3>
                     </Link>
 
                     {/* Variant Label */}
                     {item.variantLabel && (
-                      <p className="text-gray-400 text-sm mt-1">
+                      <p className="text-sm mt-1" style={{ color: "var(--cart-item-meta)" }}>
                         {item.variantLabel}
                       </p>
                     )}
 
-                    <p className="text-[#FA4860] font-montserrat font-bold text-xl mt-2">
+                    <p className="font-montserrat font-bold text-xl mt-2" style={{ color: "var(--cart-price)" }}>
                       {item.product.price.toFixed(2)} €
                     </p>
 
                     {/* Availability warnings */}
                     {!item.product.available ? (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-sm mt-1" style={{ color: "var(--error-color)" }}>
                         Este producto ya no esta disponible
                       </p>
                     ) : item.product.stock > 0 && item.product.stock <= 3 && (
-                      <p className="text-yellow-500 text-sm mt-1">
+                      <p className="text-sm mt-1" style={{ color: "var(--warning-color)" }}>
                         Solo quedan {item.product.stock} unidades
                       </p>
                     )}
@@ -222,15 +227,18 @@ export default function CarritoPage() {
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-4 mt-4">
                       {item.product.available ? (
-                        <div className="flex items-center border border-gray-700">
+                        <div className="flex items-center" style={{ border: "1px solid var(--cart-qty-border)" }}>
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                             disabled={updating === item.id || item.quantity <= 1}
-                            className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            style={{ color: "var(--text-primary)" }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover)"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                           >
                             -
                           </button>
-                          <span className="px-4 py-1 text-white font-medium">
+                          <span className="px-4 py-1 font-medium" style={{ color: "var(--text-primary)" }}>
                             {updating === item.id ? "..." : item.quantity}
                           </span>
                           <button
@@ -239,19 +247,25 @@ export default function CarritoPage() {
                               updating === item.id ||
                               (item.product.stock > 0 && item.quantity >= item.product.stock)
                             }
-                            className="px-3 py-1 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            style={{ color: "var(--text-primary)" }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover)"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                           >
                             +
                           </button>
                         </div>
                       ) : (
-                        <span className="text-red-500 text-sm">No disponible</span>
+                        <span className="text-sm" style={{ color: "var(--error-color)" }}>No disponible</span>
                       )}
 
                       <button
                         onClick={() => handleRemoveItem(item.id)}
                         disabled={updating === item.id}
-                        className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                        className="transition-colors disabled:opacity-50"
+                        style={{ color: "var(--cart-remove-btn)" }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = "var(--cart-remove-btn-hover)"}
+                        onMouseLeave={(e) => e.currentTarget.style.color = "var(--cart-remove-btn)"}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -274,7 +288,7 @@ export default function CarritoPage() {
 
                   {/* Item Total */}
                   <div className="text-right">
-                    <p className="text-white font-montserrat font-bold text-lg">
+                    <p className="font-montserrat font-bold text-lg" style={{ color: "var(--text-primary)" }}>
                       {(item.product.price * item.quantity).toFixed(2)} €
                     </p>
                   </div>
@@ -284,31 +298,31 @@ export default function CarritoPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-[#1a1a1a] border border-gray-800 p-6 sticky top-4">
-                <h2 className="text-white font-montserrat font-bold text-xl mb-6">
+              <div className="p-6 sticky top-4" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+                <h2 className="font-montserrat font-bold text-xl mb-6" style={{ color: "var(--text-primary)" }}>
                   Resumen del Pedido
                 </h2>
 
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-gray-400">
+                  <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
                     <span>Subtotal</span>
-                    <span className="text-white">{cart.subtotal.toFixed(2)} €</span>
+                    <span style={{ color: "var(--text-primary)" }}>{cart.subtotal.toFixed(2)} €</span>
                   </div>
 
                   {cart.discountPercent > 0 && (
-                    <div className="flex justify-between text-green-500">
+                    <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
                       <span>Descuento miembro ({cart.discountPercent}%)</span>
                       <span>-{cart.discount.toFixed(2)} €</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-gray-400">
+                  <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
                     <span>Envio</span>
-                    <span className="text-white">Calculado en checkout</span>
+                    <span style={{ color: "var(--text-primary)" }}>Calculado en checkout</span>
                   </div>
 
-                  <div className="border-t border-gray-700 pt-4">
-                    <div className="flex justify-between text-white font-bold text-xl">
+                  <div className="pt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+                    <div className="flex justify-between font-bold text-xl" style={{ color: "var(--text-primary)" }}>
                       <span>Total</span>
                       <span>{cart.total.toFixed(2)} €</span>
                     </div>
@@ -317,21 +331,22 @@ export default function CarritoPage() {
 
                 <Link
                   href="/checkout"
-                  className="block w-full text-center bg-[#FA4860] text-white font-montserrat font-semibold py-3 hover:bg-[#e8415a] transition-colors"
+                  className="btn-primary block w-full text-center"
                 >
                   Finalizar Compra
                 </Link>
 
                 <Link
                   href="/tienda"
-                  className="block w-full text-center text-[#00B1DE] font-montserrat py-3 mt-4 hover:underline"
+                  className="block w-full text-center font-montserrat py-3 mt-4 hover:underline"
+                  style={{ color: "var(--accent-color)" }}
                 >
                   Continuar Comprando
                 </Link>
 
                 {/* Trust badges */}
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--border-color)" }}>
+                  <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "var(--cart-trust-badge)" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -346,7 +361,7 @@ export default function CarritoPage() {
                     </svg>
                     <span>Pago seguro SSL</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                  <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "var(--cart-trust-badge)" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -360,7 +375,7 @@ export default function CarritoPage() {
                     </svg>
                     <span>Garantia de satisfaccion</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: "var(--cart-trust-badge)" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"

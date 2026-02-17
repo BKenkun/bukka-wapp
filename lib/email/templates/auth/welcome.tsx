@@ -25,7 +25,7 @@ export function WelcomeEmailTemplate({ name }: WelcomeEmailProps) {
       <Section style={featuresContainer}>
         <Text style={featureTitle}>Lo que puedes hacer ahora:</Text>
         <Text style={featureItem}>✓ Explorar nuestra colección de videos exclusivos</Text>
-        <Text style={featureItem}>✓ Descubrir a nuestras performers</Text>
+        <Text style={featureItem}>✓ Descubrir a nuestras actrices</Text>
         <Text style={featureItem}>✓ Comprar productos en nuestra tienda</Text>
         <Text style={featureItem}>✓ Suscribirte para acceso premium</Text>
       </Section>

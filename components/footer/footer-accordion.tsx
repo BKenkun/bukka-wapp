@@ -27,11 +27,12 @@ export function FooterAccordion({ sections }: FooterAccordionProps) {
       {sections.map((section, index) => (
         <AccordionItem key={`${baseId}-${index}`} value={`${baseId}-item-${index}`} className="border-white/10">
           <AccordionTrigger
-            className="text-white font-bold hover:no-underline"
+            className="font-bold hover:no-underline"
             style={{
-              fontFamily: "Montserrat",
-              fontSize: "18px",
-              fontWeight: 700,
+              color: "var(--footer-title-color)",
+              fontFamily: "var(--global-font)",
+              fontSize: "var(--footer-title-size)",
+              fontWeight: "var(--footer-title-weight)" as unknown as number,
             }}
           >
             {section.title}
@@ -40,15 +41,16 @@ export function FooterAccordion({ sections }: FooterAccordionProps) {
             <ul className="space-y-2">
               {section.links.map((link) => (
                 <li key={link.label} className="flex items-center gap-2">
-                  <span className="text-white text-xs shrink-0">•</span>
+                  <span className="text-xs shrink-0" style={{ color: "var(--footer-link-color)" }}>•</span>
                   <Link
                     href={link.url}
                     target={link.openInNewTab ? "_blank" : undefined}
                     rel={link.openInNewTab ? "noopener noreferrer" : undefined}
-                    className="text-white hover:text-gray-300 transition-colors"
+                    className="hover:opacity-80 transition-colors"
                     style={{
-                      fontFamily: "Montserrat",
-                      fontSize: "14px",
+                      color: "var(--footer-link-color)",
+                      fontFamily: "var(--global-font)",
+                      fontSize: "var(--footer-link-size)",
                       fontWeight: 700,
                       lineHeight: "37px",
                     }}

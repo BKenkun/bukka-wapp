@@ -62,10 +62,20 @@ interface SearchResults {
   performers: Performer[]
 }
 
+interface TrendingProduct {
+  id: string
+  slug: string
+  name: string
+  price: number
+  compareAtPrice: number | null
+  images: string[]
+}
+
 interface TrendingData {
   searches: string[]
   performers: TrendingPerformer[]
   videos: Video[]
+  products: TrendingProduct[]
 }
 
 interface SearchModalProps {
@@ -337,7 +347,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
             {/* Popular Videos */}
             {trending.videos.length > 0 && (
-              <div className="p-4">
+              <div className="p-4 border-b border-zinc-800">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-white">Vídeos populares</span>
                   <Link
@@ -380,6 +390,58 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         <p className="text-zinc-500 text-xs">
                           {video.viewCount.toLocaleString()} visualizaciones
                         </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Featured Products */}
+            {trending.products && trending.products.length > 0 && (
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-white">Productos destacados</span>
+                  <Link
+                    href="/tienda"
+                    onClick={() => onOpenChange(false)}
+                    className="text-[#FA4860] text-sm font-medium hover:underline"
+                  >
+                    Ver Todos
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {trending.products.map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/tienda/${product.slug}`}
+                      onClick={() => onOpenChange(false)}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                    >
+                      <div className="relative w-12 h-12 shrink-0 bg-zinc-800 overflow-hidden rounded">
+                        {product.images?.[0] ? (
+                          <Image
+                            src={product.images[0]}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ShoppingBag className="w-5 h-5 text-zinc-600" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{product.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#FA4860] text-sm font-bold">{product.price.toFixed(2)} &euro;</span>
+                          {product.compareAtPrice && (
+                            <span className="text-zinc-500 text-xs line-through">
+                              {product.compareAtPrice.toFixed(2)} &euro;
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </Link>
                   ))}

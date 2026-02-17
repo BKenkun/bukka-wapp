@@ -113,7 +113,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       {/* Cover Image */}
       <div className="w-full overflow-hidden">
         <div className="relative w-full h-[448px] flex-shrink-0">
@@ -150,8 +150,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="flex items-center gap-3">
                     <h1
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "36px",
                         fontWeight: 700,
                         lineHeight: "40px",
@@ -168,12 +168,12 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                       >
                         <path
                           d="M14.0488 5.53954C14.464 5.44421 14.8939 5.62231 15.1201 5.98327L16.114 7.56981C16.1942 7.69788 16.3025 7.80609 16.4305 7.88633L18.0171 8.88028C18.378 9.10642 18.5561 9.53639 18.4608 9.95153L18.0418 11.7762C18.008 11.9235 18.008 12.0765 18.0418 12.2238L18.4608 14.0485C18.5561 14.4637 18.378 14.8936 18.0171 15.1198L16.4305 16.1137C16.3025 16.194 16.1942 16.3022 16.114 16.4302L15.1201 18.0168C14.8939 18.3777 14.464 18.5558 14.0488 18.4605L12.2241 18.0415C12.0768 18.0077 11.9238 18.0077 11.7765 18.0415L9.95181 18.4605C9.53667 18.5558 9.1067 18.3777 8.88057 18.0168L7.88661 16.4302C7.80638 16.3022 7.69816 16.194 7.57009 16.1137L5.98355 15.1198C5.62259 14.8936 5.44449 14.4637 5.53983 14.0485L5.95885 12.2238C5.99267 12.0766 5.99267 11.9235 5.95885 11.7762L5.53983 9.95153C5.44449 9.53639 5.62259 9.10642 5.98355 8.88028L7.57009 7.88633C7.69816 7.80609 7.80638 7.69788 7.88661 7.56981L8.88057 5.98327C9.1067 5.62231 9.53667 5.44421 9.95181 5.53954L11.7765 5.95856C11.9238 5.99239 12.0768 5.99239 12.2241 5.95856L14.0488 5.53954Z"
-                          stroke="#00aaff"
+                          stroke="var(--pc-verified-color, #00aaff)"
                           strokeWidth="1.5"
                         />
                         <path
                           d="M9.51538 12.5362L11.55 14.4846L14.4846 9.51538"
-                          stroke="#00aaff"
+                          stroke="var(--pc-verified-color, #00aaff)"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -190,13 +190,13 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="16" viewBox="0 0 12 16" fill="none">
                       <path
                         d="M6.74062 15.6C8.34375 13.5938 12 8.73125 12 6C12 2.6875 9.3125 0 6 0C2.6875 0 0 2.6875 0 6C0 8.73125 3.65625 13.5938 5.25938 15.6C5.64375 16.0781 6.35625 16.0781 6.74062 15.6ZM6 4C6.53043 4 7.03914 4.21071 7.41421 4.58579C7.78929 4.96086 8 5.46957 8 6C8 6.53043 7.78929 7.03914 7.41421 7.41421C7.03914 7.78929 6.53043 8 6 8C5.46957 8 4.96086 7.78929 4.58579 7.41421C4.21071 7.03914 4 6.53043 4 6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4Z"
-                        fill="#FA4860"
+                        fill="var(--brand-color)"
                       />
                     </svg>
                     <span
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "18px",
                         fontWeight: 400,
                         lineHeight: "28px",
@@ -212,9 +212,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="text-center">
                     <div
                       style={{
-                        color: "#FFF",
+                        color: "var(--text-primary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "24px",
                         fontWeight: 700,
                         lineHeight: "normal",
@@ -224,9 +224,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </div>
                     <div
                       style={{
-                        color: "#E0E0E0",
+                        color: "var(--text-secondary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "normal",
@@ -238,9 +238,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="text-center">
                     <div
                       style={{
-                        color: "#FFF",
+                        color: "var(--text-primary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "24px",
                         fontWeight: 700,
                         lineHeight: "normal",
@@ -250,9 +250,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </div>
                     <div
                       style={{
-                        color: "#E0E0E0",
+                        color: "var(--text-secondary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "normal",
@@ -264,9 +264,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="text-center">
                     <div
                       style={{
-                        color: "#FFF",
+                        color: "var(--text-primary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "24px",
                         fontWeight: 700,
                         lineHeight: "normal",
@@ -276,9 +276,9 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </div>
                     <div
                       style={{
-                        color: "#E0E0E0",
+                        color: "var(--text-secondary)",
                         textAlign: "center",
-                        fontFamily: "Montserrat",
+                        fontFamily: "var(--global-font)",
                         fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "normal",
@@ -294,8 +294,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="mb-6">
                     <h2
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "24px",
                         fontWeight: 700,
                         lineHeight: "32px",
@@ -306,8 +306,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </h2>
                     <p
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "16px",
                         fontWeight: 400,
                         lineHeight: "26px",
@@ -345,8 +345,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                     <h3
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "21.2px",
                         fontWeight: 500,
                         lineHeight: "25.801px",
@@ -357,8 +357,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </h3>
                     <p
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "21.2px",
                         fontWeight: 400,
                         lineHeight: "25.801px",
@@ -447,8 +447,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                   <div className="absolute bottom-6 left-6">
                     <h3
                       style={{
-                        color: "#FFF",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "24px",
                         fontWeight: 700,
                         lineHeight: "32px",
@@ -458,8 +458,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
                     </h3>
                     <p
                       style={{
-                        color: "#E0E0E0",
-                        fontFamily: "Montserrat",
+                        color: "var(--text-secondary)",
+                        fontFamily: "var(--global-font)",
                         fontSize: "14px",
                         fontWeight: 400,
                         marginTop: "8px",

@@ -104,7 +104,7 @@ export default async function TiendaPage({
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-black text-white">
+    <main className="flex-1 flex flex-col">
       <div className="w-full mx-auto px-4 md:px-6 pt-6">
         {/* 1. Banner/Slider */}
         {shopSettings.banner.imageUrl && (
@@ -122,10 +122,10 @@ export default async function TiendaPage({
 
         {/* 2. Title + Description */}
         <div className="text-center mb-8">
-          <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-white mb-3">
+          <h1 className="font-bold text-3xl md:text-4xl mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
             Tienda
           </h1>
-          <p className="text-white/80 font-montserrat text-base max-w-2xl mx-auto">
+          <p className="text-base max-w-2xl mx-auto" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
             Descubre nuestra colección exclusiva de productos
           </p>
         </div>
@@ -149,7 +149,7 @@ export default async function TiendaPage({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                    <span className="text-white font-montserrat font-semibold text-base">
+                    <span className="font-semibold text-base" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
                       {cat.name}
                     </span>
                   </div>
@@ -161,7 +161,7 @@ export default async function TiendaPage({
 
         {/* Info + Filters */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <p className="text-white/60 font-montserrat text-sm">
+          <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
             Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
             {totalCount.toLocaleString()} productos
           </p>
@@ -170,33 +170,29 @@ export default async function TiendaPage({
           <div className="flex gap-2 flex-wrap">
             <Link
               href={buildSortUrl("newest")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "newest" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "newest" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Recientes
             </Link>
             <Link
               href={buildSortUrl("popular")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "popular" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "popular" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Populares
             </Link>
             <Link
               href={buildSortUrl("price_asc")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "price_asc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_asc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Precio ↑
             </Link>
             <Link
               href={buildSortUrl("price_desc")}
-              className={`text-white font-montserrat text-[13px] px-4 py-2 transition-colors ${
-                sortOption === "price_desc" ? "bg-[#FA4860]" : "bg-zinc-800 hover:bg-zinc-700"
-              }`}
+              className="text-[13px] px-4 py-2 transition-colors"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_desc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
             >
               Precio ↓
             </Link>
@@ -226,7 +222,7 @@ export default async function TiendaPage({
           </div>
         ) : (
           <div className="text-center py-12 mb-8">
-            <p className="text-gray-400">No hay productos disponibles</p>
+            <p style={{ color: "var(--text-muted)" }}>No hay productos disponibles</p>
           </div>
         )}
 
@@ -236,7 +232,8 @@ export default async function TiendaPage({
             {page > 1 && (
               <Link
                 href={buildUrl(page - 1)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
+                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
               >
                 Anterior
               </Link>
@@ -259,11 +256,12 @@ export default async function TiendaPage({
                   <Link
                     key={pageNum}
                     href={buildUrl(pageNum)}
-                    className={`px-3 py-2 font-montserrat text-sm ${
-                      page === pageNum
-                        ? "bg-[#FA4860] text-white"
-                        : "bg-zinc-800 text-white hover:bg-zinc-700"
-                    }`}
+                    className="px-3 py-2 text-sm transition-colors"
+                    style={{
+                      fontFamily: "var(--global-font)",
+                      color: "var(--text-primary)",
+                      backgroundColor: page === pageNum ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+                    }}
                   >
                     {pageNum}
                   </Link>
@@ -274,7 +272,8 @@ export default async function TiendaPage({
             {page < totalPages && (
               <Link
                 href={buildUrl(page + 1)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-montserrat text-sm"
+                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
+                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
               >
                 Siguiente
               </Link>

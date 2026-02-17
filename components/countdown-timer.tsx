@@ -84,7 +84,10 @@ export function CountdownTimer({
       {/* Content Container */}
       <div className="relative z-10 flex flex-col items-center justify-center py-[124px] px-4">
         {/* Title */}
-        <h2 className="text-white font-['Montserrat'] font-bold text-[32px] leading-[48px] text-center mb-[40px]">
+        <h2
+          className="font-bold leading-[48px] text-center mb-[40px]"
+          style={{ color: "var(--cd-title-color)", fontSize: "var(--cd-title-size)", fontFamily: "var(--global-font)" }}
+        >
           {title}
         </h2>
 
@@ -93,40 +96,40 @@ export function CountdownTimer({
           <div className="flex gap-8 md:gap-16 justify-center">
             {/* Days */}
             <div className="flex flex-col items-center">
-              <span className="text-white font-['Montserrat'] font-bold text-[48px] leading-[48px]">
+              <span className="font-bold leading-[48px]" style={{ color: "var(--cd-number-color)", fontSize: "var(--cd-number-size)", fontFamily: "var(--global-font)" }}>
                 {formatNumber(timeLeft.days)}
               </span>
-              <span className="text-white font-['Montserrat'] font-medium text-[20px] leading-[48px] mt-[15px]">
+              <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
                 Días
               </span>
             </div>
 
             {/* Hours */}
             <div className="flex flex-col items-center">
-              <span className="text-white font-['Montserrat'] font-bold text-[48px] leading-[48px]">
+              <span className="font-bold leading-[48px]" style={{ color: "var(--cd-number-color)", fontSize: "var(--cd-number-size)", fontFamily: "var(--global-font)" }}>
                 {formatNumber(timeLeft.hours)}
               </span>
-              <span className="text-white font-['Montserrat'] font-medium text-[20px] leading-[48px] mt-[15px]">
+              <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
                 Horas
               </span>
             </div>
 
             {/* Minutes */}
             <div className="flex flex-col items-center">
-              <span className="text-white font-['Montserrat'] font-bold text-[48px] leading-[48px]">
+              <span className="font-bold leading-[48px]" style={{ color: "var(--cd-number-color)", fontSize: "var(--cd-number-size)", fontFamily: "var(--global-font)" }}>
                 {formatNumber(timeLeft.minutes)}
               </span>
-              <span className="text-white font-['Montserrat'] font-medium text-[20px] leading-[48px] mt-[15px]">
+              <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
                 Minutos
               </span>
             </div>
 
             {/* Seconds */}
             <div className="flex flex-col items-center">
-              <span className="text-white font-['Montserrat'] font-bold text-[48px] leading-[48px]">
+              <span className="font-bold leading-[48px]" style={{ color: "var(--cd-number-color)", fontSize: "var(--cd-number-size)", fontFamily: "var(--global-font)" }}>
                 {formatNumber(timeLeft.seconds)}
               </span>
-              <span className="text-white font-['Montserrat'] font-medium text-[20px] leading-[48px] mt-[15px]">
+              <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
                 Segundos
               </span>
             </div>
@@ -134,7 +137,10 @@ export function CountdownTimer({
         </div>
 
         {/* Date/Subtitle */}
-        <div className="text-white font-['Montserrat'] font-semibold text-[24px] leading-[48px] text-center">
+        <div
+          className="font-semibold text-[24px] leading-[48px] text-center"
+          style={{ color: "var(--cd-subtitle-color)", fontFamily: "var(--global-font)" }}
+        >
           {subtitle}
         </div>
       </div>

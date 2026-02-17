@@ -24,13 +24,6 @@ export function GeneralSettings() {
   const [supportEmail, setSupportEmail] = React.useState("")
   const [maintenanceMode, setMaintenanceMode] = React.useState(false)
 
-  // Discount Banner
-  const [bannerEnabled, setBannerEnabled] = React.useState(true)
-  const [bannerText, setBannerText] = React.useState("DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%")
-  const [bannerButtonText, setBannerButtonText] = React.useState("SUBSCRÍBETE AHORA")
-  const [bannerButtonUrl, setBannerButtonUrl] = React.useState("/registro")
-  const [bannerBackgroundColor, setBannerBackgroundColor] = React.useState("#00B1DE")
-
   React.useEffect(() => {
     loadSettings()
   }, [])
@@ -48,13 +41,6 @@ export function GeneralSettings() {
           setFavicon(data.site.favicon || "")
           setSupportEmail(data.site.supportEmail || "")
           setMaintenanceMode(data.site.maintenanceMode || false)
-        }
-        if (data.discountBanner) {
-          setBannerEnabled(data.discountBanner.enabled ?? true)
-          setBannerText(data.discountBanner.text || "DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%")
-          setBannerButtonText(data.discountBanner.buttonText || "SUBSCRÍBETE AHORA")
-          setBannerButtonUrl(data.discountBanner.buttonUrl || "/registro")
-          setBannerBackgroundColor(data.discountBanner.backgroundColor || "#00B1DE")
         }
       }
     } catch (error) {
@@ -78,13 +64,6 @@ export function GeneralSettings() {
             favicon,
             supportEmail,
             maintenanceMode,
-          },
-          discountBanner: {
-            enabled: bannerEnabled,
-            text: bannerText,
-            buttonText: bannerButtonText,
-            buttonUrl: bannerButtonUrl,
-            backgroundColor: bannerBackgroundColor,
           },
         }),
       })
@@ -240,103 +219,6 @@ export function GeneralSettings() {
               />
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Discount Banner */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Banner de Descuento</CardTitle>
-          <CardDescription>
-            Configura el banner promocional que aparece en todas las páginas
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="bannerEnabled">Mostrar Banner</Label>
-              <p className="text-xs text-muted-foreground">
-                Muestra el banner promocional en la parte superior
-              </p>
-            </div>
-            <Switch
-              id="bannerEnabled"
-              checked={bannerEnabled}
-              onCheckedChange={setBannerEnabled}
-            />
-          </div>
-
-          {bannerEnabled && (
-            <>
-              <Separator />
-
-              <div className="space-y-2">
-                <Label htmlFor="bannerText">Texto del Banner</Label>
-                <Input
-                  id="bannerText"
-                  value={bannerText}
-                  onChange={(e) => setBannerText(e.target.value)}
-                  placeholder="DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bannerButtonText">Texto del Botón</Label>
-                  <Input
-                    id="bannerButtonText"
-                    value={bannerButtonText}
-                    onChange={(e) => setBannerButtonText(e.target.value)}
-                    placeholder="SUBSCRÍBETE AHORA"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bannerButtonUrl">URL del Botón</Label>
-                  <Input
-                    id="bannerButtonUrl"
-                    value={bannerButtonUrl}
-                    onChange={(e) => setBannerButtonUrl(e.target.value)}
-                    placeholder="/registro"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bannerBackgroundColor">Color de Fondo</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    id="bannerBackgroundColor"
-                    value={bannerBackgroundColor}
-                    onChange={(e) => setBannerBackgroundColor(e.target.value)}
-                    className="w-12 h-10 rounded border cursor-pointer"
-                  />
-                  <Input
-                    value={bannerBackgroundColor}
-                    onChange={(e) => setBannerBackgroundColor(e.target.value)}
-                    placeholder="#00B1DE"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="space-y-2">
-                <Label>Vista Previa</Label>
-                <div
-                  className="w-full py-3 px-4 flex flex-col md:flex-row items-center justify-between gap-3 rounded-lg"
-                  style={{ backgroundColor: bannerBackgroundColor }}
-                >
-                  <span className="text-white font-bold text-sm uppercase tracking-wide text-center md:text-left">
-                    {bannerText || "Texto del banner"}
-                  </span>
-                  <button className="border-2 border-white text-white px-4 py-1.5 font-bold text-xs uppercase hover:bg-white/20 transition-colors whitespace-nowrap rounded">
-                    {bannerButtonText || "Botón"}
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
 

@@ -43,7 +43,8 @@ export function ProductImageSlider({ images, productName }: ProductImageSliderPr
     <div className="space-y-4">
       {/* Main Image */}
       <div
-        className="relative w-full aspect-[3/4] bg-gray-900 overflow-hidden"
+        className="relative w-full aspect-[3/4] overflow-hidden"
+        style={{ backgroundColor: "color-mix(in srgb, var(--global-bg) 90%, var(--text-primary))" }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -94,7 +95,7 @@ export function ProductImageSlider({ images, productName }: ProductImageSliderPr
               onClick={() => setCurrentImageIndex(index)}
               className={`relative aspect-square overflow-hidden transition-all ${
                 index === currentImageIndex
-                  ? "ring-2 ring-[#00B1DE]"
+                  ? "ring-2 ring-[var(--accent-color)]"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
