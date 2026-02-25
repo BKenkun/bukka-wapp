@@ -59,11 +59,13 @@ export async function POST(request: NextRequest) {
 
     const config = getEasierPayConfig()
 
+    console.log("[EasierPay] Order:", { id: order.id, orderNumber: order.orderNumber, total: order.total, totalAsNumber: Number(order.total) })
+
     // Call EasierPay - id and user.id must be integers per API docs
     const result = await initTransaction({
       id: generateTransactionId(),
       product: {
-        id: order.id,
+        id: "sale",
         amount: Number(order.total),
         description: `Pedido ${order.orderNumber}`,
       },

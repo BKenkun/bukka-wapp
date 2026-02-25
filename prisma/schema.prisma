@@ -584,6 +584,8 @@ model User {
   isPerformer                                  Boolean               @default(false)
   isVerified                                   Boolean               @default(false)
   isModerator                                  Boolean               @default(false)
+  ageVerified                                  Boolean               @default(false)
+  ageVerifiedAt                                DateTime?
   notifyEmail                                  Boolean               @default(true)
   notifyNewContent                             Boolean               @default(true)
   notifySubscription                           Boolean               @default(false)

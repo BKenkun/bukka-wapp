@@ -7,7 +7,6 @@ interface AgeVerificationSettings {
   enabled: boolean
   title: string
   description: string
-  enterButtonText: string
   exitButtonText: string
   exitUrl: string
 }
@@ -16,7 +15,6 @@ const DEFAULT_SETTINGS: AgeVerificationSettings = {
   enabled: true,
   title: "Este es un Sitio Web para adultos",
   description: "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
-  enterButtonText: "Tengo 18 años o más - Entrar",
   exitButtonText: "Soy menor de 18 años - Salir",
   exitUrl: "https://www.google.com",
 }
@@ -54,7 +52,6 @@ export function AgeVerificationProvider({
           enabled={settings.enabled}
           title={settings.title}
           description={settings.description}
-          enterButtonText={settings.enterButtonText}
           exitButtonText={settings.exitButtonText}
           exitUrl={settings.exitUrl}
         />
