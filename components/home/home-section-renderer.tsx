@@ -327,6 +327,8 @@ interface PerformerData {
   videoCount?: number
   totalViews?: number
   verified?: boolean
+  comingSoon?: boolean
+  comingSoonDate?: string | null
 }
 
 async function getPerformersForSection(config: ActressGridConfig): Promise<PerformerData[]> {
@@ -339,6 +341,8 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       name: string
       profileImage: string | null
       verified: boolean
+      comingSoon: boolean
+      comingSoonDate: Date | null
       _count: { VideoPerformer: number }
       VideoPerformer: Array<{ video: { viewCount: number } }>
     }>
@@ -349,6 +353,8 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       name: true,
       profileImage: true,
       verified: true,
+      comingSoon: true,
+      comingSoonDate: true,
       _count: { select: { VideoPerformer: true } },
       VideoPerformer: {
         select: {
@@ -392,6 +398,8 @@ async function getPerformersForSection(config: ActressGridConfig): Promise<Perfo
       videoCount: performer._count.VideoPerformer,
       totalViews: performer.VideoPerformer.reduce((sum, vp) => sum + vp.video.viewCount, 0),
       verified: performer.verified,
+      comingSoon: performer.comingSoon,
+      comingSoonDate: performer.comingSoonDate?.toISOString() || null,
     }))
   } catch (error) {
     console.error("Error fetching performers for section:", error)

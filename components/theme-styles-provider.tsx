@@ -123,6 +123,16 @@ interface ThemeSettings {
     emptyTextColor: string
     trustBadgeColor: string
   }
+  comingSoon: {
+    labelBg: string
+    labelColor: string
+    nameBg: string
+    nameColor: string
+    numberColor: string
+    letterColor: string
+    buttonBg: string
+    buttonColor: string
+  }
   carouselArrows: {
     backgroundColor: string
     iconColor: string
@@ -246,6 +256,16 @@ const defaultTheme: ThemeSettings = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  comingSoon: {
+    labelBg: "#2D3748",
+    labelColor: "#FFFFFF",
+    nameBg: "#2D3748",
+    nameColor: "#FFFFFF",
+    numberColor: "#FFFFFF",
+    letterColor: "#9CA3AF",
+    buttonBg: "#F4A0AB",
+    buttonColor: "#FFFFFF",
+  },
   carouselArrows: {
     backgroundColor: "#1A1A1A",
     iconColor: "#FFFFFF",
@@ -306,6 +326,7 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
     const f = theme.footer
     const fo = theme.forms
     const ca = theme.cart
+    const cs = theme.comingSoon
     const ca2 = theme.carouselArrows
     const bp = theme.buttons.primary
     const bs = theme.buttons.secondary
@@ -418,6 +439,16 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --cart-empty-icon: ${ca.emptyIconColor};
         --cart-empty-text: ${ca.emptyTextColor};
         --cart-trust-badge: ${ca.trustBadgeColor};
+
+        /* Coming Soon */
+        --cs-label-bg: ${cs.labelBg};
+        --cs-label-color: ${cs.labelColor};
+        --cs-name-bg: ${cs.nameBg};
+        --cs-name-color: ${cs.nameColor};
+        --cs-number-color: ${cs.numberColor};
+        --cs-letter-color: ${cs.letterColor};
+        --cs-button-bg: ${cs.buttonBg};
+        --cs-button-color: ${cs.buttonColor};
 
         /* Carousel Arrows */
         --carousel-arrow-bg: ${ca2.backgroundColor};

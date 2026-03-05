@@ -89,7 +89,7 @@ export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps)
                 <span style={{ opacity: 0.6 }}>·</span>
               )}
               {performer.totalViews !== undefined && (
-                <span>{formatViews(performer.totalViews)} Visitas</span>
+                <span>{formatViews(performer.totalViews)} Views</span>
               )}
             </div>
           )}

@@ -111,6 +111,16 @@ const defaultTheme = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  comingSoon: {
+    labelBg: "#2D3748",
+    labelColor: "#FFFFFF",
+    nameBg: "#2D3748",
+    nameColor: "#FFFFFF",
+    numberColor: "#FFFFFF",
+    letterColor: "#9CA3AF",
+    buttonBg: "#F4A0AB",
+    buttonColor: "#FFFFFF",
+  },
   carouselArrows: {
     backgroundColor: "#1A1A1A",
     iconColor: "#FFFFFF",

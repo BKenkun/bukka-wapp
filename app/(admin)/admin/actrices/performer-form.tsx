@@ -13,6 +13,7 @@ import {
   IconPhoto,
   IconGripVertical,
   IconRosetteDiscountCheck,
+  IconClock,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,6 +36,8 @@ const performerSchema = z.object({
   coverImage: z.string().optional(),
   location: z.string().optional(),
   verified: z.boolean().optional(),
+  comingSoon: z.boolean().optional(),
+  comingSoonDate: z.string().optional(),
 })
 
 type PerformerFormData = z.infer<typeof performerSchema>
@@ -57,6 +60,8 @@ interface PerformerFormProps {
     coverImage: string | null
     location: string | null
     verified: boolean
+    comingSoon: boolean
+    comingSoonDate: string | null
     PerformerPhoto?: {
       id: string
       imageUrl: string
@@ -205,10 +210,13 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       coverImage: performer?.coverImage || "",
       location: performer?.location || "",
       verified: performer?.verified ?? false,
+      comingSoon: performer?.comingSoon ?? false,
+      comingSoonDate: performer?.comingSoonDate || "",
     },
   })
 
   const watchVerified = watch("verified")
+  const watchComingSoon = watch("comingSoon")
 
   const watchName = watch("name")
 
@@ -322,6 +330,8 @@ export function PerformerForm({ performer }: PerformerFormProps) {
         profileImage: profileImage || null,
         coverImage: coverImage || null,
         verified: data.verified ?? false,
+        comingSoon: data.comingSoon ?? false,
+        comingSoonDate: data.comingSoon && data.comingSoonDate ? data.comingSoonDate : null,
         galleryPhotos: galleryPhotos.map((photo, index) => ({
           id: photo.id,
           imageUrl: photo.imageUrl,
@@ -692,6 +702,72 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                   )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Coming Soon */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconClock className="size-5 text-pink-400" />
+                Próximamente
+              </CardTitle>
+              <CardDescription>Muestra una cuenta atrás en el carrusel</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div
+                onClick={() => setValue("comingSoon", !watchComingSoon)}
+                className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                  watchComingSoon
+                    ? "border-pink-400 bg-pink-400/10"
+                    : "border-muted hover:border-muted-foreground/50"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`size-10 rounded-full flex items-center justify-center ${
+                    watchComingSoon ? "bg-pink-400" : "bg-muted"
+                  }`}>
+                    <IconClock className={`size-6 ${
+                      watchComingSoon ? "text-white" : "text-muted-foreground"
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {watchComingSoon ? "Próximamente activo" : "Desactivado"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {watchComingSoon
+                        ? "Se muestra cuenta atrás en el carrusel"
+                        : "Aparece como tarjeta normal"}
+                    </p>
+                  </div>
+                </div>
+                <div className={`size-6 rounded-full border-2 flex items-center justify-center ${
+                  watchComingSoon
+                    ? "border-pink-400 bg-pink-400"
+                    : "border-muted-foreground/50"
+                }`}>
+                  {watchComingSoon && (
+                    <svg className="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+
+              {watchComingSoon && (
+                <div className="space-y-2">
+                  <Label htmlFor="comingSoonDate">Fecha de lanzamiento</Label>
+                  <Input
+                    id="comingSoonDate"
+                    type="datetime-local"
+                    {...register("comingSoonDate")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    La cuenta atrás se mostrará hasta esta fecha
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

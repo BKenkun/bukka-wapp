@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -36,6 +37,8 @@ interface ActressCardProps {
   viewMode?: "grid" | "list"
   videoCount?: number
   totalViews?: number
+  comingSoon?: boolean
+  comingSoonDate?: string | null
 }
 
 function formatViews(views: number): string {
@@ -51,7 +54,128 @@ function formatViews(views: number): string {
   return views.toString()
 }
 
-export function ActressCard({ name, image, slug, verified = false, viewMode = "grid", videoCount, totalViews }: ActressCardProps) {
+interface TimeLeft {
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+}
+
+function useCountdown(targetDate?: string | null): TimeLeft {
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+
+  useEffect(() => {
+    if (!targetDate) return
+
+    const target = new Date(targetDate)
+
+    const calculate = () => {
+      const diff = +target - +new Date()
+      if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+      return {
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+      }
+    }
+
+    setTimeLeft(calculate())
+    const timer = setInterval(() => setTimeLeft(calculate()), 1000)
+    return () => clearInterval(timer)
+  }, [targetDate])
+
+  return timeLeft
+}
+
+function ComingSoonCard({ name, image, comingSoonDate }: { name: string; image: string; comingSoonDate?: string | null }) {
+  const timeLeft = useCountdown(comingSoonDate)
+  const pad = (n: number) => n.toString().padStart(2, "0")
+
+  return (
+    <div className="relative h-[640px] overflow-hidden">
+      {/* Background image darkened */}
+      <Image
+        src={image || "/placeholder.svg"}
+        alt={name}
+        fill
+        className="object-cover brightness-[0.3]"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
+      />
+
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/40" />
+
+      {/* Content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+        {/* NEW PERFORMER label */}
+        <div
+          className="px-4 py-1.5 rounded-sm mb-4 text-xs font-bold tracking-widest uppercase"
+          style={{
+            backgroundColor: "var(--cs-label-bg, #2D3748)",
+            color: "var(--cs-label-color, #FFFFFF)",
+          }}
+        >
+          NEW PERFORMER
+        </div>
+
+        {/* Name */}
+        <div
+          className="px-5 py-2 rounded-sm mb-8 text-lg font-bold text-center"
+          style={{
+            backgroundColor: "var(--cs-name-bg, #2D3748)",
+            color: "var(--cs-name-color, #FFFFFF)",
+          }}
+        >
+          {name}
+        </div>
+
+        {/* Countdown */}
+        <div className="flex gap-4 mb-8">
+          {[
+            { value: timeLeft.days, label: "D" },
+            { value: timeLeft.hours, label: "H" },
+            { value: timeLeft.minutes, label: "M" },
+            { value: timeLeft.seconds, label: "S" },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center">
+              <span
+                className="text-3xl font-bold tabular-nums"
+                style={{ color: "var(--cs-number-color, #FFFFFF)" }}
+              >
+                {pad(item.value)}
+              </span>
+              <span
+                className="text-xs font-medium mt-1"
+                style={{ color: "var(--cs-letter-color, #9CA3AF)" }}
+              >
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Notify Me button */}
+        <button
+          className="px-6 py-2.5 rounded-sm text-sm font-bold tracking-wide uppercase transition-opacity hover:opacity-90"
+          style={{
+            backgroundColor: "var(--cs-button-bg, #F4A0AB)",
+            color: "var(--cs-button-color, #FFFFFF)",
+          }}
+        >
+          Notify Me
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function ActressCard({ name, image, slug, verified = false, viewMode = "grid", videoCount, totalViews, comingSoon, comingSoonDate }: ActressCardProps) {
+  // Coming soon mode - render countdown overlay instead of normal card
+  if (comingSoon) {
+    return <ComingSoonCard name={name} image={image} comingSoonDate={comingSoonDate} />
+  }
+
   const href = slug ? `/modelos/${slug}` : `/modelos/${name.toLowerCase().replace(/\s+/g, "-")}`
 
   if (viewMode === "list") {
@@ -90,13 +214,13 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
           {(videoCount !== undefined || totalViews !== undefined) && (
             <div className="flex items-center gap-2 mt-1 text-sm font-montserrat" style={{ color: "var(--pc-stats-color)" }}>
               {videoCount !== undefined && (
-                <span>{videoCount} {videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+                <span>{videoCount} {videoCount === 1 ? "Video" : "Videos"}</span>
               )}
               {videoCount !== undefined && totalViews !== undefined && (
                 <span className="text-white/40">·</span>
               )}
               {totalViews !== undefined && (
-                <span>{formatViews(totalViews)} Visitas</span>
+                <span>{formatViews(totalViews)} Views</span>
               )}
             </div>
           )}
@@ -123,7 +247,7 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
 
       {/* Hover overlay with "VER" */}
       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-        <span className="text-white font-montserrat font-bold text-2xl tracking-wider">VER</span>
+        <span className="text-white font-montserrat font-bold text-2xl tracking-wider">VIEW</span>
       </div>
 
       <div className="absolute bottom-6 left-5 z-10">
@@ -143,13 +267,13 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
         {(videoCount !== undefined || totalViews !== undefined) && (
           <div className="flex items-center gap-2 mt-1 text-sm font-montserrat" style={{ color: "var(--pc-stats-color)" }}>
             {videoCount !== undefined && (
-              <span>{videoCount} {videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+              <span>{videoCount} {videoCount === 1 ? "Video" : "Videos"}</span>
             )}
             {videoCount !== undefined && totalViews !== undefined && (
               <span className="text-white/40">·</span>
             )}
             {totalViews !== undefined && (
-              <span>{formatViews(totalViews)} Visitas</span>
+              <span>{formatViews(totalViews)} Views</span>
             )}
           </div>
         )}

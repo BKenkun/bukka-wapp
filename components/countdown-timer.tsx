@@ -100,7 +100,7 @@ export function CountdownTimer({
                 {formatNumber(timeLeft.days)}
               </span>
               <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
-                Días
+                Days
               </span>
             </div>
 
@@ -110,7 +110,7 @@ export function CountdownTimer({
                 {formatNumber(timeLeft.hours)}
               </span>
               <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
-                Horas
+                Hours
               </span>
             </div>
 
@@ -120,7 +120,7 @@ export function CountdownTimer({
                 {formatNumber(timeLeft.minutes)}
               </span>
               <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
-                Minutos
+                Minutes
               </span>
             </div>
 
@@ -130,7 +130,7 @@ export function CountdownTimer({
                 {formatNumber(timeLeft.seconds)}
               </span>
               <span className="font-medium text-[20px] leading-[48px] mt-[15px]" style={{ color: "var(--cd-label-color)", fontFamily: "var(--global-font)" }}>
-                Segundos
+                Seconds
               </span>
             </div>
           </div>

@@ -144,6 +144,16 @@ const defaultTheme = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  comingSoon: {
+    labelBg: "#2D3748",
+    labelColor: "#FFFFFF",
+    nameBg: "#2D3748",
+    nameColor: "#FFFFFF",
+    numberColor: "#FFFFFF",
+    letterColor: "#9CA3AF",
+    buttonBg: "#F4A0AB",
+    buttonColor: "#FFFFFF",
+  },
   carouselArrows: {
     backgroundColor: "#1A1A1A",
     iconColor: "#FFFFFF",
@@ -481,6 +491,7 @@ export function ThemeSettings() {
               <TabsTrigger value="sections">Cabeceras</TabsTrigger>
               <TabsTrigger value="videocards">Videos</TabsTrigger>
               <TabsTrigger value="performers">Actrices</TabsTrigger>
+              <TabsTrigger value="comingSoon">Próximamente</TabsTrigger>
               <TabsTrigger value="cart">Tienda / Carrito</TabsTrigger>
               <TabsTrigger value="forms">Formularios</TabsTrigger>
               <TabsTrigger value="banners">Banners</TabsTrigger>
@@ -783,6 +794,56 @@ export function ThemeSettings() {
                 <WeightField label="Grosor del Nombre" value={theme.performerCards.nameFontWeight} onChange={(v) => updateSection("performerCards", "nameFontWeight", v)} />
                 <ColorField label="Estadisticas (num. videos)" value={theme.performerCards.statsColor} onChange={(v) => updateSection("performerCards", "statsColor", v)} />
                 <ColorField label="Badge Verificado" value={theme.performerCards.verifiedColor} onChange={(v) => updateSection("performerCards", "verifiedColor", v)} />
+              </div>
+            </TabsContent>
+
+            {/* ════════════════════════════════════════════
+                PRÓXIMAMENTE - Coming Soon overlay on performer cards
+               ════════════════════════════════════════════ */}
+            <TabsContent value="comingSoon" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Próximamente</h3>
+                  <p className="text-sm text-muted-foreground">Colores del overlay &quot;Coming Soon&quot; que aparece en las tarjetas de actrices cuando se activa &quot;Próximamente&quot; en su perfil.</p>
+                </div>
+                <SectionResetButton onClick={() => resetSection("comingSoon")} />
+              </div>
+
+              {/* Preview */}
+              <div className="flex justify-center">
+                <div className="relative w-[220px] h-[320px] rounded-md overflow-hidden bg-gray-800">
+                  <div className="absolute inset-0 bg-black/60" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-3">
+                    <div className="px-3 py-1 rounded-sm mb-2 text-[10px] font-bold tracking-widest uppercase" style={{ backgroundColor: theme.comingSoon.labelBg, color: theme.comingSoon.labelColor }}>
+                      NEW PERFORMER
+                    </div>
+                    <div className="px-3 py-1 rounded-sm mb-4 text-sm font-bold" style={{ backgroundColor: theme.comingSoon.nameBg, color: theme.comingSoon.nameColor }}>
+                      Performer Name
+                    </div>
+                    <div className="flex gap-3 mb-4">
+                      {["12", "08", "34", "56"].map((v, i) => (
+                        <div key={i} className="flex flex-col items-center">
+                          <span className="text-xl font-bold" style={{ color: theme.comingSoon.numberColor }}>{v}</span>
+                          <span className="text-[10px]" style={{ color: theme.comingSoon.letterColor }}>{["D", "H", "M", "S"][i]}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="px-4 py-1.5 rounded-sm text-xs font-bold uppercase" style={{ backgroundColor: theme.comingSoon.buttonBg, color: theme.comingSoon.buttonColor }}>
+                      Notify Me
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <ColorField label="Fondo Etiqueta" value={theme.comingSoon.labelBg} onChange={(v) => updateSection("comingSoon", "labelBg", v)} tooltip="Fondo del texto NEW PERFORMER" />
+                <ColorField label="Texto Etiqueta" value={theme.comingSoon.labelColor} onChange={(v) => updateSection("comingSoon", "labelColor", v)} />
+                <ColorField label="Fondo Nombre" value={theme.comingSoon.nameBg} onChange={(v) => updateSection("comingSoon", "nameBg", v)} tooltip="Fondo del nombre de la actriz" />
+                <ColorField label="Texto Nombre" value={theme.comingSoon.nameColor} onChange={(v) => updateSection("comingSoon", "nameColor", v)} />
+                <ColorField label="Numeros Cuenta Atras" value={theme.comingSoon.numberColor} onChange={(v) => updateSection("comingSoon", "numberColor", v)} />
+                <ColorField label="Letras D H M S" value={theme.comingSoon.letterColor} onChange={(v) => updateSection("comingSoon", "letterColor", v)} />
+                <ColorField label="Fondo Boton" value={theme.comingSoon.buttonBg} onChange={(v) => updateSection("comingSoon", "buttonBg", v)} tooltip="Fondo del boton Notify Me" />
+                <ColorField label="Texto Boton" value={theme.comingSoon.buttonColor} onChange={(v) => updateSection("comingSoon", "buttonColor", v)} />
               </div>
             </TabsContent>
 

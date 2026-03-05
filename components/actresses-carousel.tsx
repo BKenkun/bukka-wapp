@@ -11,6 +11,8 @@ interface Actress {
   videoCount?: number
   totalViews?: number
   verified?: boolean
+  comingSoon?: boolean
+  comingSoonDate?: string | null
 }
 
 interface ActressesCarouselProps {
@@ -207,6 +209,8 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
               viewMode="grid"
               videoCount={actress.videoCount}
               totalViews={actress.totalViews}
+              comingSoon={actress.comingSoon}
+              comingSoonDate={actress.comingSoonDate}
             />
           </div>
         ))}

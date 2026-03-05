@@ -29,6 +29,8 @@ export async function POST(request: NextRequest) {
       coverImage,
       location,
       verified,
+      comingSoon,
+      comingSoonDate,
     } = body
 
     // Verificar slug único
@@ -52,6 +54,8 @@ export async function POST(request: NextRequest) {
         coverImage: coverImage || null,
         location: location || null,
         verified: verified ?? false,
+        comingSoon: comingSoon ?? false,
+        comingSoonDate: comingSoonDate ? new Date(comingSoonDate) : null,
       },
     })
 

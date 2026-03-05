@@ -334,7 +334,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                             )}
                             {performer.videoCount !== undefined && performer.totalViews !== undefined && " · "}
                             {performer.totalViews !== undefined && (
-                              <span>{formatViews(performer.totalViews)} visitas</span>
+                              <span>{formatViews(performer.totalViews)} views</span>
                             )}
                           </p>
                         )}
@@ -605,7 +605,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           <p className="text-white text-sm font-medium truncate">{performer.name}</p>
                           <p className="text-zinc-500 text-xs">
                             {performer.videoCount} {performer.videoCount === 1 ? "vídeo" : "vídeos"}
-                            {performer.totalViews !== undefined && ` · ${formatViews(performer.totalViews)} visitas`}
+                            {performer.totalViews !== undefined && ` · ${formatViews(performer.totalViews)} views`}
                           </p>
                         </div>
                       </Link>

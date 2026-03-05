@@ -43,6 +43,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       coverImage,
       location,
       verified,
+      comingSoon,
+      comingSoonDate,
       galleryPhotos,
     } = body
 
@@ -70,6 +72,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         coverImage: coverImage || null,
         location: location || null,
         verified: verified ?? existingPerformer.verified,
+        comingSoon: comingSoon ?? existingPerformer.comingSoon,
+        comingSoonDate: comingSoonDate !== undefined ? (comingSoonDate ? new Date(comingSoonDate) : null) : existingPerformer.comingSoonDate,
       },
     })
 
