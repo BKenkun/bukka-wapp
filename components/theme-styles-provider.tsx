@@ -123,6 +123,15 @@ interface ThemeSettings {
     emptyTextColor: string
     trustBadgeColor: string
   }
+  carouselArrows: {
+    backgroundColor: string
+    iconColor: string
+    borderColor: string
+    borderWidth: string
+    size: string
+    borderRadius: string
+    hoverBackgroundColor: string
+  }
   buttons: {
     primary: ButtonSettings
     secondary: ButtonSettings
@@ -237,6 +246,15 @@ const defaultTheme: ThemeSettings = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  carouselArrows: {
+    backgroundColor: "#1A1A1A",
+    iconColor: "#FFFFFF",
+    borderColor: "#FA4860",
+    borderWidth: "2",
+    size: "44",
+    borderRadius: "50",
+    hoverBackgroundColor: "#000000",
+  },
   buttons: {
     primary: {
       backgroundColor: "#FA4860",
@@ -288,6 +306,7 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
     const f = theme.footer
     const fo = theme.forms
     const ca = theme.cart
+    const ca2 = theme.carouselArrows
     const bp = theme.buttons.primary
     const bs = theme.buttons.secondary
 
@@ -399,6 +418,15 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --cart-empty-icon: ${ca.emptyIconColor};
         --cart-empty-text: ${ca.emptyTextColor};
         --cart-trust-badge: ${ca.trustBadgeColor};
+
+        /* Carousel Arrows */
+        --carousel-arrow-bg: ${ca2.backgroundColor};
+        --carousel-arrow-icon: ${ca2.iconColor};
+        --carousel-arrow-border: ${ca2.borderColor};
+        --carousel-arrow-border-width: ${ca2.borderWidth}px;
+        --carousel-arrow-size: ${ca2.size}px;
+        --carousel-arrow-radius: ${ca2.borderRadius}%;
+        --carousel-arrow-hover-bg: ${ca2.hoverBackgroundColor};
 
         /* Primary Button */
         --btn-primary-bg: ${bp.backgroundColor};

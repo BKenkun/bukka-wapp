@@ -111,6 +111,15 @@ const defaultTheme = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  carouselArrows: {
+    backgroundColor: "#1A1A1A",
+    iconColor: "#FFFFFF",
+    borderColor: "#FA4860",
+    borderWidth: "2",
+    size: "44",
+    borderRadius: "50",
+    hoverBackgroundColor: "#000000",
+  },
   buttons: {
     primary: {
       backgroundColor: "#FA4860",

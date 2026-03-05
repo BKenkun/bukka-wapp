@@ -202,10 +202,6 @@ export function VariantSelector({
       ))}
 
       {/* Variant Info Display */}
-      {isLoading && (
-        <p className="text-sm text-muted-foreground animate-pulse">Buscando variante...</p>
-      )}
-
       {!isLoading && currentVariant && !currentVariant.isAvailable && (
         <p className="text-sm font-medium pt-2" style={{ color: "var(--error-color)" }}>Agotado</p>
       )}

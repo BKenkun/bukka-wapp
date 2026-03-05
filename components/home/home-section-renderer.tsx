@@ -4,7 +4,7 @@ import { Hero } from "@/components/hero"
 import { SectionHeader } from "@/components/section-header"
 import { VideoGrid } from "@/components/video-grid"
 import { CtaBanner } from "@/components/cta-banner"
-import { ActressesGrid } from "@/components/actresses-grid"
+import { ActressesCarousel } from "@/components/actresses-carousel"
 import { CountdownTimer } from "@/components/countdown-timer"
 import { getVideoToken, getVideoPreviewUrl } from "@/lib/mux/client"
 
@@ -463,10 +463,36 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
       const actressConfig = config as ActressGridConfig
       const performers = await getPerformersForSection(actressConfig)
 
+      const MOCKUP_PERFORMERS = [
+        { name: "Valentina Rose", image: "/beauty-portrait-photography.jpg" },
+        { name: "Luna Starr", image: "/contemporary-model-portrait.jpg" },
+        { name: "Mia Deluxe", image: "/professional-model-photo.jpg" },
+        { name: "Sofia Blaze", image: "/fashion-model-portrait.png" },
+        { name: "Carmen Lux", image: "/elegant-woman-portrait.png" },
+        { name: "Isabella Noir", image: "/modern-fashion-portrait.jpg" },
+        { name: "Natalia Vixen", image: "/professional-woman-portrait-photo.jpg" },
+        { name: "Adriana Sky", image: "/woman-in-black-bikini-on-beach.jpg" },
+        { name: "Victoria Chase", image: "/woman-in-black-dress-sitting-on-beige-chair.jpg" },
+        { name: "Daniela Storm", image: "/red-lips-artistic.jpg" },
+      ]
+
+      const mockupCount = Math.max(0, 10 - performers.length)
+      const mockups = MOCKUP_PERFORMERS.slice(0, mockupCount).map((mock, i) => ({
+        id: `mockup-${i}`,
+        slug: undefined,
+        name: mock.name,
+        imageUrl: mock.image,
+        videoCount: 0,
+        totalViews: 0,
+        verified: false,
+      }))
+
+      const allPerformers = [...performers, ...mockups]
+
       return (
         <>
           {section.title && <SectionHeader title={section.title} />}
-          <ActressesGrid actresses={performers.length > 0 ? performers : undefined} />
+          <ActressesCarousel actresses={allPerformers} />
         </>
       )
     }

@@ -59,7 +59,7 @@ export default function FavoritosPage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/login")
+      router.push("/?login=true")
     }
   }, [status, router])
 

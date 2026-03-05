@@ -335,7 +335,7 @@ export async function Footer() {
 
   return (
     <footer className="px-4 md:px-8 py-10" style={{ backgroundColor: "var(--footer-bg)", color: "var(--footer-link-color)" }}>
-      <div className="max-w-7xl mx-auto">
+      <div>
 
         {/* Mobile: Accordion */}
         <div className="lg:hidden space-y-6">
@@ -460,7 +460,7 @@ export async function Footer() {
             {copyrightText}
           </p>
           <div
-            className="[&_a]:underline [&_a]:hover:opacity-80"
+            className="[&_a]:underline [&_a]:hover:opacity-80 [&_a]:!text-[var(--footer-link-color)]"
             style={{
               color: "var(--footer-copyright-color)",
               fontFamily: "var(--global-font)",

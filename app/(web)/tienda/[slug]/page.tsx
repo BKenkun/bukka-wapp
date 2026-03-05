@@ -3,6 +3,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductDetailClient } from "./product-detail-client"
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -48,14 +56,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         },
         take: 4,
       },
-      // For VARIABLE products, get associated attributes
       attributes: {
         include: {
           attribute: true,
         },
         orderBy: { order: "asc" },
       },
-      // Get variants with their attribute values to filter available options
       variants: {
         where: { isActive: true },
         include: {
@@ -77,10 +83,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound()
   }
 
-  // Get performer IDs for related products query
   const performerIds = product.performers.map((pp) => pp.performer.id)
 
-  // Productos relacionados (misma categoría o performer)
   const relatedProducts = await prisma.product.findMany({
     where: {
       status: "ACTIVE",
@@ -118,7 +122,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     },
   })
 
-  // Get all attribute value IDs actually used by this product's variants
   const usedAttributeValueIds = new Set<string>()
   const attributeValuesMap = new Map<string, Map<string, { id: string; value: string; slug: string; colorHex: string | null; imageUrl: string | null }>>()
 
@@ -144,7 +147,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     })
   })
 
-  // Transform attributes for the variant selector component - only include values used by variants
   const productAttributes = product.attributes
     .filter((pa) => attributeValuesMap.has(pa.attribute.id))
     .map((pa) => ({
@@ -155,31 +157,46 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       values: Array.from(attributeValuesMap.get(pa.attribute.id)?.values() || []),
     }))
 
-  // Calculate total stock from variants for VARIABLE products
   const totalVariantStock = product.productType === "VARIABLE"
     ? product.variants.reduce((sum, v) => sum + v.stock, 0)
     : product.stock
 
+  const firstCategory = product.ProductToCategory[0]?.ShopCategory
+
   return (
     <main className="flex-1 flex flex-col">
-      <div className="w-full mx-auto px-4 md:px-8 mt-8 mb-12">
-        {/* Categories */}
-        {product.ProductToCategory.length > 0 && (
-          <div className="flex gap-2 flex-wrap mb-6">
-            {product.ProductToCategory.map(({ ShopCategory }) => (
-              <Link
-                key={ShopCategory.id}
-                href={`/tienda?category=${ShopCategory.slug}`}
-                className="text-sm px-3 py-1 transition-colors hover:opacity-80"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)" }}
-              >
-                {ShopCategory.name}
-              </Link>
-            ))}
-          </div>
-        )}
+      <div className="w-full mx-auto px-4 md:px-8 mt-6 mb-12">
+        {/* Breadcrumbs */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Tienda</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {firstCategory && (
+              <>
+                <BreadcrumbSeparator style={{ color: "var(--text-muted)" }} />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link
+                      href={`/tienda?category=${firstCategory.slug}`}
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {firstCategory.name}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator style={{ color: "var(--text-muted)" }} />
+            <BreadcrumbItem>
+              <BreadcrumbPage style={{ color: "var(--text-primary)" }}>{product.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-        {/* Product Detail Client Component - handles images, variants, pricing dynamically */}
+        {/* Product Detail Client Component */}
         <ProductDetailClient
           product={{
             id: product.id,
@@ -199,8 +216,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
         {/* Related Videos */}
         {product.VideoProduct.length > 0 && (
-          <div className="mt-12 pt-6 border-t" style={{ borderColor: "var(--footer-border-color)" }}>
-            <h3 className="text-lg font-semibold mb-4">Aparece en estos videos</h3>
+          <div className="mt-12 pt-6" style={{ borderTop: `1px solid var(--border-color)` }}>
+            <h3
+              className="text-lg font-semibold mb-4"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
+            >
+              Aparece en estos videos
+            </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {product.VideoProduct.map(({ video }) => (
                 <Link
@@ -208,7 +230,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   href={`/videos/${video.slug}`}
                   className="group"
                 >
-                  <div className="relative aspect-video bg-gray-900 overflow-hidden mb-2">
+                  <div className="relative aspect-video overflow-hidden mb-2" style={{ backgroundColor: "var(--surface-bg)" }}>
                     {video.thumbnailUrl && (
                       <Image
                         src={video.thumbnailUrl}
@@ -219,7 +241,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       />
                     )}
                   </div>
-                  <p className="text-sm line-clamp-1 hover:opacity-80 transition-colors" style={{ color: "var(--text-secondary)" }}>
+                  <p
+                    className="text-sm line-clamp-1 group-hover:opacity-80 transition-opacity"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     {video.title}
                   </p>
                 </Link>
@@ -230,8 +255,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
+          <div className="mt-16 pt-6" style={{ borderTop: `1px solid var(--border-color)` }}>
+            <h2
+              className="text-xl font-bold mb-6"
+              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
+            >
+              Productos relacionados
+            </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relProduct) => (
                 <Link
@@ -239,7 +269,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   href={`/tienda/${relProduct.slug}`}
                   className="group"
                 >
-                  <div className="relative aspect-[3/4] bg-gray-900 overflow-hidden mb-3">
+                  <div
+                    className="relative aspect-[3/4] overflow-hidden mb-3"
+                    style={{ backgroundColor: "var(--surface-bg)" }}
+                  >
                     {relProduct.images && relProduct.images.length > 0 ? (
                       <Image
                         src={relProduct.images[0]}
@@ -250,19 +283,27 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-[60%] h-[50%] rounded-xl bg-gray-700" />
+                        <div className="w-[60%] h-[50%] rounded-xl" style={{ backgroundColor: "var(--border-color)" }} />
                       </div>
                     )}
                   </div>
-                  <h3 className="text-sm font-medium line-clamp-1 hover:opacity-80 transition-colors" style={{ color: "var(--text-primary)" }}>
+                  <h3
+                    className="text-sm font-medium line-clamp-1 group-hover:opacity-80 transition-opacity"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {relProduct.name}
                   </h3>
                   {relProduct.performers.length > 0 && (
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                       {relProduct.performers.map(pp => pp.performer.name).join(", ")}
                     </p>
                   )}
-                  <p className="text-sm font-bold mt-1">{Number(relProduct.price).toFixed(2)}€</p>
+                  <p
+                    className="text-sm font-bold mt-1"
+                    style={{ color: "var(--cart-price, var(--brand-color))" }}
+                  >
+                    {Number(relProduct.price).toFixed(2)}€
+                  </p>
                 </Link>
               ))}
             </div>

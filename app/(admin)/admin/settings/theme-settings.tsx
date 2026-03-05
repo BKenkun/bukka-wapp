@@ -144,6 +144,15 @@ const defaultTheme = {
     emptyTextColor: "#9CA3AF",
     trustBadgeColor: "#9CA3AF",
   },
+  carouselArrows: {
+    backgroundColor: "#1A1A1A",
+    iconColor: "#FFFFFF",
+    borderColor: "#FA4860",
+    borderWidth: "2",
+    size: "44",
+    borderRadius: "50",
+    hoverBackgroundColor: "#000000",
+  },
   buttons: {
     primary: {
       backgroundColor: "#FA4860",
@@ -962,6 +971,7 @@ export function ThemeSettings() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="primary">Primario (Anadir al carrito, Comprar...)</TabsTrigger>
                   <TabsTrigger value="secondary">Secundario (Ver carrito, Volver...)</TabsTrigger>
+                  <TabsTrigger value="carouselArrows">Flechas Carrusel</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="primary" className="space-y-6">
@@ -1053,6 +1063,69 @@ export function ThemeSettings() {
                       onChange={(e) => setTheme((p) => ({ ...p, buttons: { ...p.buttons, secondary: { ...p.buttons.secondary, padding: e.target.value } } }))}
                       placeholder="10px 28px"
                     />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="carouselArrows" className="space-y-6">
+                  {/* Preview */}
+                  <div className="p-6 bg-gray-900 rounded-lg flex items-center justify-center gap-8">
+                    <p className="text-sm text-gray-400">Vista previa:</p>
+                    <button
+                      style={{
+                        width: `${theme.carouselArrows.size}px`,
+                        height: `${theme.carouselArrows.size}px`,
+                        backgroundColor: theme.carouselArrows.backgroundColor,
+                        borderColor: theme.carouselArrows.borderColor,
+                        borderWidth: `${theme.carouselArrows.borderWidth}px`,
+                        borderStyle: "solid",
+                        borderRadius: `${theme.carouselArrows.borderRadius}%`,
+                        color: theme.carouselArrows.iconColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      style={{
+                        width: `${theme.carouselArrows.size}px`,
+                        height: `${theme.carouselArrows.size}px`,
+                        backgroundColor: theme.carouselArrows.backgroundColor,
+                        borderColor: theme.carouselArrows.borderColor,
+                        borderWidth: `${theme.carouselArrows.borderWidth}px`,
+                        borderStyle: "solid",
+                        borderRadius: `${theme.carouselArrows.borderRadius}%`,
+                        color: theme.carouselArrows.iconColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-sm">Colores</h4>
+                      <ColorField label="Color de Fondo" value={theme.carouselArrows.backgroundColor} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, backgroundColor: v } }))} tooltip="Color de fondo de las flechas" />
+                      <ColorField label="Color del Icono" value={theme.carouselArrows.iconColor} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, iconColor: v } }))} />
+                      <ColorField label="Color del Borde" value={theme.carouselArrows.borderColor} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderColor: v } }))} />
+                      <ColorField label="Fondo Hover" value={theme.carouselArrows.hoverBackgroundColor} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, hoverBackgroundColor: v } }))} tooltip="Color de fondo al pasar el raton" />
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-sm">Dimensiones</h4>
+                      <NumberField label="Tamano (px)" value={theme.carouselArrows.size} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, size: v } }))} min={24} max={80} />
+                      <NumberField label="Grosor del Borde (px)" value={theme.carouselArrows.borderWidth} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderWidth: v } }))} min={0} max={6} />
+                      <NumberField label="Redondeo (%)" value={theme.carouselArrows.borderRadius} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderRadius: v } }))} min={0} max={50} tooltip="50% = circulo, 0% = cuadrado" />
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
