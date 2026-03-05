@@ -24,8 +24,8 @@ export function MegamenuVideoCard({ video }: MegamenuVideoCardProps) {
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Thumbnail container - wide aspect ratio */}
-      <div className="relative aspect-[21/9] overflow-hidden bg-zinc-900 rounded">
+      {/* Thumbnail container - vertical aspect ratio */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900 rounded">
         <img
           src={video.thumbnailUrl}
           alt={video.title}
