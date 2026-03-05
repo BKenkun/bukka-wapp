@@ -55,7 +55,7 @@ export function StickyHeader({ children, topBar, searchBar, discountBanner }: St
   const showBackground = !isHome || scrolled
   const showTopBar = !isHome || scrolled
   const showSearchBar = false // Search is now an icon in header actions
-  const showDiscountBanner = !scrolled
+  const showDiscountBanner = true
 
   return (
     <>
