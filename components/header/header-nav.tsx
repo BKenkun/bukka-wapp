@@ -117,15 +117,22 @@ export function HeaderNav({ links }: HeaderNavProps) {
         </div>
       </nav>
 
-      {/* Megamenu dropdown - full width */}
+      {/* Megamenu dropdown - centered, compact */}
       {megamenuLink?.megamenu && (
         <div
-          className="fixed left-0 right-0 top-[72px] z-50"
-          style={{ backgroundColor: "var(--global-bg)" }}
+          className="fixed left-0 right-0 top-[72px] z-50 flex justify-center"
           onMouseEnter={handleMegamenuEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <Megamenu data={megamenuLink.megamenu} />
+          <div
+            className="w-full max-w-6xl mx-4 rounded-b-lg shadow-lg border border-t-0"
+            style={{
+              backgroundColor: "var(--global-bg)",
+              borderColor: "var(--text-muted, rgba(255,255,255,0.1))",
+            }}
+          >
+            <Megamenu data={megamenuLink.megamenu} />
+          </div>
         </div>
       )}
     </>

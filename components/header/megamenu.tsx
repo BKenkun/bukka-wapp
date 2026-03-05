@@ -127,8 +127,8 @@ export function Megamenu({ data }: MegamenuProps) {
         <div className="flex items-center gap-2 mb-4">
           <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
         </div>
-        <div className="grid grid-cols-4 gap-4">
-          {videos.slice(0, 4).map((video) => (
+        <div className="grid grid-cols-3 gap-4">
+          {videos.slice(0, 3).map((video) => (
             <MegamenuVideoCard key={video.id} video={video} />
           ))}
         </div>
@@ -181,8 +181,8 @@ export function Megamenu({ data }: MegamenuProps) {
             <div className="flex items-center gap-2 mb-4">
               <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {videos.slice(0, 4).map((video) => (
+            <div className="grid grid-cols-3 gap-4">
+              {videos.slice(0, 3).map((video) => (
                 <MegamenuVideoCard key={video.id} video={video} />
               ))}
             </div>
@@ -226,8 +226,8 @@ export function Megamenu({ data }: MegamenuProps) {
             <div className="flex items-center gap-2 mb-4">
               <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {videos.slice(0, 4).map((video) => (
+            <div className="grid grid-cols-3 gap-4">
+              {videos.slice(0, 3).map((video) => (
                 <MegamenuVideoCard key={video.id} video={video} />
               ))}
             </div>
@@ -256,8 +256,8 @@ export function Megamenu({ data }: MegamenuProps) {
           <div className="flex items-center gap-2 mb-4">
             <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Vídeos destacados</h3>
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {videos.slice(0, 4).map((video) => (
+          <div className="grid grid-cols-3 gap-4">
+            {videos.slice(0, 3).map((video) => (
               <MegamenuVideoCard key={video.id} video={video} />
             ))}
           </div>
