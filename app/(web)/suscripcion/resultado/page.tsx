@@ -1,9 +1,28 @@
 "use client"
 
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 export default function SubscriptionResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex-1 flex flex-col">
+          <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
+            <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
+              Cargando...
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <SubscriptionResultContent />
+    </Suspense>
+  )
+}
+
+function SubscriptionResultContent() {
   const searchParams = useSearchParams()
   const planSlug = searchParams.get("plan")
   const status = searchParams.get("status")
