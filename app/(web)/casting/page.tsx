@@ -643,8 +643,8 @@ export default function CastingPage() {
                     <input type="url" name="socialMedia" placeholder="Instagram link" value={formData.socialMedia} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
                   </div>
                   <div>
-                    <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Twitter</label>
-                    <input type="url" name="socialMedia2" placeholder="Twitter link" value={formData.socialMedia2} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
+                    <label className="font-['Montserrat'] text-sm font-medium mb-2 block">OnlyFans</label>
+                    <input type="url" name="socialMedia2" placeholder="OnlyFans link" value={formData.socialMedia2} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
                   </div>
                 </div>
               </div>
