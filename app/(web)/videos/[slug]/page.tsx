@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { VideoInfoBar } from "@/components/video-info-bar"
@@ -509,6 +510,28 @@ async function VideoDetailPage({ slug }: { slug: string }) {
     data: { viewCount: { increment: 1 } },
   })
 
+  // Get previous and next videos (by publishedAt order)
+  const [prevVideo, nextVideo] = await Promise.all([
+    prisma.video.findFirst({
+      where: {
+        status: "PUBLISHED",
+        publishedAt: video.publishedAt ? { gt: video.publishedAt } : undefined,
+        id: { not: video.id },
+      },
+      orderBy: { publishedAt: "asc" },
+      select: { slug: true, title: true },
+    }),
+    prisma.video.findFirst({
+      where: {
+        status: "PUBLISHED",
+        publishedAt: video.publishedAt ? { lt: video.publishedAt } : undefined,
+        id: { not: video.id },
+      },
+      orderBy: { publishedAt: "desc" },
+      select: { slug: true, title: true },
+    }),
+  ])
+
   // Obtener información del usuario y su plan de suscripción
   const session = await auth()
   let userPlan: {
@@ -669,6 +692,41 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                   requiredTier={requiredTier}
                   lockConfig={lockConfig}
                 />
+              )}
+
+              {/* Prev / Next video navigation */}
+              {(prevVideo || nextVideo) && (
+                <div
+                  className="flex items-center justify-between py-2 px-1"
+                  style={{ borderBottom: "1px solid var(--border-color)" }}
+                >
+                  {prevVideo ? (
+                    <Link
+                      href={`/videos/${prevVideo.slug}`}
+                      className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
+                      style={{ color: "var(--text-muted)" }}
+                      title={prevVideo.title}
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span className="line-clamp-1 max-w-[200px]">Anterior</span>
+                    </Link>
+                  ) : <span />}
+                  {nextVideo ? (
+                    <Link
+                      href={`/videos/${nextVideo.slug}`}
+                      className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
+                      style={{ color: "var(--text-muted)" }}
+                      title={nextVideo.title}
+                    >
+                      <span className="line-clamp-1 max-w-[200px]">Siguiente</span>
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  ) : <span />}
+                </div>
               )}
 
               <div className="mt-0">

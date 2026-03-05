@@ -171,7 +171,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Tienda</Link>
+                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Shop</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             {firstCategory && (
@@ -221,7 +221,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               className="text-lg font-semibold mb-4"
               style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
             >
-              Aparece en estos videos
+              Featured in these videos
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {product.VideoProduct.map(({ video }) => (
@@ -260,7 +260,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               className="text-xl font-bold mb-6"
               style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
             >
-              Productos relacionados
+              Related products
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relProduct) => (

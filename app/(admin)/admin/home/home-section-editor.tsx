@@ -589,17 +589,48 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                         ) : null}
                       </div>
                     )}
-                    {/* Descripción opcional cuando hay vídeo seleccionado */}
+                    {/* Contenido editable cuando hay vídeo seleccionado */}
                     {!!config.dbVideoId && (
-                      <div className="space-y-2 pt-3 border-t">
-                        <Label htmlFor="description">Descripción (opcional)</Label>
-                        <Textarea
-                          id="description"
-                          value={(config.description as string) || ""}
-                          onChange={(e) => updateConfig("description", e.target.value)}
-                          placeholder="Texto adicional bajo el título del vídeo..."
-                          rows={2}
-                        />
+                      <div className="space-y-4 pt-3 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="ctaTitleDb">Título</Label>
+                          <Input
+                            id="ctaTitleDb"
+                            value={(config.title as string) || ""}
+                            onChange={(e) => updateConfig("title", e.target.value)}
+                            placeholder="Título del banner"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="descriptionDb">Descripción (opcional)</Label>
+                          <Textarea
+                            id="descriptionDb"
+                            value={(config.description as string) || ""}
+                            onChange={(e) => updateConfig("description", e.target.value)}
+                            placeholder="Texto adicional bajo el título..."
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="buttonTextDb">Texto del botón</Label>
+                            <Input
+                              id="buttonTextDb"
+                              value={(config.buttonText as string) || ""}
+                              onChange={(e) => updateConfig("buttonText", e.target.value)}
+                              placeholder="Ver Vídeo"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="buttonUrlDb">URL del botón</Label>
+                            <Input
+                              id="buttonUrlDb"
+                              value={(config.buttonUrl as string) || ""}
+                              onChange={(e) => updateConfig("buttonUrl", e.target.value)}
+                              placeholder="/videos/slug"
+                            />
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

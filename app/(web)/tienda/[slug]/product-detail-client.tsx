@@ -160,7 +160,7 @@ export function ProductDetailClient({
     }
 
     if (isVariable && !selectedVariant) {
-      toast.error("Selecciona una variante")
+      toast.error("Please select a variant")
       return
     }
 
@@ -178,15 +178,15 @@ export function ProductDetailClient({
       })
 
       if (res.ok) {
-        toast.success("Producto añadido al carrito")
+        toast.success("Added to cart")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al añadir al carrito")
+        toast.error(error.error || "Error adding to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al añadir al carrito")
+      toast.error("Error adding to cart")
     } finally {
       setLoading(false)
     }
@@ -208,7 +208,7 @@ export function ProductDetailClient({
           >
             <Image
               src={displayImages[currentImageIndex]}
-              alt={`${product.name} - Imagen ${currentImageIndex + 1}`}
+              alt={`${product.name} - Image ${currentImageIndex + 1}`}
               fill
               className="object-contain p-4"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -232,7 +232,7 @@ export function ProductDetailClient({
                   onClick={(e) => { e.stopPropagation(); prevImage() }}
                   className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors"
                   style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)", color: "var(--text-primary)" }}
-                  aria-label="Imagen anterior"
+                  aria-label="Previous image"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -240,7 +240,7 @@ export function ProductDetailClient({
                   onClick={(e) => { e.stopPropagation(); nextImage() }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors"
                   style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)", color: "var(--text-primary)" }}
-                  aria-label="Imagen siguiente"
+                  aria-label="Next image"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -274,7 +274,7 @@ export function ProductDetailClient({
                 >
                   <Image
                     src={img}
-                    alt={`${product.name} - Miniatura ${index + 1}`}
+                    alt={`${product.name} - Thumbnail ${index + 1}`}
                     fill
                     className="object-cover hover:opacity-100 transition-opacity"
                     sizes="100px"
@@ -359,9 +359,9 @@ export function ProductDetailClient({
             >
               {currentStock > 0
                 ? currentStock <= 5
-                  ? `En stock — ¡Solo quedan ${currentStock}!`
-                  : "En stock"
-                : "Agotado"}
+                  ? `In stock — Only ${currentStock} left!`
+                  : "In stock"
+                : "Out of stock"}
             </p>
           )}
 
@@ -409,7 +409,7 @@ export function ProductDetailClient({
                 style={{ color: "var(--text-primary)" }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover, var(--surface-bg))" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                aria-label="Reducir cantidad"
+                aria-label="Decrease quantity"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -432,7 +432,7 @@ export function ProductDetailClient({
                 style={{ color: "var(--text-primary)" }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover, var(--surface-bg))" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                aria-label="Aumentar cantidad"
+                aria-label="Increase quantity"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -446,12 +446,12 @@ export function ProductDetailClient({
               style={isOutOfStock ? { backgroundColor: "color-mix(in srgb, var(--text-primary) 40%, transparent)" } : undefined}
             >
               {loading
-                ? "Añadiendo..."
+                ? "Adding..."
                 : isOutOfStock
                   ? isVariable && !selectedVariant
-                    ? "Selecciona opciones"
-                    : "Agotado"
-                  : `Añadir al carrito — ${(currentPrice * quantity).toFixed(2)}€`}
+                    ? "Select options"
+                    : "Out of stock"
+                  : `Add to cart — ${(currentPrice * quantity).toFixed(2)}€`}
             </button>
           </div>
 
@@ -466,7 +466,7 @@ export function ProductDetailClient({
                 className="text-xs font-medium"
                 style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
               >
-                Pago Seguro
+                Secure Payment
               </span>
             </div>
             <div className="flex flex-col items-center gap-2 text-center">
@@ -475,7 +475,7 @@ export function ProductDetailClient({
                 className="text-xs font-medium"
                 style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
               >
-                Envío Seguro
+                Safe Shipping
               </span>
             </div>
             <div className="flex flex-col items-center gap-2 text-center">
@@ -484,7 +484,7 @@ export function ProductDetailClient({
                 className="text-xs font-medium"
                 style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
               >
-                Garantía
+                Guarantee
               </span>
             </div>
           </div>
@@ -503,7 +503,7 @@ export function ProductDetailClient({
             onClick={() => setLightboxOpen(false)}
             className="absolute top-4 right-4 p-2 rounded-full transition-colors z-10"
             style={{ color: "#FFFFFF", backgroundColor: "rgba(255,255,255,0.1)" }}
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
@@ -514,7 +514,7 @@ export function ProductDetailClient({
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length) }}
               className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full transition-colors z-10"
               style={{ color: "#FFFFFF", backgroundColor: "rgba(255,255,255,0.1)" }}
-              aria-label="Anterior"
+              aria-label="Previous"
             >
               <ChevronLeft className="w-8 h-8" />
             </button>
@@ -527,7 +527,7 @@ export function ProductDetailClient({
           >
             <Image
               src={displayImages[lightboxIndex]}
-              alt={`${product.name} - Imagen ${lightboxIndex + 1}`}
+              alt={`${product.name} - Image ${lightboxIndex + 1}`}
               fill
               className="object-contain"
               sizes="90vw"
@@ -540,7 +540,7 @@ export function ProductDetailClient({
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev + 1) % displayImages.length) }}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full transition-colors z-10"
               style={{ color: "#FFFFFF", backgroundColor: "rgba(255,255,255,0.1)" }}
-              aria-label="Siguiente"
+              aria-label="Next"
             >
               <ChevronRight className="w-8 h-8" />
             </button>
