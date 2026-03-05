@@ -215,16 +215,6 @@ export function ProductDetailClient({
               priority
             />
 
-            {/* Discount badge */}
-            {hasDiscount && (
-              <span
-                className="absolute top-4 left-4 px-3 py-1 text-sm font-bold"
-                style={{ backgroundColor: "var(--brand-color)", color: "#FFFFFF" }}
-              >
-                -{discountPercent}%
-              </span>
-            )}
-
             {/* Navigation Arrows */}
             {displayImages.length > 1 && (
               <>
@@ -337,7 +327,7 @@ export function ProductDetailClient({
                   className="text-sm font-semibold px-2 py-0.5"
                   style={{
                     color: "#FFFFFF",
-                    backgroundColor: "var(--success-color)",
+                    backgroundColor: "var(--brand-color)",
                   }}
                 >
                   -{discountPercent}%
