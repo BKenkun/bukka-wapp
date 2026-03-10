@@ -48,9 +48,10 @@ export function DiscountBanner() {
 
   return (
     <div
-      className="w-full py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4"
+      className="w-full py-4 px-4 md:px-8"
       style={{ backgroundColor: settings.backgroundColor }}
     >
+    <div className="flex flex-col md:flex-row items-center justify-between gap-4 max-w-[1400px] mx-auto">
       <span className="text-white font-bold font-['Montserrat'] text-[16px] leading-[24px] uppercase tracking-wide text-center md:text-left">
         {settings.text}
       </span>
@@ -61,6 +62,7 @@ export function DiscountBanner() {
       >
         {settings.buttonText}
       </Link>
+    </div>
     </div>
   )
 }

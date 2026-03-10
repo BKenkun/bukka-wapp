@@ -335,7 +335,7 @@ export async function Footer() {
 
   return (
     <footer className="px-4 md:px-8 py-10" style={{ backgroundColor: "var(--footer-bg)", color: "var(--footer-link-color)" }}>
-      <div>
+      <div className="max-w-[1400px] mx-auto">
 
         {/* Mobile: Accordion */}
         <div className="lg:hidden space-y-6">

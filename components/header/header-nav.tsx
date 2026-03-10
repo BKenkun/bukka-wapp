@@ -125,13 +125,15 @@ export function HeaderNav({ links }: HeaderNavProps) {
           onMouseLeave={handleMouseLeave}
         >
           <div
-            className="w-full max-w-6xl mx-4 rounded-b-lg shadow-lg border border-t-0"
+            className="w-full shadow-lg border-b"
             style={{
               backgroundColor: "var(--global-bg)",
               borderColor: "var(--text-muted, rgba(255,255,255,0.1))",
             }}
           >
-            <Megamenu data={megamenuLink.megamenu} />
+            <div className="max-w-[1400px] mx-auto">
+              <Megamenu data={megamenuLink.megamenu} />
+            </div>
           </div>
         </div>
       )}

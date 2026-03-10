@@ -84,8 +84,8 @@ export async function TopBar() {
   }
 
   return (
-    <div className="w-full flex justify-end items-center px-8" style={{ height: "var(--topbar-height)", backgroundColor: "var(--topbar-bg)" }}>
-      <div className="flex items-center gap-8">
+    <div className="w-full px-8" style={{ height: "var(--topbar-height)", backgroundColor: "var(--topbar-bg)" }}>
+      <div className="flex justify-end items-center gap-8 max-w-[1400px] mx-auto h-full">
         {items.map((item) => {
           const content = (
             <>
