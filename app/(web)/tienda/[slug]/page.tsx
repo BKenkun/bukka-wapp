@@ -2,7 +2,10 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { getShopSettings } from "@/lib/get-shop-settings"
 import { ProductDetailClient } from "./product-detail-client"
+import { ProductCard } from "@/components/shop/product-card"
+import { ShopFaq } from "@/components/shop/shop-faq"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -21,63 +24,66 @@ interface ProductDetailPageProps {
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { slug } = await params
 
-  const product = await prisma.product.findUnique({
-    where: { slug, status: "ACTIVE" },
-    include: {
-      performers: {
-        include: {
-          performer: {
-            select: {
-              id: true,
-              slug: true,
-              name: true,
-              profileImage: true,
+  const [product, shopSettings] = await Promise.all([
+    prisma.product.findUnique({
+      where: { slug, status: "ACTIVE" },
+      include: {
+        performers: {
+          include: {
+            performer: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                profileImage: true,
+              },
             },
           },
         },
-      },
-      ProductToCategory: {
-        include: {
-          ShopCategory: {
-            select: { id: true, slug: true, name: true },
-          },
-        },
-      },
-      VideoProduct: {
-        include: {
-          video: {
-            select: {
-              id: true,
-              slug: true,
-              title: true,
-              thumbnailUrl: true,
+        ProductToCategory: {
+          include: {
+            ShopCategory: {
+              select: { id: true, slug: true, name: true },
             },
           },
         },
-        take: 4,
-      },
-      attributes: {
-        include: {
-          attribute: true,
+        VideoProduct: {
+          include: {
+            video: {
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+                thumbnailUrl: true,
+              },
+            },
+          },
+          take: 4,
         },
-        orderBy: { order: "asc" },
-      },
-      variants: {
-        where: { isActive: true },
-        include: {
-          attributeValues: {
-            include: {
-              attributeValue: {
-                include: {
-                  attribute: true,
+        attributes: {
+          include: {
+            attribute: true,
+          },
+          orderBy: { order: "asc" },
+        },
+        variants: {
+          where: { isActive: true },
+          include: {
+            attributeValues: {
+              include: {
+                attributeValue: {
+                  include: {
+                    attribute: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  })
+    }),
+    getShopSettings(),
+  ])
 
   if (!product) {
     notFound()
@@ -118,6 +124,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             select: { name: true, slug: true },
           },
         },
+      },
+      variants: {
+        where: { isActive: true },
+        select: { stock: true },
       },
     },
   })
@@ -165,13 +175,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   return (
     <main className="flex-1 flex flex-col">
-      <div className="w-full mx-auto px-4 md:px-8 mt-6 mb-12">
-        {/* Breadcrumbs */}
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto w-full px-6 mt-6">
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Shop</Link>
+                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Tienda</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             {firstCategory && (
@@ -180,7 +190,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link
-                      href={`/tienda?category=${firstCategory.slug}`}
+                      href={`/tienda/categoria/${firstCategory.slug}`}
                       style={{ color: "var(--text-muted)" }}
                     >
                       {firstCategory.name}
@@ -195,8 +205,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+      </div>
 
-        {/* Product Detail Client Component */}
+      {/* Product Detail */}
+      <div className="max-w-7xl mx-auto w-full px-6 mb-16">
         <ProductDetailClient
           product={{
             id: product.id,
@@ -212,38 +224,140 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             productType: product.productType as "SIMPLE" | "VARIABLE",
           }}
           attributes={productAttributes}
+          trustBadges={shopSettings.productDetail.trustBadges}
+          careInstructions={shopSettings.productDetail.careInstructions}
         />
+      </div>
 
-        {/* Related Videos */}
-        {product.VideoProduct.length > 0 && (
-          <div className="mt-12 pt-6" style={{ borderTop: `1px solid var(--border-color)` }}>
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
+      {/* Description & Custom Content / Care Instructions */}
+      {(() => {
+        // Per-product metadata takes priority over global settings
+        const productMeta = product.metadata as { customSectionTitle?: string; blocks?: Array<{ title: string; description: string }> } | null
+        const hasProductBlocks = productMeta?.blocks && productMeta.blocks.length > 0
+        const hasGlobalCare = shopSettings.productDetail.careInstructions.length > 0
+
+        const customTitle = hasProductBlocks
+          ? (productMeta?.customSectionTitle || "Detalles del Producto")
+          : "Instrucciones de Cuidado"
+        const contentBlocks = hasProductBlocks
+          ? productMeta!.blocks!
+          : hasGlobalCare
+            ? shopSettings.productDetail.careInstructions
+            : []
+
+        if (!product.description && contentBlocks.length === 0) return null
+
+        return (
+          <section
+            className="py-16"
+            style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}
+          >
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Description */}
+                {product.description && (
+                  <div>
+                    <h2
+                      className="text-2xl font-bold mb-6"
+                      style={{ color: "var(--text-primary, #000)" }}
+                    >
+                      Descripcion del Producto
+                    </h2>
+                    <div
+                      className="prose max-w-none"
+                      style={{
+                        color: "var(--text-muted, #6b7280)",
+                        fontFamily: "var(--global-font)",
+                        lineHeight: "1.8",
+                      }}
+                      dangerouslySetInnerHTML={{ __html: product.description }}
+                    />
+                  </div>
+                )}
+
+                {/* Custom Content Blocks (per-product or global fallback) */}
+                {contentBlocks.length > 0 && (
+                  <div>
+                    <h2
+                      className="text-2xl font-bold mb-6"
+                      style={{ color: "var(--text-primary, #000)" }}
+                    >
+                      {customTitle}
+                    </h2>
+                    <div className="space-y-4">
+                      {contentBlocks.map((block, index) => (
+                        <div
+                          key={index}
+                          className="rounded-2xl p-6 border"
+                          style={{ borderColor: "var(--border-color, #e5e7eb)", backgroundColor: "var(--global-bg, #fff)" }}
+                        >
+                          <h3
+                            className="font-bold mb-2"
+                            style={{ color: "var(--text-primary, #000)" }}
+                          >
+                            {block.title}
+                          </h3>
+                          <p style={{ color: "var(--text-muted, #6b7280)" }}>
+                            {block.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )
+      })()}
+
+      {/* Related Videos */}
+      {product.VideoProduct.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-6">
+            <h2
+              className="text-2xl font-bold mb-8"
+              style={{ color: "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
             >
-              Featured in these videos
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              Aparece en estos videos
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {product.VideoProduct.map(({ video }) => (
                 <Link
                   key={video.id}
                   href={`/videos/${video.slug}`}
                   className="group"
                 >
-                  <div className="relative aspect-video overflow-hidden mb-2" style={{ backgroundColor: "var(--surface-bg)" }}>
+                  <div
+                    className="relative aspect-video rounded-xl overflow-hidden mb-3"
+                    style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}
+                  >
                     {video.thumbnailUrl && (
                       <Image
                         src={video.thumbnailUrl}
                         alt={video.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         sizes="200px"
                       />
                     )}
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                        <div
+                          className="w-0 h-0 ml-1"
+                          style={{
+                            borderTop: "8px solid transparent",
+                            borderBottom: "8px solid transparent",
+                            borderLeft: "14px solid var(--brand-color, #E03E54)",
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <p
-                    className="text-sm line-clamp-1 group-hover:opacity-80 transition-opacity"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="text-sm font-medium line-clamp-1 group-hover:opacity-80 transition-opacity"
+                    style={{ color: "var(--text-primary, #000)" }}
                   >
                     {video.title}
                   </p>
@@ -251,65 +365,55 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               ))}
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-16 pt-6" style={{ borderTop: `1px solid var(--border-color)` }}>
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <section className="py-16" style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}>
+          <div className="max-w-7xl mx-auto px-6">
             <h2
-              className="text-xl font-bold mb-6"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
+              className="text-2xl md:text-3xl font-bold mb-8"
+              style={{ color: "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
             >
-              Related products
+              Tambien te puede gustar
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((relProduct) => (
-                <Link
-                  key={relProduct.id}
-                  href={`/tienda/${relProduct.slug}`}
-                  className="group"
-                >
-                  <div
-                    className="relative aspect-[3/4] overflow-hidden mb-3"
-                    style={{ backgroundColor: "var(--surface-bg)" }}
-                  >
-                    {relProduct.images && relProduct.images.length > 0 ? (
-                      <Image
-                        src={relProduct.images[0]}
-                        alt={relProduct.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-[60%] h-[50%] rounded-xl" style={{ backgroundColor: "var(--border-color)" }} />
-                      </div>
-                    )}
-                  </div>
-                  <h3
-                    className="text-sm font-medium line-clamp-1 group-hover:opacity-80 transition-opacity"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {relProduct.name}
-                  </h3>
-                  {relProduct.performers.length > 0 && (
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                      {relProduct.performers.map(pp => pp.performer.name).join(", ")}
-                    </p>
-                  )}
-                  <p
-                    className="text-sm font-bold mt-1"
-                    style={{ color: "var(--cart-price, var(--brand-color))" }}
-                  >
-                    {Number(relProduct.price).toFixed(2)}€
-                  </p>
-                </Link>
-              ))}
+              {relatedProducts.map((relProduct) => {
+                const effectiveStock = relProduct.productType === "VARIABLE"
+                  ? relProduct.variants.reduce((sum, v) => sum + v.stock, 0)
+                  : relProduct.stock
+
+                return (
+                  <ProductCard
+                    key={relProduct.id}
+                    product={{
+                      id: relProduct.id,
+                      slug: relProduct.slug,
+                      name: relProduct.name,
+                      price: Number(relProduct.price),
+                      compareAtPrice: relProduct.compareAtPrice ? Number(relProduct.compareAtPrice) : null,
+                      images: relProduct.images,
+                      stock: effectiveStock,
+                      trackInventory: relProduct.trackInventory,
+                      productType: relProduct.productType,
+                      performers: relProduct.performers.map((pp) => pp.performer),
+                      createdAt: relProduct.createdAt?.toISOString(),
+                    }}
+                  />
+                )
+              })}
             </div>
           </div>
-        )}
-      </div>
+        </section>
+      )}
+
+      {/* Product FAQ */}
+      <ShopFaq
+        enabled={shopSettings.productDetail.faq.enabled}
+        title="Preguntas Frecuentes"
+        items={shopSettings.productDetail.faq.items}
+      />
     </main>
   )
 }

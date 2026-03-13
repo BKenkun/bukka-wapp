@@ -125,6 +125,16 @@ interface Variant {
   }[]
 }
 
+interface MetadataBlock {
+  title: string
+  description: string
+}
+
+interface ProductMetadata {
+  customSectionTitle: string
+  blocks: MetadataBlock[]
+}
+
 interface ProductFormProps {
   product?: {
     id: string
@@ -143,6 +153,7 @@ interface ProductFormProps {
     productType: string
     weight: number | null
     categories: { category: Category }[]
+    metadata?: Record<string, unknown> | null
   }
   performers: Performer[]
   categories: Category[]
@@ -276,6 +287,12 @@ export function ProductForm({
   )
   const [images, setImages] = React.useState<string[]>(product?.images || [])
 
+  // Metadata state (per-product custom content)
+  const [metadata, setMetadata] = React.useState<ProductMetadata>(() => {
+    const saved = product?.metadata as ProductMetadata | null
+    return saved || { customSectionTitle: "", blocks: [] }
+  })
+
   // Variants state
   const [variants, setVariants] = React.useState<Variant[]>([])
   const [isLoadingVariants, setIsLoadingVariants] = React.useState(false)
@@ -366,6 +383,11 @@ export function ProductForm({
     setIsSubmitting(true)
 
     try {
+      // Clean metadata: only include if there are blocks
+      const cleanMetadata = metadata.blocks.length > 0
+        ? metadata
+        : null
+
       const payload = {
         ...data,
         price: parseFloat(data.price),
@@ -375,6 +397,7 @@ export function ProductForm({
         images,
         categoryIds: selectedCategories,
         performerIds: selectedPerformerIds,
+        metadata: cleanMetadata,
       }
 
       const url = product ? `/api/products/${product.slug}` : "/api/products"
@@ -626,6 +649,9 @@ export function ProductForm({
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="variants" disabled={watchProductType !== "VARIABLE"}>
                 Variantes {variants.length > 0 && `(${variants.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="metadata">
+                Contenido Extra
               </TabsTrigger>
             </TabsList>
 
@@ -1085,6 +1111,103 @@ export function ProductForm({
                       </TableBody>
                     </Table>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="metadata" className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contenido Personalizado</CardTitle>
+                  <CardDescription>
+                    Agrega bloques de contenido extra para este producto (ej: instrucciones de cuidado, caracteristicas especiales).
+                    Se mostrara en la ficha del producto.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Titulo de la seccion</Label>
+                    <Input
+                      value={metadata.customSectionTitle}
+                      onChange={(e) =>
+                        setMetadata({ ...metadata, customSectionTitle: e.target.value })
+                      }
+                      placeholder="Ej: Instrucciones de Cuidado, Caracteristicas, Detalles..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Titulo que aparecera sobre los bloques de contenido
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <Label>Bloques de Contenido</Label>
+                    {metadata.blocks.map((block, index) => (
+                      <div
+                        key={index}
+                        className="rounded-lg border p-4 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Bloque {index + 1}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newBlocks = [...metadata.blocks]
+                              newBlocks.splice(index, 1)
+                              setMetadata({ ...metadata, blocks: newBlocks })
+                            }}
+                          >
+                            <IconTrash className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Titulo</Label>
+                          <Input
+                            value={block.title}
+                            onChange={(e) => {
+                              const newBlocks = [...metadata.blocks]
+                              newBlocks[index] = { ...block, title: e.target.value }
+                              setMetadata({ ...metadata, blocks: newBlocks })
+                            }}
+                            placeholder="Ej: Material, Lavado, Conservacion..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Descripcion</Label>
+                          <Textarea
+                            value={block.description}
+                            onChange={(e) => {
+                              const newBlocks = [...metadata.blocks]
+                              newBlocks[index] = { ...block, description: e.target.value }
+                              setMetadata({ ...metadata, blocks: newBlocks })
+                            }}
+                            placeholder="Describe este aspecto del producto..."
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setMetadata({
+                          ...metadata,
+                          blocks: [...metadata.blocks, { title: "", description: "" }],
+                        })
+                      }
+                      className="w-full"
+                    >
+                      <IconPlus className="size-4 mr-2" />
+                      Anadir Bloque
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

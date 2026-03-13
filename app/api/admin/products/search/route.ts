@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
           name: true,
           slug: true,
           images: true,
+          price: true,
         },
       })
 

@@ -1,15 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 interface AttributeValue {
@@ -122,21 +114,28 @@ export function VariantSelector({
           <Label className="text-sm font-medium">{attr.name}</Label>
 
           {attr.type === "SELECT" && (
-            <Select
-              value={selectedValues[attr.id] || ""}
-              onValueChange={(value) => handleValueChange(attr.id, value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={`Seleccionar ${attr.name.toLowerCase()}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {attr.values.map((val) => (
-                  <SelectItem key={val.id} value={val.id}>
+            <div className="flex flex-wrap gap-2">
+              {attr.values.map((val) => {
+                const isSelected = selectedValues[attr.id] === val.id
+                return (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => handleValueChange(attr.id, val.id)}
+                    className="px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+                    style={isSelected ? {
+                      backgroundColor: "var(--variant-selected-bg, var(--brand-color, #E03E54))",
+                      color: "var(--variant-selected-text, #fff)",
+                    } : {
+                      backgroundColor: "var(--variant-default-bg, #f3f4f6)",
+                      color: "var(--variant-default-text, #000)",
+                    }}
+                  >
                     {val.value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </button>
+                )
+              })}
+            </div>
           )}
 
           {attr.type === "COLOR" && (

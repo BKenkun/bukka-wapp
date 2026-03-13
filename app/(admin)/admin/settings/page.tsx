@@ -9,7 +9,7 @@ import { EmailSettings } from "./email-settings"
 import { FooterSettings } from "./footer-settings"
 import { ThemeSettings } from "./theme-settings"
 import { SystemCollectionsSettings } from "./system-collections-settings"
-import { ShopSettings } from "./shop-settings"
+import { ProductSettings } from "./shop-settings"
 import { SearchSettings } from "./search-settings"
 import { DiscountBannerSettings } from "./discount-banner-settings"
 
@@ -51,7 +51,7 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="shop" className="gap-2">
             <IconShoppingBag className="size-4" />
-            Tienda
+            Producto
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-2">
             <IconSearch className="size-4" />
@@ -92,7 +92,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="shop">
-          <ShopSettings />
+          <ProductSettings />
         </TabsContent>
 
         <TabsContent value="search">

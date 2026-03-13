@@ -1,19 +1,24 @@
-import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/shop/product-card"
-import { getShopSettings } from "@/lib/get-shop-settings"
+import { ShopSectionRenderer } from "@/components/shop/shop-section-renderer"
 
 interface SearchParams {
   page?: string
   sort?: string
 }
 
-interface ShopCategory {
-  id: string
-  slug: string
-  name: string
-  imageUrl: string | null
+async function getShopSections() {
+  try {
+    const sections = await prisma.shopSection.findMany({
+      where: { enabled: true },
+      orderBy: { order: "asc" },
+    })
+    return sections
+  } catch (error) {
+    console.error("Error fetching shop sections:", error)
+    return null
+  }
 }
 
 export default async function TiendaPage({
@@ -26,7 +31,6 @@ export default async function TiendaPage({
   const pageSize = 12
   const skip = (page - 1) * pageSize
 
-  // Sort option
   const sortOption = params.sort || "newest"
   let orderBy: Record<string, string> = { createdAt: "desc" }
 
@@ -45,8 +49,8 @@ export default async function TiendaPage({
       orderBy = { createdAt: "desc" }
   }
 
-  // Fetch products, categories and settings
-  const [productsRaw, totalCount, categories, shopSettings] = await Promise.all([
+  const [sections, productsRaw, totalCount] = await Promise.all([
+    getShopSections(),
     prisma.product.findMany({
       where: { status: "ACTIVE" },
       skip,
@@ -67,15 +71,8 @@ export default async function TiendaPage({
       },
     }),
     prisma.product.count({ where: { status: "ACTIVE" } }),
-    prisma.shopCategory.findMany({
-      where: { parentId: null },
-      orderBy: { order: "asc" },
-      select: { id: true, slug: true, name: true, imageUrl: true },
-    }),
-    getShopSettings(),
   ])
 
-  // Transform products
   const products = productsRaw.map((p) => {
     const effectiveStock = p.productType === "VARIABLE"
       ? p.variants.reduce((sum, v) => sum + v.stock, 0)
@@ -103,184 +100,201 @@ export default async function TiendaPage({
     return `/tienda?${urlParams.toString()}`
   }
 
+  // Separate sections: before PRODUCTS_GRID and after
+  const sectionsBefore: typeof sections = []
+  const sectionsAfter: typeof sections = []
+  let foundProductsGrid = false
+
+  if (sections && sections.length > 0) {
+    for (const section of sections) {
+      if (section.type === "PRODUCTS_GRID") {
+        foundProductsGrid = true
+        continue // We render our own products grid with pagination
+      }
+      if (foundProductsGrid) {
+        sectionsAfter.push(section)
+      } else {
+        sectionsBefore.push(section)
+      }
+    }
+  }
+
+  const hasSections = sections && sections.length > 0
+
   return (
     <main className="flex-1 flex flex-col">
-      <div className="w-full mx-auto px-4 md:px-6 pt-6">
-        {/* 1. Banner/Slider */}
-        {shopSettings.banner.imageUrl && (
-          <div className="relative w-full aspect-[21/9] mb-8 overflow-hidden">
-            <Image
-              src={shopSettings.banner.imageUrl}
-              alt={shopSettings.banner.alt}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-          </div>
-        )}
+      {/* Sections BEFORE products grid */}
+      {hasSections && sectionsBefore.map((section) => (
+        <ShopSectionRenderer
+          key={section.id}
+          section={{
+            ...section,
+            config: section.config as Record<string, unknown> | null,
+          }}
+        />
+      ))}
 
-        {/* 2. Title + Description */}
-        <div className="text-center mb-8">
-          <h1 className="font-bold text-3xl md:text-4xl mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
-            Tienda
-          </h1>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
-            Descubre nuestra colección exclusiva de productos
-          </p>
-        </div>
-
-        {/* 3. Category Cards with Images (centered) */}
-        {categories.some(c => c.imageUrl) && (
-          <div className="flex justify-center mb-10">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl">
-              {categories.filter(c => c.imageUrl).map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/tienda/categoria/${cat.slug}`}
-                  className="group relative aspect-[4/3] overflow-hidden"
-                >
-                  <Image
-                    src={cat.imageUrl!}
-                    alt={cat.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, 250px"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                    <span className="font-semibold text-base" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
-                      {cat.name}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Info + Filters */}
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
-            Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
-            {totalCount.toLocaleString()} productos
-          </p>
-
-          {/* Sort buttons */}
-          <div className="flex gap-2 flex-wrap">
-            <Link
-              href={buildSortUrl("newest")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "newest" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Recientes
-            </Link>
-            <Link
-              href={buildSortUrl("popular")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "popular" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Populares
-            </Link>
-            <Link
-              href={buildSortUrl("price_asc")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_asc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Precio ↑
-            </Link>
-            <Link
-              href={buildSortUrl("price_desc")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_desc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Precio ↓
-            </Link>
-          </div>
-        </div>
-
-        {/* 4. Products Grid - 3 columns */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  price: Number(product.price),
-                  compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-                  images: product.images,
-                  stock: product.stock,
-                  trackInventory: product.trackInventory,
-                  productType: product.productType,
-                  performers: product.performers.map((pp) => pp.performer),
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 mb-8">
-            <p style={{ color: "var(--text-muted)" }}>No hay productos disponibles</p>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mb-8">
-            {page > 1 && (
-              <Link
-                href={buildUrl(page - 1)}
-                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
+      {/* Products Section - always rendered with full pagination */}
+      <section className="py-16" id="productos">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <div>
+              <h2
+                className="text-3xl md:text-4xl font-bold mb-2"
+                style={{ color: "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
               >
-                Anterior
-              </Link>
-            )}
+                Todos los Productos
+              </h2>
+              <p
+                className="text-sm"
+                style={{ color: "var(--text-muted, #6b7280)", fontFamily: "var(--global-font)" }}
+              >
+                Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
+                {totalCount.toLocaleString()} productos
+              </p>
+            </div>
 
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (page <= 3) {
-                  pageNum = i + 1
-                } else if (page >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = page - 2 + i
-                }
-
-                return (
+            <div className="flex items-center gap-3">
+              <span
+                className="text-sm"
+                style={{ color: "var(--text-muted, #6b7280)" }}
+              >
+                Ordenar:
+              </span>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: "newest", label: "Recientes" },
+                  { value: "popular", label: "Populares" },
+                  { value: "price_asc", label: "Precio ↑" },
+                  { value: "price_desc", label: "Precio ↓" },
+                ].map((option) => (
                   <Link
-                    key={pageNum}
-                    href={buildUrl(pageNum)}
-                    className="px-3 py-2 text-sm transition-colors"
+                    key={option.value}
+                    href={buildSortUrl(option.value)}
+                    className="text-sm px-4 py-2 rounded-full transition-all font-medium"
                     style={{
+                      color: sortOption === option.value ? "#fff" : "var(--text-primary, #000)",
                       fontFamily: "var(--global-font)",
-                      color: "var(--text-primary)",
-                      backgroundColor: page === pageNum ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+                      backgroundColor: sortOption === option.value
+                        ? "var(--brand-color, #E03E54)"
+                        : "var(--surface-bg, #f3f4f6)",
                     }}
                   >
-                    {pageNum}
+                    {option.label}
                   </Link>
-                )
-              })}
+                ))}
+              </div>
             </div>
-
-            {page < totalPages && (
-              <Link
-                href={buildUrl(page + 1)}
-                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
-              >
-                Siguiente
-              </Link>
-            )}
           </div>
-        )}
-      </div>
+
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    slug: product.slug,
+                    name: product.name,
+                    price: Number(product.price),
+                    compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+                    images: product.images,
+                    stock: product.stock,
+                    trackInventory: product.trackInventory,
+                    productType: product.productType,
+                    performers: product.performers.map((pp) => pp.performer),
+                    createdAt: product.createdAt?.toISOString(),
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p
+                className="text-lg"
+                style={{ color: "var(--text-muted, #6b7280)" }}
+              >
+                No hay productos disponibles
+              </p>
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-12">
+              {page > 1 && (
+                <Link
+                  href={buildUrl(page - 1)}
+                  className="px-5 py-2.5 text-sm rounded-full font-medium hover:opacity-90 transition-colors"
+                  style={{
+                    backgroundColor: "var(--surface-bg, #f3f4f6)",
+                    color: "var(--text-primary, #000)",
+                    fontFamily: "var(--global-font)",
+                  }}
+                >
+                  Anterior
+                </Link>
+              )}
+
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (page <= 3) {
+                    pageNum = i + 1
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = page - 2 + i
+                  }
+
+                  return (
+                    <Link
+                      key={pageNum}
+                      href={buildUrl(pageNum)}
+                      className="w-10 h-10 flex items-center justify-center text-sm rounded-full transition-colors font-medium"
+                      style={{
+                        fontFamily: "var(--global-font)",
+                        color: page === pageNum ? "#fff" : "var(--text-primary, #000)",
+                        backgroundColor: page === pageNum
+                          ? "var(--brand-color, #E03E54)"
+                          : "var(--surface-bg, #f3f4f6)",
+                      }}
+                    >
+                      {pageNum}
+                    </Link>
+                  )
+                })}
+              </div>
+
+              {page < totalPages && (
+                <Link
+                  href={buildUrl(page + 1)}
+                  className="px-5 py-2.5 text-sm rounded-full font-medium hover:opacity-90 transition-colors"
+                  style={{
+                    backgroundColor: "var(--surface-bg, #f3f4f6)",
+                    color: "var(--text-primary, #000)",
+                    fontFamily: "var(--global-font)",
+                  }}
+                >
+                  Siguiente
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Sections AFTER products grid */}
+      {hasSections && sectionsAfter.map((section) => (
+        <ShopSectionRenderer
+          key={section.id}
+          section={{
+            ...section,
+            config: section.config as Record<string, unknown> | null,
+          }}
+        />
+      ))}
     </main>
   )
 }

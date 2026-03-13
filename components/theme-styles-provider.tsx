@@ -146,6 +146,12 @@ interface ThemeSettings {
     primary: ButtonSettings
     secondary: ButtonSettings
   }
+  variantSelector: {
+    selectedBg: string
+    selectedText: string
+    defaultBg: string
+    defaultText: string
+  }
 }
 
 const defaultTheme: ThemeSettings = {
@@ -299,6 +305,12 @@ const defaultTheme: ThemeSettings = {
       hoverTextColor: "#FFFFFF",
     },
   },
+  variantSelector: {
+    selectedBg: "#E03E54",
+    selectedText: "#FFFFFF",
+    defaultBg: "#f3f4f6",
+    defaultText: "#000000",
+  },
 }
 
 interface ThemeStylesProviderProps {
@@ -330,6 +342,7 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
     const ca2 = theme.carouselArrows
     const bp = theme.buttons.primary
     const bs = theme.buttons.secondary
+    const vs = theme.variantSelector
 
     return `
       :root {
@@ -480,6 +493,12 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --btn-secondary-border-width: ${bs.borderWidth || "2"}px;
         --btn-secondary-hover-bg: ${bs.hoverBackgroundColor};
         --btn-secondary-hover-text: ${bs.hoverTextColor};
+
+        /* Variant Selector */
+        --variant-selected-bg: ${vs.selectedBg};
+        --variant-selected-text: ${vs.selectedText};
+        --variant-default-bg: ${vs.defaultBg};
+        --variant-default-text: ${vs.defaultText};
       }
 
       /* Global body styles - applies theme bg/text to all pages */

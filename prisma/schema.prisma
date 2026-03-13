@@ -262,6 +262,17 @@ model HomeSection {
   updatedAt DateTime @updatedAt
 }
 
+model ShopSection {
+  id        String          @id @default(cuid())
+  type      ShopSectionType
+  title     String?
+  enabled   Boolean         @default(true)
+  order     Int             @default(0)
+  config    Json?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
 model Menu {
   id          String     @id @default(cuid())
   name        String
@@ -427,6 +438,7 @@ model Product {
   images            String[]
   riskLevel         ProductRiskLevel    @default(LOW_RISK)
   status            ProductStatus       @default(DRAFT)
+  metadata          Json?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   CartItem          CartItem[]
@@ -806,6 +818,20 @@ enum HomeSectionType {
   CTA_BANNER
   COUNTDOWN
   CATEGORY_FEATURED
+}
+
+enum ShopSectionType {
+  HERO
+  TRUST_ICONS
+  FEATURED_COLLECTIONS
+  PRODUCTS_GRID
+  REVIEWS
+  FAQ
+  CTA_BANNER
+  VIDEO_GRID
+  PAGE
+  MODEL_PICKS
+  PRODUCT_VIDEOS
 }
 
 enum OrderStatus {

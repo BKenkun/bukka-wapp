@@ -2,11 +2,19 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, X, Lock, Truck, ShieldCheck, Plus, Minus } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Plus, Minus, Package, Shield, Lock, RotateCcw, Truck, ShieldCheck, Heart, Star, Award, CheckCircle, Clock, Gift, CreditCard, Eye, EyeOff, Headphones, ThumbsUp, Zap, Share2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { VariantSelector } from "@/components/shop/variant-selector"
+import { StarRating } from "@/components/shop/star-rating"
+import type { ShopSettingsTrustBadge, ShopSettingsCareInstruction } from "@/lib/get-shop-settings"
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  Package, Shield, Lock, RotateCcw, Truck, ShieldCheck,
+  Heart, Star, Award, CheckCircle, Clock, Gift,
+  CreditCard, Eye, EyeOff, Headphones, ThumbsUp, Zap,
+}
 
 interface AttributeValue {
   id: string
@@ -49,11 +57,14 @@ interface ProductDetailClientProps {
     productType: "SIMPLE" | "VARIABLE"
   }
   attributes: Attribute[]
+  trustBadges?: ShopSettingsTrustBadge[]
+  careInstructions?: ShopSettingsCareInstruction[]
 }
 
 export function ProductDetailClient({
   product,
   attributes,
+  trustBadges = [],
 }: ProductDetailClientProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -160,7 +171,7 @@ export function ProductDetailClient({
     }
 
     if (isVariable && !selectedVariant) {
-      toast.error("Please select a variant")
+      toast.error("Selecciona una variante")
       return
     }
 
@@ -178,29 +189,41 @@ export function ProductDetailClient({
       })
 
       if (res.ok) {
-        toast.success("Added to cart")
+        toast.success("Anadido al carrito")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error adding to cart")
+        toast.error(error.error || "Error al anadir al carrito")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error adding to cart")
+      toast.error("Error al anadir al carrito")
     } finally {
       setLoading(false)
     }
   }
 
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: product.name,
+        url: window.location.href,
+      })
+    } catch {
+      await navigator.clipboard.writeText(window.location.href)
+      toast.success("Enlace copiado")
+    }
+  }
+
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
         {/* Left Side - Image Gallery */}
         <div className="space-y-4">
           {/* Main Image */}
           <div
-            className="relative w-full aspect-square overflow-hidden cursor-zoom-in"
-            style={{ backgroundColor: "var(--surface-bg)" }}
+            className="relative w-full aspect-square overflow-hidden rounded-3xl cursor-zoom-in"
+            style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}
             onClick={() => openLightbox(currentImageIndex)}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -210,41 +233,55 @@ export function ProductDetailClient({
               src={displayImages[currentImageIndex]}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
               fill
-              className="object-contain p-4"
+              className="object-contain p-6"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
+
+            {/* Discount Badge */}
+            {hasDiscount && discountPercent > 0 && (
+              <span
+                className="absolute top-4 left-4 z-10 text-xs font-bold px-3 py-1.5 rounded-full text-white"
+                style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
+              >
+                -{discountPercent}% OFF
+              </span>
+            )}
+
+            {/* Share Button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleShare() }}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors border"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.9)",
+                borderColor: "var(--border-color, #e5e7eb)",
+                color: "var(--text-primary, #000)",
+              }}
+              aria-label="Compartir"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
 
             {/* Navigation Arrows */}
             {displayImages.length > 1 && (
               <>
                 <button
                   onClick={(e) => { e.stopPropagation(); prevImage() }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)", color: "var(--text-primary)" }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full transition-all hover:scale-110"
+                  style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); nextImage() }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)", color: "var(--text-primary)" }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full transition-all hover:scale-110"
+                  style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}
                   aria-label="Next image"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </>
-            )}
-
-            {/* Image counter */}
-            {displayImages.length > 1 && (
-              <span
-                className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 15%, transparent)", color: "var(--text-primary)" }}
-              >
-                {currentImageIndex + 1} / {displayImages.length}
-              </span>
             )}
           </div>
 
@@ -255,18 +292,21 @@ export function ProductDetailClient({
                 <button
                   key={`${img}-${index}`}
                   onClick={() => setCurrentImageIndex(index)}
-                  className="relative aspect-square overflow-hidden transition-all"
+                  className="relative aspect-square overflow-hidden rounded-2xl transition-all"
                   style={{
-                    outline: index === currentImageIndex ? "2px solid var(--brand-color)" : "2px solid transparent",
-                    outlineOffset: "-2px",
+                    outline: index === currentImageIndex
+                      ? "3px solid var(--brand-color, #E03E54)"
+                      : "2px solid var(--border-color, #e5e7eb)",
+                    outlineOffset: "2px",
                     opacity: index === currentImageIndex ? 1 : 0.6,
+                    backgroundColor: "var(--surface-bg, #f3f4f6)",
                   }}
                 >
                   <Image
                     src={img}
                     alt={`${product.name} - Thumbnail ${index + 1}`}
                     fill
-                    className="object-cover hover:opacity-100 transition-opacity"
+                    className="object-contain p-2 hover:opacity-100 transition-opacity"
                     sizes="100px"
                   />
                 </button>
@@ -279,33 +319,43 @@ export function ProductDetailClient({
         <div className="flex flex-col">
           {/* Title */}
           <h1
+            className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight"
             style={{
-              color: "var(--text-primary)",
+              color: "var(--text-primary, #000)",
               fontFamily: "var(--global-font)",
-              fontSize: "28px",
-              fontWeight: 700,
-              lineHeight: "34px",
             }}
           >
             {product.name}
           </h1>
 
+          {/* Rating */}
+          <div className="flex items-center gap-3 mt-4">
+            <StarRating rating={5} size={16} />
+            <span
+              className="text-sm font-medium"
+              style={{ color: "var(--text-muted, #6b7280)" }}
+            >
+              (5.0)
+            </span>
+          </div>
+
           {/* SKU */}
           {currentSku && (
-            <p className="mt-2" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)", fontSize: "13px" }}>
+            <p
+              className="mt-2 text-sm"
+              style={{ color: "var(--text-muted, #6b7280)", fontFamily: "var(--global-font)" }}
+            >
               SKU: {currentSku}
             </p>
           )}
 
-          {/* Price - Always visible */}
-          <div className="mt-4 flex items-baseline gap-3">
+          {/* Price */}
+          <div className="mt-5 flex items-baseline gap-3 flex-wrap">
             <span
+              className="text-4xl md:text-5xl font-bold"
               style={{
-                color: "var(--cart-price, var(--brand-color))",
+                color: "var(--brand-color, #E03E54)",
                 fontFamily: "var(--global-font)",
-                fontSize: "32px",
-                fontWeight: 700,
-                lineHeight: "1",
               }}
             >
               {currentPrice.toFixed(2)}€
@@ -313,24 +363,19 @@ export function ProductDetailClient({
             {hasDiscount && (
               <>
                 <span
-                  className="line-through"
-                  style={{
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--global-font)",
-                    fontSize: "18px",
-                    fontWeight: 400,
-                  }}
+                  className="line-through text-xl"
+                  style={{ color: "var(--text-muted, #9ca3af)" }}
                 >
                   {currentCompareAtPrice?.toFixed(2)}€
                 </span>
                 <span
-                  className="text-sm font-semibold px-2 py-0.5"
+                  className="text-sm font-bold px-3 py-1.5 rounded-full"
                   style={{
-                    color: "#FFFFFF",
-                    backgroundColor: "var(--brand-color)",
+                    backgroundColor: "color-mix(in srgb, var(--brand-color, #E03E54) 10%, transparent)",
+                    color: "var(--brand-color, #E03E54)",
                   }}
                 >
-                  -{discountPercent}%
+                  AHORRA {discountPercent}%
                 </span>
               </>
             )}
@@ -338,36 +383,44 @@ export function ProductDetailClient({
 
           {/* Stock Status */}
           {product.trackInventory && (
-            <p
-              className="mt-3"
+            <div
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
               style={{
-                color: currentStock > 0 ? "var(--success-color)" : "var(--error-color)",
-                fontFamily: "var(--global-font)",
-                fontSize: "14px",
-                fontWeight: 500,
+                backgroundColor: currentStock > 0
+                  ? "rgba(16, 185, 129, 0.1)"
+                  : "rgba(239, 68, 68, 0.1)",
+                color: currentStock > 0 ? "#10B981" : "#EF4444",
               }}
             >
+              {currentStock > 0 && (
+                <span
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: "#10B981" }}
+                />
+              )}
               {currentStock > 0
                 ? currentStock <= 5
-                  ? `In stock — Only ${currentStock} left!`
-                  : "In stock"
-                : "Out of stock"}
-            </p>
+                  ? `En stock — Solo quedan ${currentStock}!`
+                  : "En stock"
+                : "Agotado"}
+            </div>
           )}
 
           {/* Separator */}
-          <div className="my-5" style={{ height: "1px", backgroundColor: "var(--border-color)" }} />
+          <div
+            className="my-6"
+            style={{ height: "1px", backgroundColor: "var(--border-color, #e5e7eb)" }}
+          />
 
-          {/* Description */}
+          {/* Short Description */}
           {product.description && (
             <div
-              className="mb-5"
+              className="mb-6 line-clamp-3"
               style={{
-                color: "var(--text-secondary)",
+                color: "var(--text-muted, #6b7280)",
                 fontFamily: "var(--global-font)",
                 fontSize: "15px",
-                fontWeight: 400,
-                lineHeight: "24px",
+                lineHeight: "1.7",
               }}
               dangerouslySetInnerHTML={{ __html: product.description }}
             />
@@ -375,7 +428,7 @@ export function ProductDetailClient({
 
           {/* Variant Selector */}
           {isVariable && attributes.length > 0 && (
-            <div className="mb-5">
+            <div className="mb-6">
               <VariantSelector
                 productSlug={product.slug}
                 attributes={attributes}
@@ -386,98 +439,155 @@ export function ProductDetailClient({
           )}
 
           {/* Quantity + Add to Cart */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="space-y-4 mb-6">
             {/* Quantity Selector */}
-            <div
-              className="flex items-center h-[48px]"
-              style={{ border: `1px solid var(--cart-qty-border, var(--border-color))` }}
-            >
-              <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                disabled={quantity <= 1}
-                className="w-10 h-full flex items-center justify-center transition-colors disabled:opacity-30"
-                style={{ color: "var(--text-primary)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover, var(--surface-bg))" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
+            <div className="flex items-center gap-4">
               <span
-                className="w-12 h-full flex items-center justify-center text-center font-medium"
-                style={{
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--global-font)",
-                  fontSize: "16px",
-                  borderLeft: `1px solid var(--cart-qty-border, var(--border-color))`,
-                  borderRight: `1px solid var(--cart-qty-border, var(--border-color))`,
-                }}
+                className="text-sm font-medium"
+                style={{ color: "var(--text-primary, #000)" }}
               >
-                {quantity}
+                Cantidad
               </span>
-              <button
-                onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
-                disabled={quantity >= maxQuantity}
-                className="w-10 h-full flex items-center justify-center transition-colors disabled:opacity-30"
-                style={{ color: "var(--text-primary)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--cart-qty-btn-hover, var(--surface-bg))" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-                aria-label="Increase quantity"
+              <div
+                className="flex items-center rounded-2xl overflow-hidden"
+                style={{ border: `1px solid var(--border-color, #e5e7eb)` }}
               >
-                <Plus className="w-4 h-4" />
-              </button>
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="w-14 h-14 flex items-center justify-center transition-colors disabled:opacity-30"
+                  style={{ color: "var(--text-primary, #000)" }}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = "var(--brand-color, #E03E54)"
+                      e.currentTarget.style.color = "#fff"
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent"
+                    e.currentTarget.style.color = "var(--text-primary, #000)"
+                  }}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span
+                  className="w-14 h-14 flex items-center justify-center text-center font-bold text-lg"
+                  style={{
+                    color: "var(--text-primary, #000)",
+                    fontFamily: "var(--global-font)",
+                    borderLeft: `1px solid var(--border-color, #e5e7eb)`,
+                    borderRight: `1px solid var(--border-color, #e5e7eb)`,
+                  }}
+                >
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
+                  disabled={quantity >= maxQuantity}
+                  className="w-14 h-14 flex items-center justify-center transition-colors disabled:opacity-30"
+                  style={{ color: "var(--text-primary, #000)" }}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = "var(--brand-color, #E03E54)"
+                      e.currentTarget.style.color = "#fff"
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent"
+                    e.currentTarget.style.color = "var(--text-primary, #000)"
+                  }}
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              disabled={loading || isOutOfStock}
-              className="btn-primary text-center flex-1 h-[48px]"
-              style={isOutOfStock ? { backgroundColor: "color-mix(in srgb, var(--text-primary) 40%, transparent)" } : undefined}
-            >
-              {loading
-                ? "Adding..."
-                : isOutOfStock
-                  ? isVariable && !selectedVariant
-                    ? "Select options"
-                    : "Out of stock"
-                  : `Add to cart — ${(currentPrice * quantity).toFixed(2)}€`}
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              {/* Add to Cart */}
+              <button
+                onClick={handleAddToCart}
+                disabled={loading || isOutOfStock}
+                className="w-full py-5 rounded-2xl text-lg font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: isOutOfStock
+                    ? "var(--text-muted, #9ca3af)"
+                    : "var(--brand-color, #E03E54)",
+                }}
+              >
+                {loading
+                  ? "Anadiendo..."
+                  : isOutOfStock
+                    ? isVariable && !selectedVariant
+                      ? "Selecciona opciones"
+                      : "Agotado"
+                    : `Anadir al Carrito — ${(currentPrice * quantity).toFixed(2)}€`}
+              </button>
+
+              {/* Buy Now */}
+              {!isOutOfStock && (
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full py-5 rounded-2xl text-lg font-bold transition-all hover:opacity-90 border-2"
+                  style={{
+                    color: "var(--text-primary, #000)",
+                    borderColor: "var(--text-primary, #000)",
+                    backgroundColor: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--text-primary, #000)"
+                    e.currentTarget.style.color = "#fff"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent"
+                    e.currentTarget.style.color = "var(--text-primary, #000)"
+                  }}
+                >
+                  Comprar Ahora
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Trust Badges */}
-          <div
-            className="grid grid-cols-3 gap-4 py-5"
-            style={{ borderTop: `1px solid var(--border-color)`, borderBottom: `1px solid var(--border-color)` }}
-          >
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Lock className="w-5 h-5" style={{ color: "var(--cart-trust-badge, var(--text-muted))" }} />
-              <span
-                className="text-xs font-medium"
-                style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
-              >
-                Secure Payment
-              </span>
+          {trustBadges.length > 0 && (
+            <div
+              className="grid gap-4 pt-6"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(trustBadges.length, 4)}, 1fr)`,
+                borderTop: `1px solid var(--border-color, #e5e7eb)`,
+              }}
+            >
+              {trustBadges.map((badge, index) => {
+                const IconComponent = ICON_MAP[badge.icon] || Shield
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col items-center gap-2 text-center p-4 rounded-2xl"
+                    style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: "color-mix(in srgb, var(--brand-color, #E03E54) 10%, transparent)" }}
+                    >
+                      <IconComponent
+                        className="w-5 h-5"
+                        style={{ color: "var(--brand-color, #E03E54)" }}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-medium leading-tight"
+                      style={{ color: "var(--text-muted, #6b7280)", fontFamily: "var(--global-font)" }}
+                    >
+                      {badge.label}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Truck className="w-5 h-5" style={{ color: "var(--cart-trust-badge, var(--text-muted))" }} />
-              <span
-                className="text-xs font-medium"
-                style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
-              >
-                Safe Shipping
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-2 text-center">
-              <ShieldCheck className="w-5 h-5" style={{ color: "var(--cart-trust-badge, var(--text-muted))" }} />
-              <span
-                className="text-xs font-medium"
-                style={{ color: "var(--cart-trust-badge, var(--text-muted))", fontFamily: "var(--global-font)" }}
-              >
-                Guarantee
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -485,20 +595,18 @@ export function ProductDetailClient({
       {lightboxOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+          style={{ backgroundColor: "rgba(0,0,0,0.95)" }}
           onClick={() => setLightboxOpen(false)}
         >
-          {/* Close button */}
           <button
             onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 p-2 rounded-full transition-colors z-10"
+            className="absolute top-4 right-4 p-3 rounded-full transition-colors z-10"
             style={{ color: "#FFFFFF", backgroundColor: "rgba(255,255,255,0.1)" }}
             aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
 
-          {/* Prev */}
           {displayImages.length > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length) }}
@@ -510,7 +618,6 @@ export function ProductDetailClient({
             </button>
           )}
 
-          {/* Image */}
           <div
             className="relative w-[90vw] h-[80vh] max-w-4xl"
             onClick={(e) => e.stopPropagation()}
@@ -524,7 +631,6 @@ export function ProductDetailClient({
             />
           </div>
 
-          {/* Next */}
           {displayImages.length > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((prev) => (prev + 1) % displayImages.length) }}
@@ -536,7 +642,6 @@ export function ProductDetailClient({
             </button>
           )}
 
-          {/* Counter */}
           {displayImages.length > 1 && (
             <span className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
               {lightboxIndex + 1} / {displayImages.length}

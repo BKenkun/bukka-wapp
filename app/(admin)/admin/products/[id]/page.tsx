@@ -95,6 +95,7 @@ export default async function EditProductPage({ params }: Props) {
     compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
     weight: product.weight ? Number(product.weight) : null,
     productType: product.productType || "SIMPLE",
+    metadata: productRaw.metadata as Record<string, unknown> | null,
   }
 
   return (

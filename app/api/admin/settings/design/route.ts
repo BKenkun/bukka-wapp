@@ -130,6 +130,12 @@ const defaultTheme = {
     borderRadius: "50",
     hoverBackgroundColor: "#000000",
   },
+  variantSelector: {
+    selectedBg: "#E03E54",
+    selectedText: "#FFFFFF",
+    defaultBg: "#f3f4f6",
+    defaultText: "#000000",
+  },
   buttons: {
     primary: {
       backgroundColor: "#FA4860",

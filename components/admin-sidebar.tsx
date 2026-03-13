@@ -135,6 +135,12 @@ const navCMS: NavItem[] = [
 // Tienda
 const navShop: NavItem[] = [
   {
+    title: "Secciones Tienda",
+    url: "/admin/shop",
+    icon: IconShoppingBag,
+    permission: "products",
+  },
+  {
     title: "Productos",
     url: "/admin/products",
     icon: IconShoppingBag,

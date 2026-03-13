@@ -51,6 +51,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       categoryIds,
       productType,
       weight,
+      metadata,
     } = body
 
     // Si cambia el slug, verificar que no exista
@@ -127,6 +128,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         riskLevel,
         productType: productType || undefined,
         weight: weight !== undefined ? weight : undefined,
+        metadata: metadata !== undefined ? metadata : undefined,
       },
       include: {
         performers: {

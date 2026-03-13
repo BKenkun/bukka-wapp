@@ -1,4 +1,4 @@
-import { PrismaClient, BadgeType, HomeSectionType } from "@prisma/client"
+import { PrismaClient, BadgeType, HomeSectionType, ShopSectionType } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { Pool } from "pg"
 import { hash } from "bcryptjs"
@@ -252,11 +252,10 @@ async function main() {
   // 4. Shop Categories
   console.log("🛍️ Creating shop categories...")
   const shopCategories = [
-    { slug: "ropa", name: "Ropa", description: "Camisetas, sudaderas y más", order: 1 },
-    { slug: "accesorios", name: "Accesorios", description: "Gorras, llaveros y más", order: 2 },
-    { slug: "coleccionables", name: "Coleccionables", description: "Artículos de colección", order: 3 },
-    { slug: "fotos-firmadas", name: "Fotos Firmadas", description: "Fotos autografiadas", order: 4 },
-    { slug: "juguetes", name: "Juguetes", description: "Juguetes para adultos", order: 5 },
+    { slug: "lingerie", name: "Lingerie", description: "Sexy and elegant lingerie", order: 1, imageUrl: "https://images.unsplash.com/photo-1763906471843-aa53dad9fba8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" },
+    { slug: "toys", name: "Toys", description: "Premium adult toys collection", order: 2, imageUrl: "https://images.unsplash.com/photo-1605125207352-e8512d068ed7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" },
+    { slug: "personalised", name: "Personalised", description: "Custom and personalized items", order: 3, imageUrl: "https://images.unsplash.com/photo-1771660722417-38ceb9e85bc1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" },
+    { slug: "dresses", name: "Dresses", description: "Elegant and stylish dresses", order: 4, imageUrl: "https://images.unsplash.com/photo-1761574028262-6d834741bfd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" },
   ]
 
   for (const category of shopCategories) {
@@ -325,6 +324,33 @@ async function main() {
       create: { slug: tagName, name: tagName.charAt(0).toUpperCase() + tagName.slice(1) },
     })
   }
+
+  // 7b. Sample Performers
+  console.log("💃 Creating sample performers...")
+
+  const anaPaula = await prisma.performer.upsert({
+    where: { slug: "ana-paula" },
+    update: {},
+    create: {
+      slug: "ana-paula",
+      name: "Ana Paula",
+      bio: "Top performer and brand ambassador.",
+      profileImage: "https://images.unsplash.com/photo-1618908623278-dfcf55e6f687?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      verified: true,
+    },
+  })
+
+  const sofiaRose = await prisma.performer.upsert({
+    where: { slug: "sofia-rose" },
+    update: {},
+    create: {
+      slug: "sofia-rose",
+      name: "Sofia Rose",
+      bio: "Featured creator and style icon.",
+      profileImage: "https://images.unsplash.com/photo-1649589244330-09ca58e4fa64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      verified: true,
+    },
+  })
 
   // 8. Menus
   console.log("📋 Creating menus...")
@@ -572,7 +598,111 @@ async function main() {
     }
   }
 
-  // 10. Attributes for Products
+  // 10. Shop Sections
+  console.log("🛍️ Creating shop sections...")
+
+  const shopSections = [
+    {
+      type: ShopSectionType.HERO,
+      title: "Hero",
+      order: 0,
+      config: {
+        backgroundImage: "https://images.unsplash.com/photo-1560660019-7625c7e27d91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+        badgeText: "NEW COLLECTION JUST DROPPED",
+        title: "Official Bukkakery Gear",
+        subtitle: "Exclusive merchandise designed for our community. Premium quality, limited quantities.",
+        ctaPrimaryText: "Shop Now",
+        ctaPrimaryUrl: "/tienda#productos",
+        ctaSecondaryText: "Explore Collections",
+        ctaSecondaryUrl: "/tienda#colecciones",
+      },
+    },
+    {
+      type: ShopSectionType.TRUST_ICONS,
+      title: "Trust Icons",
+      order: 1,
+      config: {
+        items: [
+          { icon: "Package", label: "Discreet Shipping" },
+          { icon: "Shield", label: "5 Year Warranty" },
+          { icon: "Lock", label: "Secure Payment" },
+          { icon: "RotateCcw", label: "30 Day Returns" },
+        ],
+      },
+    },
+    {
+      type: ShopSectionType.FEATURED_COLLECTIONS,
+      title: "Featured Collections",
+      order: 2,
+      config: {
+        subtitle: "Explore our curated product categories",
+        categoryIds: [],
+      },
+    },
+    {
+      type: ShopSectionType.PRODUCTS_GRID,
+      title: "Featured Products",
+      order: 3,
+      config: {
+        sort: "newest",
+        limit: 8,
+        columns: 4,
+        showPagination: true,
+      },
+    },
+    {
+      type: ShopSectionType.MODEL_PICKS,
+      title: "Models Recommend",
+      order: 4,
+      config: {
+        subtitle: "See what our top performers are loving",
+        items: [],
+      },
+    },
+    {
+      type: ShopSectionType.PRODUCT_VIDEOS,
+      title: "See Them in Action",
+      order: 5,
+      config: {
+        subtitle: "Watch our products featured in exclusive content",
+        limit: 4,
+      },
+    },
+    {
+      type: ShopSectionType.REVIEWS,
+      title: "What Our Customers Say",
+      order: 6,
+      config: {
+        items: [
+          { name: "Michael R.", rating: 5, text: "Amazing quality and fast shipping! The products exceeded my expectations. The discreet packaging was a nice touch." },
+          { name: "Sarah K.", rating: 5, text: "Love the exclusive designs! Finally merchandise that matches the quality of the content. Will definitely order again." },
+          { name: "James L.", rating: 5, text: "Best adult brand merchandise out there. Premium materials and perfect fit. Customer service was excellent too!" },
+        ],
+      },
+    },
+    {
+      type: ShopSectionType.FAQ,
+      title: "Frequently Asked Questions",
+      order: 7,
+      config: {
+        items: [
+          { question: "What are the shipping times?", answer: "We offer express shipping with delivery in 3-5 business days for most locations." },
+          { question: "Is the packaging discreet?", answer: "Yes! All orders are shipped in plain, unmarked packaging for complete privacy." },
+          { question: "What is your return policy?", answer: "We accept returns within 30 days of purchase. Items must be unused and in original packaging." },
+          { question: "What payment methods do you accept?", answer: "We accept all major credit cards, PayPal, and cryptocurrency for maximum convenience." },
+        ],
+      },
+    },
+  ]
+
+  const existingShopSections = await prisma.shopSection.count()
+  if (existingShopSections === 0) {
+    for (const section of shopSections) {
+      await prisma.shopSection.create({ data: section })
+    }
+  }
+
+  // 11. Attributes for Products
   console.log("🎨 Creating product attributes...")
 
   const attributesData = [

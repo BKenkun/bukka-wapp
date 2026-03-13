@@ -163,6 +163,12 @@ const defaultTheme = {
     borderRadius: "50",
     hoverBackgroundColor: "#000000",
   },
+  variantSelector: {
+    selectedBg: "#E03E54",
+    selectedText: "#FFFFFF",
+    defaultBg: "#f3f4f6",
+    defaultText: "#000000",
+  },
   buttons: {
     primary: {
       backgroundColor: "#FA4860",
@@ -1033,6 +1039,7 @@ export function ThemeSettings() {
                   <TabsTrigger value="primary">Primario (Anadir al carrito, Comprar...)</TabsTrigger>
                   <TabsTrigger value="secondary">Secundario (Ver carrito, Volver...)</TabsTrigger>
                   <TabsTrigger value="carouselArrows">Flechas Carrusel</TabsTrigger>
+                  <TabsTrigger value="variantSelector">Selector Variantes</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="primary" className="space-y-6">
@@ -1186,6 +1193,45 @@ export function ThemeSettings() {
                       <NumberField label="Tamano (px)" value={theme.carouselArrows.size} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, size: v } }))} min={24} max={80} />
                       <NumberField label="Grosor del Borde (px)" value={theme.carouselArrows.borderWidth} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderWidth: v } }))} min={0} max={6} />
                       <NumberField label="Redondeo (%)" value={theme.carouselArrows.borderRadius} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderRadius: v } }))} min={0} max={50} tooltip="50% = circulo, 0% = cuadrado" />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="variantSelector" className="space-y-6">
+                  {/* Preview */}
+                  <div className="p-6 bg-gray-900 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-4">Vista previa (botones de talla en /tienda)</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["S", "M", "L", "XL"].map((size, i) => (
+                        <span
+                          key={size}
+                          className="px-6 py-3 rounded-xl text-sm font-semibold"
+                          style={i === 1 ? {
+                            backgroundColor: theme.variantSelector.selectedBg,
+                            color: theme.variantSelector.selectedText,
+                          } : {
+                            backgroundColor: theme.variantSelector.defaultBg,
+                            color: theme.variantSelector.defaultText,
+                          }}
+                        >
+                          {size}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-sm">Estado Seleccionado</h4>
+                      <ColorField label="Color de Fondo" value={theme.variantSelector.selectedBg} onChange={(v) => setTheme((p) => ({ ...p, variantSelector: { ...p.variantSelector, selectedBg: v } }))} />
+                      <ColorField label="Color de Texto" value={theme.variantSelector.selectedText} onChange={(v) => setTheme((p) => ({ ...p, variantSelector: { ...p.variantSelector, selectedText: v } }))} />
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-sm">Estado Normal</h4>
+                      <ColorField label="Color de Fondo" value={theme.variantSelector.defaultBg} onChange={(v) => setTheme((p) => ({ ...p, variantSelector: { ...p.variantSelector, defaultBg: v } }))} />
+                      <ColorField label="Color de Texto" value={theme.variantSelector.defaultText} onChange={(v) => setTheme((p) => ({ ...p, variantSelector: { ...p.variantSelector, defaultText: v } }))} />
                     </div>
                   </div>
                 </TabsContent>

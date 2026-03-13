@@ -3,6 +3,14 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/shop/product-card"
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -16,7 +24,7 @@ export async function generateMetadata({ params }: PageProps) {
     select: { name: true },
   })
 
-  if (!category) return { title: "Categoría no encontrada" }
+  if (!category) return { title: "Categoria no encontrada" }
 
   return {
     title: category.name,
@@ -114,6 +122,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   })
 
   const totalPages = Math.ceil(totalCount / pageSize)
+  const otherCategories = allCategories.filter(c => c.slug !== slug && c.imageUrl)
 
   const buildUrl = (newPage: number) => {
     const urlParams = new URLSearchParams()
@@ -131,212 +140,253 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   return (
     <main className="flex-1 flex flex-col">
-      <div className="w-full mx-auto px-4 md:px-6 pt-6">
-        {/* Category Banner */}
-        {category.imageUrl && (
-          <div className="relative w-full aspect-[21/9] mb-8 overflow-hidden">
-            <Image
-              src={category.imageUrl}
-              alt={category.name}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-              <h1 className="font-bold text-3xl md:text-5xl" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
+      {/* Category Header */}
+      {category.imageUrl ? (
+        <div className="relative w-full aspect-[21/9] overflow-hidden">
+          <Image
+            src={category.imageUrl}
+            alt={category.name}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="max-w-7xl mx-auto px-6 pb-8 md:pb-12">
+              <h1
+                className="font-bold text-3xl md:text-5xl text-white mb-2"
+                style={{ fontFamily: "var(--global-font)" }}
+              >
                 {category.name}
               </h1>
               {category.description && (
-                <p className="text-base md:text-lg mt-2 max-w-2xl" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
+                <p className="text-base md:text-lg text-gray-300 max-w-2xl">
                   {category.description}
                 </p>
               )}
             </div>
           </div>
-        )}
-
-        {/* Title if no banner */}
-        {!category.imageUrl && (
-          <div className="text-center mb-8">
-            <h1 className="font-bold text-3xl md:text-4xl mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
+        </div>
+      ) : (
+        <section
+          className="py-16"
+          style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}
+        >
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <h1
+              className="text-4xl md:text-5xl font-bold mb-4"
+              style={{ color: "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
+            >
               {category.name}
             </h1>
             {category.description && (
-              <p className="text-base max-w-2xl mx-auto" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
+              <p
+                className="text-lg max-w-2xl mx-auto"
+                style={{ color: "var(--text-muted, #6b7280)" }}
+              >
                 {category.description}
               </p>
             )}
           </div>
-        )}
+        </section>
+      )}
 
-        {/* Other Categories */}
-        {allCategories.filter(c => c.imageUrl && c.slug !== slug).length > 0 && (
-          <div className="flex justify-center mb-10">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl">
-              {allCategories.filter(c => c.imageUrl && c.slug !== slug).map((cat) => (
+      {/* Breadcrumb + Back */}
+      <div className="max-w-7xl mx-auto w-full px-6 mt-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/tienda" style={{ color: "var(--text-muted)" }}>Tienda</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator style={{ color: "var(--text-muted)" }} />
+            <BreadcrumbItem>
+              <BreadcrumbPage style={{ color: "var(--text-primary)" }}>{category.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
+      {/* Main Content */}
+      <section className="py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <p
+                className="text-sm font-medium"
+                style={{ color: "var(--text-primary, #000)" }}
+              >
+                {totalCount} {totalCount === 1 ? "producto" : "productos"}
+              </p>
+            </div>
+
+            {/* Sort pills */}
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { value: "newest", label: "Recientes" },
+                { value: "popular", label: "Populares" },
+                { value: "price_asc", label: "Precio ↑" },
+                { value: "price_desc", label: "Precio ↓" },
+              ].map((option) => (
+                <Link
+                  key={option.value}
+                  href={buildSortUrl(option.value)}
+                  className="text-sm px-4 py-2 rounded-full transition-all font-medium"
+                  style={{
+                    color: sortOption === option.value ? "#fff" : "var(--text-primary, #000)",
+                    fontFamily: "var(--global-font)",
+                    backgroundColor: sortOption === option.value
+                      ? "var(--brand-color, #E03E54)"
+                      : "var(--surface-bg, #f3f4f6)",
+                  }}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Products Grid */}
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    slug: product.slug,
+                    name: product.name,
+                    price: Number(product.price),
+                    compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+                    images: product.images,
+                    stock: product.stock,
+                    trackInventory: product.trackInventory,
+                    productType: product.productType,
+                    performers: product.performers.map((pp) => pp.performer),
+                    createdAt: product.createdAt?.toISOString(),
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p
+                className="text-lg mb-4"
+                style={{ color: "var(--text-muted, #6b7280)" }}
+              >
+                No hay productos en esta categoria
+              </p>
+              <Link
+                href="/tienda"
+                className="inline-flex items-center px-6 py-3 rounded-full font-bold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
+              >
+                Ver todos los productos
+              </Link>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-12">
+              {page > 1 && (
+                <Link
+                  href={buildUrl(page - 1)}
+                  className="px-5 py-2.5 text-sm rounded-full font-medium hover:opacity-90 transition-colors"
+                  style={{
+                    backgroundColor: "var(--surface-bg, #f3f4f6)",
+                    color: "var(--text-primary, #000)",
+                  }}
+                >
+                  Anterior
+                </Link>
+              )}
+
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (page <= 3) {
+                    pageNum = i + 1
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = page - 2 + i
+                  }
+
+                  return (
+                    <Link
+                      key={pageNum}
+                      href={buildUrl(pageNum)}
+                      className="w-10 h-10 flex items-center justify-center text-sm rounded-full transition-colors font-medium"
+                      style={{
+                        color: page === pageNum ? "#fff" : "var(--text-primary, #000)",
+                        backgroundColor: page === pageNum
+                          ? "var(--brand-color, #E03E54)"
+                          : "var(--surface-bg, #f3f4f6)",
+                      }}
+                    >
+                      {pageNum}
+                    </Link>
+                  )
+                })}
+              </div>
+
+              {page < totalPages && (
+                <Link
+                  href={buildUrl(page + 1)}
+                  className="px-5 py-2.5 text-sm rounded-full font-medium hover:opacity-90 transition-colors"
+                  style={{
+                    backgroundColor: "var(--surface-bg, #f3f4f6)",
+                    color: "var(--text-primary, #000)",
+                  }}
+                >
+                  Siguiente
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Other Categories */}
+      {otherCategories.length > 0 && (
+        <section className="py-16" style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}>
+          <div className="max-w-7xl mx-auto px-6">
+            <h2
+              className="text-2xl md:text-3xl font-bold mb-8 text-center"
+              style={{ color: "var(--text-primary, #000)" }}
+            >
+              Otras Categorias
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {otherCategories.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/tienda/categoria/${cat.slug}`}
-                  className="group relative aspect-[4/3] overflow-hidden"
+                  className="group relative rounded-2xl overflow-hidden h-48"
                 >
                   <Image
                     src={cat.imageUrl!}
                     alt={cat.name}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
                     sizes="(max-width: 768px) 50vw, 250px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                    <span className="font-semibold text-base" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
-                      {cat.name}
-                    </span>
+                    <span className="text-white font-bold text-lg">{cat.name}</span>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
-        )}
-
-        {/* Info + Filters */}
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/tienda"
-              className="text-sm hover:underline"
-              style={{ color: "var(--brand-color)", fontFamily: "var(--global-font)" }}
-            >
-              ← Volver a Tienda
-            </Link>
-            <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)" }}>
-              {totalCount} {totalCount === 1 ? "producto" : "productos"}
-            </p>
-          </div>
-
-          {/* Sort buttons */}
-          <div className="flex gap-2 flex-wrap">
-            <Link
-              href={buildSortUrl("newest")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "newest" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Recientes
-            </Link>
-            <Link
-              href={buildSortUrl("popular")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "popular" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Populares
-            </Link>
-            <Link
-              href={buildSortUrl("price_asc")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_asc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Precio ↑
-            </Link>
-            <Link
-              href={buildSortUrl("price_desc")}
-              className="text-[13px] px-4 py-2 transition-colors"
-              style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)", backgroundColor: sortOption === "price_desc" ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)" }}
-            >
-              Precio ↓
-            </Link>
-          </div>
-        </div>
-
-        {/* Products Grid - 3 columns */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  price: Number(product.price),
-                  compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-                  images: product.images,
-                  stock: product.stock,
-                  trackInventory: product.trackInventory,
-                  productType: product.productType,
-                  performers: product.performers.map((pp) => pp.performer),
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 mb-8">
-            <p style={{ color: "var(--text-muted)" }}>No hay productos en esta categoría</p>
-            <Link
-              href="/tienda"
-              className="text-sm hover:underline mt-4 inline-block"
-              style={{ color: "var(--brand-color)", fontFamily: "var(--global-font)" }}
-            >
-              Ver todos los productos
-            </Link>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mb-8">
-            {page > 1 && (
-              <Link
-                href={buildUrl(page - 1)}
-                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
-              >
-                Anterior
-              </Link>
-            )}
-
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (page <= 3) {
-                  pageNum = i + 1
-                } else if (page >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = page - 2 + i
-                }
-
-                return (
-                  <Link
-                    key={pageNum}
-                    href={buildUrl(pageNum)}
-                    className="px-3 py-2 text-sm transition-colors"
-                    style={{
-                      fontFamily: "var(--global-font)",
-                      color: "var(--text-primary)",
-                      backgroundColor: page === pageNum ? "var(--brand-color)" : "color-mix(in srgb, var(--text-primary) 10%, transparent)",
-                    }}
-                  >
-                    {pageNum}
-                  </Link>
-                )
-              })}
-            </div>
-
-            {page < totalPages && (
-              <Link
-                href={buildUrl(page + 1)}
-                className="px-4 py-2 text-sm hover:opacity-90 transition-colors"
-                style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)", color: "var(--text-primary)", fontFamily: "var(--global-font)" }}
-              >
-                Siguiente
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
+        </section>
+      )}
     </main>
   )
 }

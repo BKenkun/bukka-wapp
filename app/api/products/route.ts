@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       categoryIds,
       productType,
       weight,
+      metadata,
     } = body
 
     // Verificar slug único
@@ -79,6 +80,7 @@ export async function POST(request: NextRequest) {
         riskLevel: riskLevel || "LOW_RISK",
         productType: productType || "SIMPLE",
         weight: weight || null,
+        metadata: metadata || undefined,
         performers: performerIds?.length
           ? {
               create: performerIds.map((performerId: string) => ({
