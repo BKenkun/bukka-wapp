@@ -15,14 +15,21 @@ export function VideoGallery({ images }: VideoGalleryProps) {
   }
 
   return (
-    <div className="w-full py-8 flex justify-center">
-      <div className="flex flex-wrap justify-center gap-[13px]">
-        {images.map((image, index) => (
-          <div key={index} className="relative w-[290px] aspect-[4/5] overflow-hidden">
-            <Image src={image.src || "/placeholder.svg"} alt={image.alt} fill className="object-cover" />
-          </div>
-        ))}
-      </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {images.map((image, index) => (
+        <div
+          key={index}
+          className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer"
+        >
+          <Image
+            src={image.src || "/placeholder.svg"}
+            alt={image.alt}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        </div>
+      ))}
     </div>
   )
 }

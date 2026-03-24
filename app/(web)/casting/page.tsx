@@ -29,6 +29,9 @@ export default function CastingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isUploading, setIsUploading] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verificationPassed, setVerificationPassed] = useState(false)
+  const [verificationSimilarity, setVerificationSimilarity] = useState<number | null>(null)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -52,11 +55,13 @@ export default function CastingPage() {
   })
 
   const [files, setFiles] = useState<{
-    dniPhoto: File | null
+    dniFront: File | null
+    dniBack: File | null
     generalPhotos: File[]
     presentationVideo: File | null
   }>({
-    dniPhoto: null,
+    dniFront: null,
+    dniBack: null,
     generalPhotos: [],
     presentationVideo: null,
   })
@@ -86,17 +91,79 @@ export default function CastingPage() {
     if (!selectedFiles) return
     if (fieldName === "generalPhotos") {
       setFiles(prev => ({ ...prev, generalPhotos: Array.from(selectedFiles) }))
-    } else if (fieldName === "dniPhoto") {
-      setFiles(prev => ({ ...prev, dniPhoto: selectedFiles[0] || null }))
+    } else if (fieldName === "dniFront") {
+      setFiles(prev => ({ ...prev, dniFront: selectedFiles[0] || null }))
+    } else if (fieldName === "dniBack") {
+      setFiles(prev => ({ ...prev, dniBack: selectedFiles[0] || null }))
     } else if (fieldName === "presentationVideo") {
       setFiles(prev => ({ ...prev, presentationVideo: selectedFiles[0] || null }))
     }
   }
 
+  const handleVerification = async () => {
+    if (files.generalPhotos.length === 0) {
+      toast.error("Sube al menos una foto general para la verificación")
+      return
+    }
+
+    setIsVerifying(true)
+    try {
+      const fd = new FormData()
+      fd.append("dniPhoto", files.dniFront!)
+      fd.append("selfiePhoto", files.generalPhotos[0])
+
+      const res = await fetch("/api/casting/verify", { method: "POST", body: fd })
+      const data = await res.json()
+
+      if (data.serviceError) {
+        // Service error (network, AWS down) — let them retry without clearing files
+        toast.error(data.error || "Error en el servicio de verificación. Inténtalo de nuevo.")
+        return
+      }
+
+      if (data.verified) {
+        setVerificationPassed(true)
+        setVerificationSimilarity(data.similarity)
+        toast.success("Identidad verificada correctamente")
+        setCurrentStep(3)
+      } else {
+        // Verification failed — clear all files, go back to step 1
+        setFiles({ dniFront: null, dniBack: null, generalPhotos: [], presentationVideo: null })
+        setVerificationPassed(false)
+        setVerificationSimilarity(null)
+        setCurrentStep(1)
+
+        // Reset file inputs
+        const inputs = document.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>
+        inputs.forEach(input => { input.value = "" })
+
+        toast.error(
+          data.error ||
+          "No pudimos verificar tu identidad. Las fotos han sido eliminadas. Por favor, inténtalo de nuevo con fotos más claras.",
+          { duration: 8000 }
+        )
+      }
+    } catch {
+      toast.error("Error en la verificación. Inténtalo de nuevo.")
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
   const goNext = () => {
-    // Validate current step before advancing
+    if (currentStep === 1) {
+      if (!files.dniFront || !files.dniBack) {
+        toast.error("Sube ambas caras del DNI para continuar")
+        return
+      }
+    }
+
+    if (currentStep === 2) {
+      handleVerification()
+      return
+    }
+
     if (currentStep === 3) {
-      // Validate personal info
       const stepErrors: Record<string, string> = {}
       if (!formData.fullName.trim()) stepErrors.fullName = "Required"
       if (!formData.email.trim()) stepErrors.email = "Required"
@@ -106,6 +173,7 @@ export default function CastingPage() {
         return
       }
     }
+
     setErrors({})
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length))
   }
@@ -121,7 +189,6 @@ export default function CastingPage() {
       })
       setErrors(fieldErrors)
       toast.error("Please fix the form errors")
-      // Go to the step that has errors
       if (fieldErrors.fullName || fieldErrors.email || fieldErrors.birthDate || fieldErrors.phone) {
         setCurrentStep(3)
       }
@@ -133,12 +200,17 @@ export default function CastingPage() {
 
     try {
       let dniPhotoUrl: string | null = null
+      let dniBackUrl: string | null = null
       let generalPhotoUrls: string[] = []
       let videoUrl: string | null = null
 
-      if (files.dniPhoto) {
-        toast.info("Uploading DNI photo...")
-        dniPhotoUrl = await uploadFile(files.dniPhoto, "casting")
+      if (files.dniFront) {
+        toast.info("Uploading DNI (front)...")
+        dniPhotoUrl = await uploadFile(files.dniFront, "casting")
+      }
+      if (files.dniBack) {
+        toast.info("Uploading DNI (back)...")
+        dniBackUrl = await uploadFile(files.dniBack, "casting")
       }
       if (files.generalPhotos.length > 0) {
         toast.info("Uploading photos...")
@@ -149,7 +221,7 @@ export default function CastingPage() {
       }
       if (files.presentationVideo) {
         toast.info("Uploading video...")
-        videoUrl = await uploadFile(files.presentationVideo, "casting")
+        videoUrl = await uploadFile(files.presentationVideo, "casting-video")
       }
       setIsUploading(false)
 
@@ -177,8 +249,11 @@ export default function CastingPage() {
           instagram: formData.socialMedia || null,
           twitter: formData.socialMedia2 || null,
           dniPhotoUrl,
+          dniBackUrl,
           generalPhotos: generalPhotoUrls,
           videoUrl,
+          identityVerified: verificationPassed,
+          identitySimilarity: verificationSimilarity,
         }),
       })
 
@@ -238,6 +313,29 @@ export default function CastingPage() {
 
   return (
     <main className="min-h-screen bg-black text-white pt-8 pb-16">
+      {/* Verification overlay */}
+      {isVerifying && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-[rgba(55,65,81,0.95)] rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl border border-[#06B6D4]/30">
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <svg className="animate-spin w-20 h-20 text-[#06B6D4]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-8 h-8 text-[#06B6D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold mb-2 font-['Montserrat']">Verificando identidad</h3>
+            <p className="text-gray-400 text-sm font-['Montserrat']">
+              Estamos comparando tu foto del DNI con tu foto personal. Esto solo tomará unos segundos...
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {/* Sidebar */}
         <div className="lg:col-span-1">
@@ -336,48 +434,100 @@ export default function CastingPage() {
             </div>
           </div>
 
-          {/* ─── STEP 1: DNI ─── */}
+          {/* ─── STEP 1: DNI (Front + Back) ─── */}
           {currentStep === 1 && (
             <div className="space-y-6">
               <div>
                 <h2 className="font-['Montserrat'] text-2xl font-bold mb-2">ID Verification</h2>
                 <p className="text-gray-400 font-['Montserrat'] text-sm">
-                  Upload a clear photo of your ID (DNI/Passport). This is required to verify your identity and age.
+                  Upload clear photos of both sides of your ID (DNI/Passport). This is required to verify your identity and age.
                 </p>
               </div>
 
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-10 bg-transparent min-h-[280px]">
-                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* DNI Front */}
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[250px]">
+                  <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <p className="text-white text-center font-['Montserrat'] text-base font-medium mb-1">
+                    DNI - Front
+                  </p>
+                  <p className="text-gray-400 text-center font-['Montserrat'] text-xs mb-4">
+                    Side with your photo
+                  </p>
+                  <input
+                    id="dniFront"
+                    type="file"
+                    name="dniFront"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "dniFront")}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("dniFront")?.click()}
+                    className="bg-[#06B6D4] text-white px-6 py-2.5 rounded font-['Montserrat'] text-sm font-medium"
+                  >
+                    Select File
+                  </button>
+                  {files.dniFront && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-400" />
+                      <p className="text-green-400 text-xs truncate max-w-[180px]">{files.dniFront.name}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* DNI Back */}
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[250px]">
+                  <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <p className="text-white text-center font-['Montserrat'] text-base font-medium mb-1">
+                    DNI - Back
+                  </p>
+                  <p className="text-gray-400 text-center font-['Montserrat'] text-xs mb-4">
+                    Reverse side of your ID
+                  </p>
+                  <input
+                    id="dniBack"
+                    type="file"
+                    name="dniBack"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "dniBack")}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("dniBack")?.click()}
+                    className="bg-[#06B6D4] text-white px-6 py-2.5 rounded font-['Montserrat'] text-sm font-medium"
+                  >
+                    Select File
+                  </button>
+                  {files.dniBack && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-400" />
+                      <p className="text-green-400 text-xs truncate max-w-[180px]">{files.dniBack.name}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Info note about verification */}
+              <div className="flex items-start gap-3 bg-[rgba(6,182,212,0.1)] border border-[#06B6D4]/30 rounded-lg p-4">
+                <svg className="w-5 h-5 text-[#06B6D4] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <p className="text-white text-center font-['Montserrat'] text-lg font-medium mb-1">
-                  ID Photo (DNI / Passport)
-                </p>
-                <p className="text-gray-400 text-center font-['Montserrat'] text-sm mb-6">
-                  Make sure the photo is clear and all details are readable
-                </p>
-                <input
-                  id="dniPhoto"
-                  type="file"
-                  name="dniPhoto"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "dniPhoto")}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => document.getElementById("dniPhoto")?.click()}
-                  className="bg-[#06B6D4] text-white px-8 py-3 rounded font-['Montserrat'] text-sm font-medium"
-                >
-                  Select File
-                </button>
-                {files.dniPhoto && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-400" />
-                    <p className="text-green-400 text-sm">{files.dniPhoto.name}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-[#06B6D4] font-['Montserrat'] text-sm font-semibold mb-1">Identity Verification</p>
+                  <p className="text-gray-400 font-['Montserrat'] text-xs">
+                    After uploading your photos in the next step, we will automatically verify that your face matches your ID.
+                    Your images are processed securely and are not stored during verification.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -388,7 +538,7 @@ export default function CastingPage() {
               <div>
                 <h2 className="font-['Montserrat'] text-2xl font-bold mb-2">Photos & Video</h2>
                 <p className="text-gray-400 font-['Montserrat'] text-sm">
-                  Upload your general photos and a short presentation video.
+                  Upload your general photos and a short presentation video. Your first photo will be used for identity verification.
                 </p>
               </div>
 
@@ -397,7 +547,10 @@ export default function CastingPage() {
                 <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <p className="text-white text-center font-['Montserrat'] text-base font-medium mb-4">General Photos</p>
+                <p className="text-white text-center font-['Montserrat'] text-base font-medium mb-1">General Photos</p>
+                <p className="text-gray-400 text-center font-['Montserrat'] text-xs mb-4">
+                  The first photo must clearly show your face (used for verification)
+                </p>
                 <input
                   id="generalPhotos"
                   type="file"
@@ -456,6 +609,20 @@ export default function CastingPage() {
                   </div>
                 )}
               </div>
+
+              {/* Verification notice */}
+              <div className="flex items-start gap-3 bg-[rgba(250,176,5,0.1)] border border-yellow-500/30 rounded-lg p-4">
+                <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="text-yellow-500 font-['Montserrat'] text-sm font-semibold mb-1">Automatic Verification</p>
+                  <p className="text-gray-400 font-['Montserrat'] text-xs">
+                    When you click &quot;Next&quot;, we will verify that your face matches the ID you uploaded.
+                    If verification fails, you will need to upload all files again.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -466,6 +633,20 @@ export default function CastingPage() {
                 <h2 className="font-['Montserrat'] text-2xl font-bold mb-2">Personal Information</h2>
                 <p className="text-gray-400 font-['Montserrat'] text-sm">Fields marked with * are required.</p>
               </div>
+
+              {verificationPassed && (
+                <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-green-400 font-['Montserrat'] text-sm font-semibold">Identity Verified</p>
+                    <p className="text-gray-400 font-['Montserrat'] text-xs">
+                      Your identity has been successfully verified.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -657,7 +838,8 @@ export default function CastingPage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="btn-secondary px-8"
+                disabled={isVerifying}
+                className="btn-secondary px-8 disabled:opacity-50"
               >
                 Back
               </button>
@@ -669,9 +851,20 @@ export default function CastingPage() {
               <button
                 type="button"
                 onClick={goNext}
-                className="btn-primary px-8"
+                disabled={isVerifying}
+                className="btn-primary px-8 disabled:opacity-50 flex items-center gap-2"
               >
-                Next
+                {isVerifying ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Verifying...
+                  </>
+                ) : (
+                  "Next"
+                )}
               </button>
             ) : (
               <button

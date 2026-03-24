@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { ShoppingCart, Loader2 } from "lucide-react"
 
 interface Product {
   id: string
@@ -36,7 +38,6 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
       })
 
       if (res.status === 401) {
-        // Not authenticated, redirect to login
         router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
         return
       }
@@ -57,75 +58,89 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
   }
 
   if (products.length === 0) {
-    return null
+    return (
+      <div className="p-4 text-center" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm">No hay productos relacionados</p>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-[5px]">
+    <div className="space-y-2 p-2">
       {products.map((product) => (
-        <Link key={product.id} href={`/tienda/${product.slug}`}>
-          <div className="relative cursor-pointer group overflow-hidden h-[225px]">
-            <img
-              src={product.imageUrl || "/placeholder.svg"}
-              alt={product.title}
-              className="w-full h-[225px] object-cover transition-transform duration-300"
-            />
-            {product.tag && (
-              <span
-                className="absolute top-3 left-3 px-3 py-1 z-10"
-                style={{
-                  backgroundColor: "var(--accent-color)",
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--global-font)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                }}
-              >
-                {product.tag}
-              </span>
-            )}
-
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-              <h3
-                className="text-white mb-2"
-                style={{
-                  fontFamily: "var(--global-font)",
-                  fontSize: "17.201px",
-                  fontWeight: 500,
-                  lineHeight: "25.801px",
-                }}
+        <div
+          key={product.id}
+          className="group relative rounded-lg overflow-hidden transition-all duration-300 flex items-center gap-3"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--text-primary) 5%, transparent)",
+            border: "1px solid transparent",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "color-mix(in srgb, var(--brand-color) 30%, transparent)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "transparent"
+          }}
+        >
+          <Link href={`/tienda/${product.slug}`} className="block shrink-0">
+            <div className="relative h-24 w-24 overflow-hidden">
+              <Image
+                src={product.imageUrl || "/placeholder-product.jpg"}
+                alt={product.title}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="96px"
+              />
+              {product.tag && (
+                <span
+                  className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-bold rounded"
+                  style={{
+                    backgroundColor: "var(--brand-color)",
+                    color: "#fff",
+                  }}
+                >
+                  {product.tag}
+                </span>
+              )}
+            </div>
+          </Link>
+          <div className="flex-1 py-2 pr-2 min-w-0">
+            <Link href={`/tienda/${product.slug}`} className="block">
+              <h4
+                className="font-semibold text-xs truncate transition-colors"
+                style={{ color: "var(--text-primary)" }}
               >
                 {product.title}
-              </h3>
-              <p
-                className="text-white mb-4"
-                style={{
-                  fontFamily: "var(--global-font)",
-                  fontSize: "17.201px",
-                  fontWeight: 400,
-                  lineHeight: "25.801px",
-                }}
-              >
-                {product.price.toFixed(2)} €
-              </p>
+              </h4>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: "var(--brand-color)" }}
+                >
+                  {product.price.toFixed(2)}€
+                </span>
+              </div>
+            </Link>
+            <div className="mt-2">
               <button
-                className="text-white text-center cursor-pointer w-full disabled:opacity-50"
-                style={{
-                  fontFamily: "var(--global-font)",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  background: "var(--brand-color)",
-                  padding: "10px 20px",
-                  border: "0 solid #E5E7EB",
-                }}
-                disabled={loadingId === product.id}
                 onClick={(e) => handleAddToCart(e, product.id)}
+                disabled={loadingId === product.id}
+                className="h-7 text-xs w-full flex items-center justify-center gap-1.5 rounded font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{
+                  backgroundColor: "var(--brand-color)",
+                  color: "#fff",
+                }}
               >
-                {loadingId === product.id ? "Añadiendo..." : "Añadir al carrito"}
+                {loadingId === product.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                )}
+                {loadingId === product.id ? "..." : "Añadir"}
               </button>
             </div>
           </div>
-        </Link>
+        </div>
       ))}
     </div>
   )

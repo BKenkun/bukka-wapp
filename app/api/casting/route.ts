@@ -95,8 +95,11 @@ export async function POST(request: NextRequest) {
       instagram,
       twitter,
       dniPhotoUrl,
+      dniBackUrl,
       generalPhotos,
       videoUrl,
+      identityVerified,
+      identitySimilarity,
     } = result.data
 
     // Verificar si ya existe una solicitud con este email
@@ -137,8 +140,11 @@ export async function POST(request: NextRequest) {
         instagram,
         twitter,
         dniPhotoUrl,
+        dniBackUrl,
         generalPhotos: generalPhotos || [],
         videoUrl,
+        identityVerified: identityVerified ?? false,
+        identitySimilarity: identitySimilarity ?? null,
         status: "PENDING",
       },
     })

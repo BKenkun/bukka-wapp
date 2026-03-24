@@ -82,6 +82,11 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
     requireAdmin: false, // Public casting form
   },
+  "casting-video": {
+    maxSize: 100 * 1024 * 1024, // 100MB
+    allowedTypes: ["video/mp4", "video/webm", "video/quicktime"],
+    requireAdmin: false, // Public casting form
+  },
   hero: {
     maxSize: 100 * 1024 * 1024, // 100MB (para videos)
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],

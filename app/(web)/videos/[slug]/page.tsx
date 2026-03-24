@@ -1,14 +1,11 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
-import { VideoInfoBar } from "@/components/video-info-bar"
 import { ProductSidebar } from "@/components/product-sidebar"
-import { VideoInformation } from "@/components/video-information"
-import { VideoGallery } from "@/components/video-gallery"
-import { SectionHeader } from "@/components/section-header"
-import { ActressesGrid } from "@/components/actresses-grid"
-import { RelatedContentTabs } from "@/components/related-content-tabs"
+import { VideoActionButtons } from "@/components/video-action-buttons"
+import { VideoDetailLayout } from "@/components/video-detail-layout"
 import { MuxVideoPlayer } from "@/components/mux-video-player"
 import { VideoPlayer } from "@/components/video-player"
 import { getVideoAccessSettings } from "@/lib/get-video-access-settings"
@@ -664,126 +661,261 @@ async function VideoDetailPage({ slug }: { slug: string }) {
   const videoAccessSettings = await getVideoAccessSettings()
   const lockConfig = videoAccessSettings.lockScreen
 
+  // Determine dynamic grid spans based on performer count (matches dev_test2 exactly)
+  const performerCount = actresses.length
+  const detailsSpan = performerCount === 0
+    ? "lg:col-span-10"
+    : performerCount === 1
+      ? "lg:col-span-8"
+      : performerCount === 2
+        ? "lg:col-span-6"
+        : "lg:col-span-5"
+  const starringSpan = performerCount === 1
+    ? "lg:col-span-2"
+    : performerCount === 2
+      ? "lg:col-span-4"
+      : "lg:col-span-5"
+
   return (
     <main className="flex-1 flex flex-col">
-      <div className="px-4 md:px-8 flex-1 w-full">
-        <div className="w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
-            <div className="lg:col-span-8">
-              {hasMuxVideo ? (
-                <MuxVideoPlayer
-                  videoId={video.id}
-                  videoSlug={video.slug}
-                  playbackId={video.muxPlaybackId!}
-                  title={video.title}
-                  thumbnailUrl={video.thumbnailUrl}
-                  viewerId={userId || undefined}
-                  locked={isLocked}
-                  lockedMessage={lockReason}
-                  requiredTier={requiredTier}
-                  lockConfig={lockConfig}
-                />
-              ) : (
-                <VideoPlayer
-                  thumbnailUrl={video.thumbnailUrl}
-                  title={video.title}
-                  isLocked={isLocked}
-                  lockMessage={lockReason}
-                  requiredTier={requiredTier}
-                  lockConfig={lockConfig}
-                />
+      <div className="pt-16">
+        {/* Section 1: Player + Products Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-1">
+          <div className="lg:col-span-3">
+            {hasMuxVideo ? (
+              <MuxVideoPlayer
+                videoId={video.id}
+                videoSlug={video.slug}
+                playbackId={video.muxPlaybackId!}
+                title={video.title}
+                thumbnailUrl={video.thumbnailUrl}
+                viewerId={userId || undefined}
+                locked={isLocked}
+                lockedMessage={lockReason}
+                requiredTier={requiredTier}
+                lockConfig={lockConfig}
+              />
+            ) : (
+              <VideoPlayer
+                thumbnailUrl={video.thumbnailUrl}
+                title={video.title}
+                isLocked={isLocked}
+                lockMessage={lockReason}
+                requiredTier={requiredTier}
+                lockConfig={lockConfig}
+              />
+            )}
+
+            {/* Prev / Next video navigation */}
+            {(prevVideo || nextVideo) && (
+              <div
+                className="flex items-center justify-between py-2 px-1"
+                style={{ borderBottom: "1px solid var(--border-color)" }}
+              >
+                {prevVideo ? (
+                  <Link
+                    href={`/videos/${prevVideo.slug}`}
+                    className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
+                    style={{ color: "var(--text-muted)" }}
+                    title={prevVideo.title}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span className="line-clamp-1 max-w-[200px]">Anterior</span>
+                  </Link>
+                ) : <span />}
+                {nextVideo ? (
+                  <Link
+                    href={`/videos/${nextVideo.slug}`}
+                    className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
+                    style={{ color: "var(--text-muted)" }}
+                    title={nextVideo.title}
+                  >
+                    <span className="line-clamp-1 max-w-[200px]">Siguiente</span>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                ) : <span />}
+              </div>
+            )}
+          </div>
+
+          {/* Products Sidebar - Card wrapper like dev_test2 */}
+          <div className="lg:col-span-1 flex flex-col h-full hidden lg:flex">
+            <div
+              className="flex-1 rounded-none flex flex-col"
+              style={{ backgroundColor: "color-mix(in srgb, var(--surface-bg, #1a1a1a) 50%, transparent)" }}
+            >
+              <div className="p-4">
+                <h3 className="text-sm font-semibold tracking-wide" style={{ color: "var(--text-primary)" }}>
+                  Related Products
+                </h3>
+              </div>
+              <div className="flex-1 overflow-hidden p-2">
+                <div className="h-full max-h-[calc(100vh-10rem)] lg:max-h-full overflow-y-auto">
+                  <div className="space-y-2 pr-2">
+                    <ProductSidebar products={sidebarProducts} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Video Details + Starring */}
+        <div className="px-4 md:px-6 py-8">
+          <div className="grid lg:grid-cols-10 gap-8 items-start">
+            {/* Video Details */}
+            <div className={`transition-all duration-300 ${detailsSpan}`}>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-3xl font-bold mt-2" style={{ color: "var(--text-primary)" }}>
+                    {video.title}
+                  </h1>
+                  {/* Performer links */}
+                  {performersList.length > 0 && (
+                    <div className="flex items-center gap-2 mt-2">
+                      {performersList.map((p, i) => (
+                        <span key={p.id}>
+                          <Link
+                            href={`/performers/${p.slug}`}
+                            className="hover:underline"
+                            style={{ color: "var(--link-color)" }}
+                          >
+                            {p.name}
+                          </Link>
+                          {i < performersList.length - 1 && ", "}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Stats to the right of title on desktop, below on mobile */}
+                <div className="sm:mt-2 sm:ml-4 flex-shrink-0">
+                  <VideoActionButtons
+                    videoId={video.id}
+                    videoSlug={video.slug}
+                    userId={userId}
+                    canDownload={canDownload && !isLocked}
+                    favoriteCount={video._count.favorites}
+                    viewCount={(video.viewCount + 1).toLocaleString()}
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              {video.description && (
+                <p className="mt-6" style={{ color: "var(--text-muted)" }}>
+                  {video.description}
+                </p>
               )}
 
-              {/* Prev / Next video navigation */}
-              {(prevVideo || nextVideo) && (
-                <div
-                  className="flex items-center justify-between py-2 px-1"
-                  style={{ borderBottom: "1px solid var(--border-color)" }}
-                >
-                  {prevVideo ? (
-                    <Link
-                      href={`/videos/${prevVideo.slug}`}
-                      className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
-                      style={{ color: "var(--text-muted)" }}
-                      title={prevVideo.title}
+              {/* Tags */}
+              {tagsList.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {tagsList.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+                        color: "var(--text-muted)",
+                      }}
                     >
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      <span className="line-clamp-1 max-w-[200px]">Anterior</span>
-                    </Link>
-                  ) : <span />}
-                  {nextVideo ? (
-                    <Link
-                      href={`/videos/${nextVideo.slug}`}
-                      className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
-                      style={{ color: "var(--text-muted)" }}
-                      title={nextVideo.title}
-                    >
-                      <span className="line-clamp-1 max-w-[200px]">Siguiente</span>
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  ) : <span />}
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               )}
 
-              <div className="mt-0">
-                <VideoInfoBar
-                  title={video.title}
-                  subscriberCount={video._count.favorites.toLocaleString()}
-                  likePercentage={`${Math.round((video.likeCount / Math.max(video.viewCount, 1)) * 100)}%`}
-                  commentCount={video._count.comments.toLocaleString()}
-                  viewCount={(video.viewCount + 1).toLocaleString()}
-                  videoSlug={video.slug}
-                  videoId={video.id}
-                  canDownload={canDownload && !isLocked}
-                  userId={userId}
-                />
+              {/* Extra info: date, duration, categories */}
+              <div className="mt-6 space-y-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                {video.releaseDate && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium" style={{ color: "var(--text-primary)" }}>Fecha:</span>
+                    <span>{new Date(video.releaseDate).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</span>
+                  </div>
+                )}
+                {video.duration != null && video.duration > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium" style={{ color: "var(--text-primary)" }}>Duracion:</span>
+                    <span>{Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")} min</span>
+                  </div>
+                )}
+                {video.categories.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium" style={{ color: "var(--text-primary)" }}>Categorias:</span>
+                    <span>{video.categories.map((c) => c.category.name).join(", ")}</span>
+                  </div>
+                )}
               </div>
-
-              <VideoInformation
-                description={video.description}
-                performers={performersList}
-                tags={tagsList}
-                releaseDate={video.releaseDate}
-                duration={video.duration}
-                categories={video.categories.map((c) => c.category)}
-              />
             </div>
 
-            <div className="lg:col-span-4">
-              <ProductSidebar products={sidebarProducts} />
-            </div>
+            {/* Starring - matches dev_test2 exactly */}
+            {performerCount > 0 && (
+              <div className={`space-y-4 transition-all duration-300 ${starringSpan}`}>
+                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                  Starring
+                </h3>
+                <div className="flex space-x-4">
+                  {actresses.map((actress) => (
+                    <div key={actress.id} className="w-full">
+                      <Link
+                        href={`/performers/${actress.slug}`}
+                        className="group block text-left"
+                      >
+                        <div className="overflow-hidden rounded-md">
+                          <Image
+                            src={actress.imageUrl}
+                            alt={actress.name}
+                            width={400}
+                            height={600}
+                            className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 768px) 50vw, 20vw"
+                          />
+                        </div>
+                        <div className="pt-2">
+                          <h4
+                            className="font-medium uppercase tracking-wide text-sm relative h-5"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            <span className="absolute left-0 transition-opacity duration-300 group-hover:opacity-0">
+                              {actress.name}
+                            </span>
+                            <span className="absolute left-0 font-bold transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                              VER
+                            </span>
+                          </h4>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {galleryImages.length > 0 && (
-            <div className="mt-8">
-              <VideoGallery images={galleryImages} />
-            </div>
-          )}
-
-          {actresses.length > 0 && (
-            <div className="mt-8">
-              <SectionHeader title="ACTRICES EN ESTE VIDEO" />
-              <div className="mt-6">
-                <ActressesGrid actresses={actresses} isFilterOpen={false} />
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8">
-            <RelatedContentTabs
+          {/* Gallery/Comments Tabs + Related Videos - inside same px section like dev_test2 */}
+          <section className="mt-8">
+            <VideoDetailLayout
+              galleryImages={galleryImages}
               videoId={video.id}
               videoSlug={video.slug}
               comments={commentsList}
               commentCount={video._count.comments}
               categoryIds={categoryIds}
             />
-          </div>
+          </section>
+        </div>
 
-          <div className="mb-8" />
+        {/* Mobile: Products (shown below on small screens) */}
+        <div className="lg:hidden px-4 md:px-6 pb-4">
+          <h3 className="text-sm font-semibold tracking-wide mb-3" style={{ color: "var(--text-primary)" }}>
+            Related Products
+          </h3>
+          <ProductSidebar products={sidebarProducts} />
         </div>
       </div>
     </main>

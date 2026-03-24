@@ -123,10 +123,13 @@ model CastingSubmission {
   additionalInfo String?
   instagram      String?
   twitter        String?
-  dniPhotoUrl    String?
-  generalPhotos  String[]
-  videoUrl       String?
-  status         CastingStatus @default(PENDING)
+  dniPhotoUrl        String?
+  dniBackUrl         String?
+  generalPhotos      String[]
+  videoUrl           String?
+  identityVerified   Boolean       @default(false)
+  identitySimilarity Float?
+  status             CastingStatus @default(PENDING)
   notes          String?
   createdAt      DateTime      @default(now())
   updatedAt DateTime @updatedAt

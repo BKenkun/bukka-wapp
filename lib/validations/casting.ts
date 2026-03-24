@@ -66,8 +66,11 @@ export const castingApiSchema = z.object({
   instagram: z.string().nullable().optional(),
   twitter: z.string().nullable().optional(),
   dniPhotoUrl: z.string().nullable().optional(),
+  dniBackUrl: z.string().nullable().optional(),
   generalPhotos: z.array(z.string()).optional(),
   videoUrl: z.string().nullable().optional(),
+  identityVerified: z.boolean().optional(),
+  identitySimilarity: z.number().nullable().optional(),
 })
 
 export type CastingApiData = z.infer<typeof castingApiSchema>
