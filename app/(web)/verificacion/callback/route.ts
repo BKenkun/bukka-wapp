@@ -8,7 +8,7 @@ const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days in seconds
 
 export async function GET(request: NextRequest) {
   const resultToken = request.nextUrl.searchParams.get("result-token")
-  const baseUrl = request.nextUrl.origin
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.nextUrl.origin
 
   if (!resultToken) {
     return NextResponse.redirect(new URL("/?av=error", baseUrl))

@@ -441,9 +441,10 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full cursor-pointer">
                   <img
-                    src={user.avatar}
+                    src={user.avatar || ""}
                     alt={user.name}
                     className="size-8 rounded-full object-cover"
+                    onError={(e) => { e.currentTarget.replaceWith(Object.assign(document.createElement("div"), { className: "size-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium", textContent: user.name?.charAt(0)?.toUpperCase() || "U" })) }}
                   />
                   <div className="flex flex-col text-left text-sm leading-tight flex-1">
                     <span className="truncate font-semibold">{user.name}</span>
