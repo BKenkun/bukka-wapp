@@ -42,42 +42,40 @@ export function VideoFiltersSidebar({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [activeAlphabet, setActiveAlphabet] = useState("Todo")
+  const [activeAlphabet, setActiveAlphabet] = useState("All")
   const [localCategory, setLocalCategory] = useState(selectedCategory || "")
   const [localPerformers, setLocalPerformers] = useState<string[]>(selectedPerformers)
   const [localTags, setLocalTags] = useState<string[]>(selectedTags)
 
-  const alphabetGroups = ["Todo", "A-C", "D-F", "G-I", "J-L", "M-O", "P-R", "S-U", "V-Z"]
+  // Get available first letters from performers
+  const availableLetters = [...new Set(
+    performers.map(p => p.name.charAt(0).toUpperCase())
+  )].sort()
 
   // Filter performers by alphabet
   const filteredPerformers = performers.filter((performer) => {
-    if (activeAlphabet === "Todo") return true
+    if (activeAlphabet === "All") return true
     const firstLetter = performer.name.charAt(0).toUpperCase()
-    const [start, end] = activeAlphabet.split("-")
-    return firstLetter >= start && firstLetter <= end
+    return firstLetter === activeAlphabet
   })
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
 
-    // Reset page
     params.set("page", "1")
 
-    // Category
     if (localCategory) {
       params.set("category", localCategory)
     } else {
       params.delete("category")
     }
 
-    // Performers
     if (localPerformers.length > 0) {
       params.set("performers", localPerformers.join(","))
     } else {
       params.delete("performers")
     }
 
-    // Tags
     if (localTags.length > 0) {
       params.set("tags", localTags.join(","))
     } else {
@@ -91,7 +89,7 @@ export function VideoFiltersSidebar({
     setLocalCategory("")
     setLocalPerformers([])
     setLocalTags([])
-    setActiveAlphabet("Todo")
+    setActiveAlphabet("All")
     router.push("/videos")
   }
 
@@ -107,7 +105,6 @@ export function VideoFiltersSidebar({
     )
   }
 
-  // Auto-apply filters when selection changes
   useEffect(() => {
     const timeout = setTimeout(() => {
       applyFilters()
@@ -118,25 +115,29 @@ export function VideoFiltersSidebar({
   return (
     <aside className="w-full font-montserrat" style={{ color: "var(--text-primary)" }}>
       <h3 className="font-montserrat text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)" }}>
-        Filtros:
+        Filters:
       </h3>
 
       {/* Categories */}
       <div className="mb-8">
         <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
-          Categorías:
+          Categories:
         </p>
         <div className="space-y-3">
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               className={cn(
-                "w-5 h-5 rounded-full border border-[var(--brand-color)] flex items-center justify-center transition-colors",
-                !localCategory ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
+                "w-5 h-5 rounded-full border flex items-center justify-center transition-colors",
+                !localCategory ? "border-[var(--brand-color)]" : "border-[var(--brand-color)]"
               )}
+              style={{
+                backgroundColor: !localCategory ? "var(--brand-color)" : "transparent",
+                borderColor: "var(--brand-color)",
+              }}
             >
               {!localCategory && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
             </div>
-            <span className="text-[14px]">Todas</span>
+            <span className="text-[14px]">All</span>
             <input
               type="radio"
               name="category"
@@ -148,10 +149,11 @@ export function VideoFiltersSidebar({
           {categories.map((category) => (
             <label key={category.id} className="flex items-center gap-3 cursor-pointer">
               <div
-                className={cn(
-                  "w-5 h-5 rounded-full border border-[var(--brand-color)] flex items-center justify-center transition-colors",
-                  localCategory === category.slug ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
-                )}
+                className="w-5 h-5 rounded-full border flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: localCategory === category.slug ? "var(--brand-color)" : "transparent",
+                  borderColor: "var(--brand-color)",
+                }}
               >
                 {localCategory === category.slug && (
                   <div className="w-2.5 h-2.5 bg-white rounded-full" />
@@ -170,25 +172,35 @@ export function VideoFiltersSidebar({
         </div>
       </div>
 
-      {/* Performers/Actrices */}
+      {/* Performers */}
       <div className="mb-8">
         <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
-          Actrices:
+          Performers:
         </p>
 
-        {/* Alphabet Filter */}
+        {/* Alphabet Filter - only available letters */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          {alphabetGroups.map((group) => (
+          <button
+            onClick={() => setActiveAlphabet("All")}
+            className="h-8 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: activeAlphabet === "All" ? "var(--brand-color)" : "color-mix(in srgb, var(--brand-color) 20%, transparent)",
+              color: "var(--text-primary)",
+            }}
+          >
+            All
+          </button>
+          {availableLetters.map((letter) => (
             <button
-              key={group}
-              onClick={() => setActiveAlphabet(group)}
+              key={letter}
+              onClick={() => setActiveAlphabet(letter)}
               className="h-8 text-xs font-medium transition-colors"
               style={{
-                backgroundColor: activeAlphabet === group ? "var(--accent-color)" : "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+                backgroundColor: activeAlphabet === letter ? "var(--brand-color)" : "color-mix(in srgb, var(--brand-color) 20%, transparent)",
                 color: "var(--text-primary)",
               }}
             >
-              {group}
+              {letter}
             </button>
           ))}
         </div>
@@ -197,12 +209,11 @@ export function VideoFiltersSidebar({
           {filteredPerformers.map((performer) => (
             <label key={performer.id} className="flex items-center gap-3 cursor-pointer">
               <div
-                className={cn(
-                  "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
-                  localPerformers.includes(performer.slug)
-                    ? "bg-[var(--accent-color)] border-[var(--accent-color)]"
-                    : ""
-                )}
+                className="w-5 h-5 border flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: localPerformers.includes(performer.slug) ? "var(--brand-color)" : "transparent",
+                  borderColor: "var(--brand-color)",
+                }}
               >
                 {localPerformers.includes(performer.slug) && (
                   <svg
@@ -227,7 +238,7 @@ export function VideoFiltersSidebar({
             </label>
           ))}
           {filteredPerformers.length === 0 && (
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No hay actrices en este rango</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No performers in this range</p>
           )}
         </div>
       </div>
@@ -235,16 +246,17 @@ export function VideoFiltersSidebar({
       {/* Tags */}
       <div className="mb-8">
         <p className="font-montserrat text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)" }}>
-          Etiquetas:
+          Tags:
         </p>
         <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
           {tags.map((tag) => (
             <label key={tag.id} className="flex items-center gap-3 cursor-pointer">
               <div
-                className={cn(
-                  "w-5 h-5 border border-[var(--brand-color)] flex items-center justify-center transition-colors",
-                  localTags.includes(tag.slug) ? "bg-[var(--accent-color)] border-[var(--accent-color)]" : ""
-                )}
+                className="w-5 h-5 border flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: localTags.includes(tag.slug) ? "var(--brand-color)" : "transparent",
+                  borderColor: "var(--brand-color)",
+                }}
               >
                 {localTags.includes(tag.slug) && (
                   <svg
@@ -276,7 +288,7 @@ export function VideoFiltersSidebar({
         className="w-full py-4 font-bold text-sm tracking-wide hover:opacity-90 transition-colors"
         style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
       >
-        Borrar todos los filtros
+        Clear all filters
       </button>
     </aside>
   )

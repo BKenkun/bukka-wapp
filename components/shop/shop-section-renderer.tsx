@@ -91,6 +91,8 @@ export async function ShopSectionRenderer({ section }: ShopSectionRendererProps)
           enabled={true}
           title={section.title || "Preguntas Frecuentes"}
           items={items}
+          bgColor={(config.bgColor as string) || undefined}
+          titleColor={(config.titleColor as string) || undefined}
         />
       )
     }
@@ -149,7 +151,7 @@ function ShopHeroSection({ config, title }: { config: Record<string, unknown>; t
   const heroTitle = (config.title as string) || title || "Descubre Nuestra Tienda"
   const subtitle = (config.subtitle as string) || ""
   const ctaPrimaryText = (config.ctaPrimaryText as string) || ""
-  const ctaPrimaryUrl = (config.ctaPrimaryUrl as string) || "/tienda#productos"
+  const ctaPrimaryUrl = (config.ctaPrimaryUrl as string) || "/shop#productos"
   const ctaSecondaryText = (config.ctaSecondaryText as string) || ""
   const ctaSecondaryUrl = (config.ctaSecondaryUrl as string) || ""
   const linkUrl = config.linkUrl as string | undefined
@@ -183,7 +185,7 @@ function ShopHeroSection({ config, title }: { config: Record<string, unknown>; t
         <div className="max-w-2xl">
           {badgeText && (
             <span
-              className="inline-block text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider text-white"
+              className="inline-block text-xs font-bold px-4 py-1.5 mb-6 tracking-wider text-white"
               style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
             >
               {badgeText}
@@ -200,7 +202,7 @@ function ShopHeroSection({ config, title }: { config: Record<string, unknown>; t
               {ctaPrimaryText && (
                 <Link
                   href={ctaPrimaryUrl}
-                  className="inline-flex items-center px-8 py-4 rounded-full text-white font-bold text-lg transition-all hover:opacity-90 hover:scale-105"
+                  className="inline-flex items-center px-8 py-4 text-white font-bold text-lg transition-all hover:opacity-90 hover:scale-105"
                   style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                 >
                   {ctaPrimaryText}
@@ -209,7 +211,7 @@ function ShopHeroSection({ config, title }: { config: Record<string, unknown>; t
               {ctaSecondaryText && (
                 <Link
                   href={ctaSecondaryUrl}
-                  className="inline-flex items-center px-8 py-4 rounded-full text-white font-bold text-lg border-2 border-white/30 transition-all hover:bg-white/10 hover:scale-105"
+                  className="inline-flex items-center px-8 py-4 text-white font-bold text-lg border-2 border-white/30 transition-all hover:bg-white/10 hover:scale-105"
                 >
                   {ctaSecondaryText}
                 </Link>
@@ -313,8 +315,8 @@ async function ProductsGridSection({ config, title }: { config: Record<string, u
         {showPagination && (
           <div className="text-center mt-12">
             <Link
-              href="/tienda?page=1"
-              className="inline-flex items-center px-8 py-3 rounded-full font-bold text-white transition-opacity hover:opacity-90"
+              href="/shop?page=1"
+              className="inline-flex items-center px-8 py-3 font-bold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
             >
               Ver Todos los Productos
@@ -359,7 +361,7 @@ function CtaBannerSection({ config }: { config: Record<string, unknown> }) {
         {buttonText && (
           <Link
             href={buttonUrl}
-            className="inline-flex items-center px-8 py-4 rounded-full font-bold text-white text-lg transition-all hover:opacity-90 hover:scale-105"
+            className="inline-flex items-center px-8 py-4 font-bold text-white text-lg transition-all hover:opacity-90 hover:scale-105"
             style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
           >
             {buttonText}
@@ -402,7 +404,7 @@ async function VideoGridSection({ config, title }: { config: Record<string, unkn
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {videos.map((video) => (
             <Link key={video.id} href={`/videos/${video.slug}`} className="group">
-              <div className="relative aspect-video rounded-xl overflow-hidden mb-3" style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}>
+              <div className="relative aspect-video overflow-hidden mb-3" style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}>
                 {video.thumbnailUrl && (
                   <Image
                     src={video.thumbnailUrl}
@@ -413,7 +415,7 @@ async function VideoGridSection({ config, title }: { config: Record<string, unkn
                   />
                 )}
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/90 flex items-center justify-center">
                     <div className="w-0 h-0 ml-1" style={{ borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderLeft: "14px solid var(--brand-color, #E03E54)" }} />
                   </div>
                 </div>
@@ -491,7 +493,7 @@ async function ModelPicksSection({ config, title }: { config: Record<string, unk
             return (
               <div
                 key={i}
-                className="rounded-3xl p-8 border shadow-lg hover:shadow-xl transition-shadow"
+                className="p-8 border shadow-lg hover:shadow-xl transition-shadow"
                 style={{ backgroundColor: "var(--card-bg, #fff)", borderColor: "var(--border-color, #e5e7eb)" }}
               >
                 <div className="flex gap-6 mb-6">
@@ -501,7 +503,7 @@ async function ModelPicksSection({ config, title }: { config: Record<string, unk
                       alt={performer.name}
                       width={96}
                       height={96}
-                      className="w-24 h-24 rounded-full object-cover ring-4"
+                      className="w-24 h-24 object-cover ring-4"
                       style={{ "--tw-ring-color": "var(--brand-color, #E03E54)" } as React.CSSProperties}
                     />
                   )}
@@ -512,7 +514,7 @@ async function ModelPicksSection({ config, title }: { config: Record<string, unk
                       </h3>
                       {item.badge && (
                         <span
-                          className="text-xs px-3 py-1 rounded-full font-bold text-white"
+                          className="text-xs px-3 py-1 font-bold text-white"
                           style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                         >
                           {item.badge}
@@ -545,7 +547,7 @@ async function ModelPicksSection({ config, title }: { config: Record<string, unk
                       alt={product.name}
                       width={128}
                       height={128}
-                      className="w-32 h-32 object-cover rounded-2xl"
+                      className="w-32 h-32 object-cover"
                     />
                   )}
                   <div className="flex-1">
@@ -557,7 +559,7 @@ async function ModelPicksSection({ config, title }: { config: Record<string, unk
                     </p>
                     <Link
                       href={`/tienda/${product.slug}`}
-                      className="inline-flex items-center justify-center w-full px-6 py-3 rounded-full font-bold text-white transition-opacity hover:opacity-90"
+                      className="inline-flex items-center justify-center w-full px-6 py-3 font-bold text-white transition-opacity hover:opacity-90"
                       style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                     >
                       Shop Her Pick
@@ -637,7 +639,7 @@ async function ProductVideosSection({ config, title }: { config: Record<string, 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {videos.map((video) => (
             <Link key={video.id} href={`/videos/${video.slug}`} className="group">
-              <div className="relative rounded-2xl overflow-hidden mb-4">
+              <div className="relative overflow-hidden mb-4">
                 <div className="aspect-video" style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}>
                   {video.thumbnailUrl && (
                     <Image
@@ -651,12 +653,12 @@ async function ProductVideosSection({ config, title }: { config: Record<string, 
                 </div>
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/90 group-hover:bg-[var(--brand-color,#E03E54)] w-16 h-16 rounded-full flex items-center justify-center transition-colors">
+                  <div className="bg-white/90 group-hover:bg-[var(--brand-color,#E03E54)] w-16 h-16 flex items-center justify-center transition-colors">
                     <div className="w-0 h-0 ml-1" style={{ borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderLeft: "14px solid var(--brand-color, #E03E54)" }} />
                   </div>
                 </div>
                 <div
-                  className="absolute top-3 left-3 text-white text-xs px-3 py-1.5 rounded-full font-bold"
+                  className="absolute top-3 left-3 text-white text-xs px-3 py-1.5 font-bold"
                   style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                 >
                   Featured Product

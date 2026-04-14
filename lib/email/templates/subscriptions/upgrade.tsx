@@ -22,40 +22,40 @@ export function SubscriptionUpgradeTemplate({
   newAmount,
 }: SubscriptionUpgradeProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Has mejorado a ${newPlan}`}>
-      <EmailHeading>Upgrade Confirmado</EmailHeading>
+    <BaseEmail preview={`You've upgraded to ${newPlan}`}>
+      <EmailHeading>Upgrade Confirmed</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        ¡Excelente decisión! Tu plan ha sido actualizado de{" "}
-        <strong>{previousPlan}</strong> a <strong>{newPlan}</strong>.
+        Excellent choice! Your plan has been upgraded from{" "}
+        <strong>{previousPlan}</strong> to <strong>{newPlan}</strong>.
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu nuevo plan está activo desde {formatDate(effectiveDate)}
+          Your new plan is active since {formatDate(effectiveDate)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={upgradeBox}>
-        <Text style={upgradeTitle}>🎉 Tu nuevo plan: {newPlan}</Text>
-        <Text style={upgradePrice}>{formatPrice(newAmount)}/mes</Text>
+        <Text style={upgradeTitle}>🎉 Your new plan: {newPlan}</Text>
+        <Text style={upgradePrice}>{formatPrice(newAmount)}/month</Text>
       </Section>
 
       <Section style={featuresBox}>
-        <Text style={featuresTitle}>Ahora tienes acceso a:</Text>
+        <Text style={featuresTitle}>You now have access to:</Text>
         {newFeatures.map((feature, index) => (
           <Text key={index} style={featureItem}>
             ✓ {feature}
@@ -65,13 +65,12 @@ export function SubscriptionUpgradeTemplate({
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/videos`}>
-          Explorar Contenido Premium
+          Browse Premium Content
         </EmailButton>
       </div>
 
       <EmailText>
-        Gracias por confiar en nosotros. Disfruta de todos los beneficios
-        de tu nuevo plan.
+        Thank you for trusting us. Enjoy all the benefits of your new plan.
       </EmailText>
     </BaseEmail>
   )

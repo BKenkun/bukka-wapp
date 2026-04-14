@@ -109,6 +109,7 @@ interface ThemeSettings {
     inputText: string
     inputFocusBorder: string
     labelColor: string
+    placeholderColor: string
   }
   cart: {
     itemNameColor: string
@@ -248,6 +249,7 @@ const defaultTheme: ThemeSettings = {
     inputText: "#FFFFFF",
     inputFocusBorder: "#FA4860",
     labelColor: "#9CA3AF",
+    placeholderColor: "#6B7280",
   },
   cart: {
     itemNameColor: "#FFFFFF",
@@ -439,6 +441,7 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --form-input-text: ${fo.inputText};
         --form-input-focus-border: ${fo.inputFocusBorder};
         --form-label-color: ${fo.labelColor};
+        --form-placeholder-color: ${fo.placeholderColor};
 
         /* Cart */
         --cart-item-name: ${ca.itemNameColor};
@@ -506,6 +509,13 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         background-color: var(--global-bg);
         color: var(--text-primary);
         font-family: var(--global-font);
+      }
+
+      /* Global placeholder color */
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--form-placeholder-color) !important;
+        opacity: 1;
       }
 
       /* Global button styles */

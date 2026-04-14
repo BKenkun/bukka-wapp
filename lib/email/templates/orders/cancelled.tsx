@@ -28,40 +28,40 @@ export function OrderCancelledTemplate({
   refundMethod,
 }: OrderCancelledProps) {
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Tu pedido #${orderNumber} ha sido cancelado`}>
-      <EmailHeading>Pedido Cancelado</EmailHeading>
+    <BaseEmail preview={`Your order #${orderNumber} has been cancelled`}>
+      <EmailHeading>Order Cancelled</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Te confirmamos que tu pedido <strong>#{orderNumber}</strong> ha sido
-        cancelado.
+        We confirm that your order <strong>#{orderNumber}</strong> has been
+        cancelled.
       </EmailText>
 
       {reason && (
         <EmailInfoBox variant="info">
           <EmailText style={{ margin: 0, fontSize: "14px" }}>
-            <strong>Motivo:</strong> {reason}
+            <strong>Reason:</strong> {reason}
           </EmailText>
         </EmailInfoBox>
       )}
 
       {/* Items */}
       <Section style={itemsContainer}>
-        <Text style={sectionTitle}>Productos del pedido</Text>
+        <Text style={sectionTitle}>Order Items</Text>
         {items.map((item, index) => (
           <Row key={index} style={itemRow}>
             <Column style={itemDetails}>
               <Text style={itemName}>{item.name}</Text>
-              <Text style={itemQuantity}>Cantidad: {item.quantity}</Text>
+              <Text style={itemQuantity}>Quantity: {item.quantity}</Text>
             </Column>
             <Column style={itemPrice}>
               <Text style={priceText}>{formatPrice(item.price * item.quantity)}</Text>
@@ -74,30 +74,30 @@ export function OrderCancelledTemplate({
 
       {/* Refund Info */}
       <Section style={refundBox}>
-        <Text style={refundTitle}>Información del reembolso</Text>
+        <Text style={refundTitle}>Refund Information</Text>
         <Text style={refundAmount_style}>
-          Importe a reembolsar: <strong>{formatPrice(refundAmount)}</strong>
+          Refund amount: <strong>{formatPrice(refundAmount)}</strong>
         </Text>
         {refundMethod && (
           <Text style={refundDetail}>
-            Método: {refundMethod}
+            Method: {refundMethod}
           </Text>
         )}
         <Text style={refundNote}>
-          El reembolso puede tardar entre 5-10 días hábiles en reflejarse
-          en tu cuenta, dependiendo de tu entidad bancaria.
+          The refund may take 5-10 business days to appear in your account,
+          depending on your bank.
         </Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/tienda`}>
-          Volver a la Tienda
+          Back to Store
         </EmailButton>
       </div>
 
       <EmailText>
-        Si tienes alguna pregunta sobre la cancelación o el reembolso,
-        no dudes en contactarnos.
+        If you have any questions about the cancellation or refund,
+        feel free to contact us.
       </EmailText>
     </BaseEmail>
   )

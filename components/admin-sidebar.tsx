@@ -23,9 +23,11 @@ import {
   IconHome,
   IconHash,
   IconLogout,
+  IconMail,
   IconChevronUp,
   IconPalette,
   IconTruck,
+  IconFlag,
 } from "@tabler/icons-react"
 import { signOut } from "next-auth/react"
 
@@ -192,6 +194,12 @@ const navCommunity: NavItem[] = [
     icon: IconMessage,
     permission: "forum",
   },
+  {
+    title: "Reportes",
+    url: "/admin/reports",
+    icon: IconFlag,
+    permission: "reports",
+  },
 ]
 
 // Negocio
@@ -216,6 +224,12 @@ const navSettings: NavItem[] = [
     title: "Configuración",
     url: "/admin/settings",
     icon: IconSettings,
+    permission: "settings",
+  },
+  {
+    title: "Contact Messages",
+    url: "/admin/contact",
+    icon: IconMail,
     permission: "settings",
   },
 ]
@@ -440,12 +454,7 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full cursor-pointer">
-                  <img
-                    src={user.avatar || ""}
-                    alt={user.name}
-                    className="size-8 rounded-full object-cover"
-                    onError={(e) => { e.currentTarget.replaceWith(Object.assign(document.createElement("div"), { className: "size-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium", textContent: user.name?.charAt(0)?.toUpperCase() || "U" })) }}
-                  />
+                  <UserAvatar src={user.avatar} name={user.name} />
                   <div className="flex flex-col text-left text-sm leading-tight flex-1">
                     <span className="truncate font-semibold">{user.name}</span>
                     <span className="truncate text-xs text-muted-foreground">{user.email}</span>
@@ -477,5 +486,26 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+function UserAvatar({ src, name }: { src?: string; name: string }) {
+  const [error, setError] = React.useState(false)
+
+  if (!src || error) {
+    return (
+      <div className="size-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+        {name?.charAt(0)?.toUpperCase() || "U"}
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name}
+      className="size-8 rounded-full object-cover"
+      onError={() => setError(true)}
+    />
   )
 }

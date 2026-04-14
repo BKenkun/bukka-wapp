@@ -15,7 +15,56 @@ import type {
   ShopSettingsFaqItem,
   ShopSettingsTrustBadge,
   ShopSettingsCareInstruction,
+  SectionStyles,
 } from "@/lib/get-shop-settings"
+
+function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <input
+          type="color"
+          value={value || "#000000"}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-8 h-8 rounded cursor-pointer border border-border"
+        />
+      </div>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#hex o vacio para default"
+        className="w-40 text-xs"
+      />
+      <span className="text-xs text-muted-foreground">{label}</span>
+      {value && (
+        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => onChange("")}>
+          <IconTrash className="size-3 text-muted-foreground" />
+        </Button>
+      )}
+    </div>
+  )
+}
+
+function StylesEditor({ styles, basePath, onChange, fields }: {
+  styles: SectionStyles
+  basePath: string
+  onChange: (path: string, value: unknown) => void
+  fields: Array<{ key: keyof SectionStyles; label: string }>
+}) {
+  return (
+    <div className="space-y-2 rounded-lg border p-3 bg-muted/30">
+      <span className="text-xs font-medium text-muted-foreground">Estilos personalizados (vacio = color por defecto)</span>
+      {fields.map(({ key, label }) => (
+        <ColorInput
+          key={key}
+          label={label}
+          value={(styles[key] as string) || ""}
+          onChange={(v) => onChange(`${basePath}.${key}`, v)}
+        />
+      ))}
+    </div>
+  )
+}
 
 const AVAILABLE_ICONS = [
   "Package", "Shield", "Lock", "RotateCcw", "Truck", "ShieldCheck",
@@ -165,6 +214,16 @@ export function ProductSettings() {
               <IconPlus className="size-4 mr-2" />
               Agregar badge
             </Button>
+            <StylesEditor
+              styles={settings.productDetail.trustBadgesStyles || { bgColor: "", titleColor: "" }}
+              basePath="productDetail.trustBadgesStyles"
+              onChange={updateSettings}
+              fields={[
+                { key: "bgColor", label: "Fondo seccion" },
+                { key: "iconColor", label: "Color icono" },
+                { key: "iconBgColor", label: "Fondo icono" },
+              ]}
+            />
           </div>
 
           <hr />
@@ -225,6 +284,17 @@ export function ProductSettings() {
               <IconPlus className="size-4 mr-2" />
               Agregar instruccion
             </Button>
+            <StylesEditor
+              styles={settings.productDetail.careInstructionsStyles || { bgColor: "", titleColor: "" }}
+              basePath="productDetail.careInstructionsStyles"
+              onChange={updateSettings}
+              fields={[
+                { key: "bgColor", label: "Fondo seccion" },
+                { key: "titleColor", label: "Color titulo" },
+                { key: "cardBgColor", label: "Fondo tarjetas" },
+                { key: "textColor", label: "Color texto" },
+              ]}
+            />
           </div>
 
           <hr />
@@ -295,8 +365,34 @@ export function ProductSettings() {
                   <IconPlus className="size-4 mr-2" />
                   Agregar pregunta
                 </Button>
+                <StylesEditor
+                  styles={settings.productDetail.faq.styles || { bgColor: "", titleColor: "" }}
+                  basePath="productDetail.faq.styles"
+                  onChange={updateSettings}
+                  fields={[
+                    { key: "bgColor", label: "Fondo seccion" },
+                    { key: "titleColor", label: "Color titulo" },
+                  ]}
+                />
               </>
             )}
+          </div>
+
+          <hr />
+
+          {/* Related Products Styles */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Tambien te puede gustar</Label>
+            <p className="text-sm text-muted-foreground">Estilos de la seccion de productos relacionados</p>
+            <StylesEditor
+              styles={settings.productDetail.relatedProductsStyles || { bgColor: "", titleColor: "" }}
+              basePath="productDetail.relatedProductsStyles"
+              onChange={updateSettings}
+              fields={[
+                { key: "bgColor", label: "Fondo seccion" },
+                { key: "titleColor", label: "Color titulo" },
+              ]}
+            />
           </div>
         </CardContent>
       </Card>

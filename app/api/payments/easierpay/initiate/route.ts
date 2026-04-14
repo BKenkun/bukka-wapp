@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { orderId } = await request.json()
 
     if (!orderId) {
       return NextResponse.json(
-        { error: "orderId es requerido" },
+        { error: "orderId is required" },
         { status: 400 }
       )
     }
@@ -32,20 +32,20 @@ export async function POST(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { error: "Pedido no encontrado" },
+        { error: "Order not found" },
         { status: 404 }
       )
     }
 
     // Verify the order belongs to this user
     if (order.userId !== session.user.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
     // Only allow payment for pending orders
     if (order.paymentStatus !== "PENDING") {
       return NextResponse.json(
-        { error: "Este pedido ya ha sido procesado" },
+        { error: "This order has already been processed" },
         { status: 400 }
       )
     }
@@ -67,11 +67,11 @@ export async function POST(request: NextRequest) {
       product: {
         id: "sale",
         amount: Number(order.total),
-        description: `Pedido ${order.orderNumber}`,
+        description: `Order ${order.orderNumber}`,
       },
       user: {
         id: stringToNumericId(session.user.id),
-        name: order.user.name || session.user.email || "Cliente",
+        name: order.user.name || session.user.email || "Customer",
         email: order.user.email,
         ip,
       },
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (result.result !== "OK" || !result["pay-link"]) {
       console.error("[EasierPay] Init transaction failed:", result)
       return NextResponse.json(
-        { error: result.message || "Error al iniciar el pago" },
+        { error: result.message || "Failed to initiate payment" },
         { status: 502 }
       )
     }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[EasierPay] Error initiating payment:", error)
     return NextResponse.json(
-      { error: "Error al procesar el pago" },
+      { error: "Failed to process payment" },
       { status: 500 }
     )
   }

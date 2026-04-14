@@ -16,49 +16,49 @@ export function SubscriptionCancelledTemplate({
   endDate,
 }: SubscriptionCancelledProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   return (
-    <BaseEmail preview="Tu suscripción ha sido cancelada">
-      <EmailHeading>Suscripción Cancelada</EmailHeading>
+    <BaseEmail preview="Your subscription has been cancelled">
+      <EmailHeading>Subscription Cancelled</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Te confirmamos que tu suscripción <strong>{planName}</strong> ha sido
-        cancelada. No te preocupes, no se realizarán más cobros.
+        We confirm that your <strong>{planName}</strong> subscription has been
+        cancelled. Don't worry, no further charges will be made.
       </EmailText>
 
       <EmailInfoBox variant="info">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Aún tienes acceso hasta el <strong>{formatDate(endDate)}</strong>
+          You still have access until <strong>{formatDate(endDate)}</strong>
         </EmailText>
       </EmailInfoBox>
 
       <Section style={feedbackBox}>
-        <Text style={feedbackTitle}>Lamentamos verte partir</Text>
+        <Text style={feedbackTitle}>We're sorry to see you go</Text>
         <Text style={feedbackText}>
-          Si hay algo que podamos hacer para mejorar, nos encantaría escucharte.
-          Tu opinión nos ayuda a ofrecer un mejor servicio.
+          If there's anything we can do to improve, we'd love to hear from you.
+          Your feedback helps us provide a better service.
         </Text>
       </Section>
 
       <EmailText>
-        Recuerda que siempre puedes volver cuando quieras. Tu cuenta seguirá
-        activa y podrás reactivar tu suscripción en cualquier momento.
+        Remember, you can always come back whenever you want. Your account will
+        remain active and you can reactivate your subscription at any time.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/suscripciones`}>
-          Reactivar Suscripción
+          Reactivate Subscription
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        Si cancelaste por error o tienes alguna pregunta, no dudes en
-        contactar con nuestro equipo de soporte.
+        If you cancelled by mistake or have any questions, feel free to
+        contact our support team.
       </EmailText>
     </BaseEmail>
   )

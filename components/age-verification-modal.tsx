@@ -3,10 +3,10 @@
 import * as React from "react"
 
 const STORAGE_KEY = "age-verified"
-const VERIFICATION_EXPIRY = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
 
 interface AgeVerificationModalProps {
   enabled?: boolean
+  okysafeEnabled?: boolean
   title?: string
   description?: string
   exitButtonText?: string
@@ -15,6 +15,7 @@ interface AgeVerificationModalProps {
 
 export function AgeVerificationModal({
   enabled = true,
+  okysafeEnabled = true,
   title = "Este es un Sitio Web para adultos",
   description = "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
   exitButtonText = "Soy menor de 18 años - Salir",
@@ -38,29 +39,18 @@ export function AgeVerificationModal({
       const avResult = params.get("av")
 
       if (avResult === "success") {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ verified: true, timestamp: Date.now() })
-        )
+        sessionStorage.setItem(STORAGE_KEY, "true")
         // Clean URL params
         window.history.replaceState({}, "", window.location.pathname)
         setIsLoading(false)
         return
       }
 
-      // Check localStorage
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        try {
-          const { timestamp } = JSON.parse(stored)
-          const isExpired = Date.now() - timestamp > VERIFICATION_EXPIRY
-          if (!isExpired) {
-            setIsLoading(false)
-            return
-          }
-        } catch {
-          // Invalid stored data, show modal
-        }
+      // Check sessionStorage (only lasts for the browser session)
+      const stored = sessionStorage.getItem(STORAGE_KEY)
+      if (stored === "true") {
+        setIsLoading(false)
+        return
       }
 
       // Show error if verification failed
@@ -81,7 +71,7 @@ export function AgeVerificationModal({
     return () => clearTimeout(timer)
   }, [enabled])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleOkySafeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsSubmitting(true)
@@ -101,10 +91,7 @@ export function AgeVerificationModal({
       }
 
       if (data.alreadyVerified) {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ verified: true, timestamp: Date.now() })
-        )
+        sessionStorage.setItem(STORAGE_KEY, "true")
         setIsOpen(false)
         return
       }
@@ -119,6 +106,11 @@ export function AgeVerificationModal({
     }
   }
 
+  const handleSimpleAccept = () => {
+    sessionStorage.setItem(STORAGE_KEY, "true")
+    setIsOpen(false)
+  }
+
   const handleReject = () => {
     window.location.href = exitUrl
   }
@@ -129,8 +121,117 @@ export function AgeVerificationModal({
 
   const currentYear = new Date().getFullYear()
 
+  // Simple age verification (OkySafe disabled)
+  if (!okysafeEnabled) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#1a1a1a] flex items-start md:items-center justify-center p-4 overflow-y-auto">
+        <div
+          className="w-full max-w-[620px] bg-[#222222] p-8 md:p-10 shadow-2xl"
+          style={{ fontFamily: "Montserrat, sans-serif" }}
+        >
+          {/* Logo */}
+          <h1
+            className="text-center font-black mb-2 tracking-wide"
+            style={{
+              fontSize: "clamp(32px, 5vw, 44px)",
+              fontWeight: 900,
+              color: "#FFFFFF",
+            }}
+          >
+            BUKKAKERY
+          </h1>
+
+          {/* Warning subtitle */}
+          <h2
+            className="text-center font-bold mb-6"
+            style={{
+              fontSize: "clamp(14px, 2.5vw, 17px)",
+              fontWeight: 700,
+              color: "#6CB4D9",
+              letterSpacing: "0.5px",
+            }}
+          >
+            WARNING: THIS WEBSITE IS FOR ADULTS ONLY!
+          </h2>
+
+          {/* Legal text */}
+          <div className="text-white/80 space-y-4 mb-6" style={{ fontSize: "14px", lineHeight: 1.65 }}>
+            <p>
+              This Website is for use solely by individuals who are at least 18 years of age and
+              have reached the age of majority or age of consent as determined by the laws of the
+              jurisdiction from which they are accessing the Website. Accessing this Website while
+              underage might be prohibited by law.
+            </p>
+            <p>
+              In accordance with 47 U.S.C. &sect; 230(d), you are notified that parental control
+              protections (including computer hardware, software, or filtering services) are
+              commercially available that might help in limiting access to material that is harmful
+              to minors.
+            </p>
+          </div>
+
+          {/* Bold statement */}
+          <p
+            className="text-white font-bold mb-4"
+            style={{ fontSize: "14px", lineHeight: 1.5 }}
+          >
+            BY CLICKING &ldquo;YES, I&rsquo;M OLDER THAN 18&rdquo; BELOW, YOU STATE THAT THE
+            FOLLOWING FACTS ARE ACCURATE:
+          </p>
+
+          {/* Bullet points */}
+          <ul className="text-white/80 space-y-2.5 mb-6 list-disc pl-5" style={{ fontSize: "14px", lineHeight: 1.55 }}>
+            <li>
+              You are at least 18 years of age and have reached the age of majority or age of
+              consent in your jurisdiction.
+            </li>
+            <li>
+              You will promptly leave this Website if sexually explicit content offends you.
+            </li>
+            <li>
+              You will not hold the Website&rsquo;s owners or its employees responsible for any
+              materials located on the Website.
+            </li>
+            <li>
+              You acknowledge that the Website&rsquo;s Terms of Service govern your use of the
+              Website, and you have reviewed and agree to be bound by it.
+            </li>
+          </ul>
+
+          {/* Disagree text */}
+          <p className="text-white/80 mb-8" style={{ fontSize: "14px", lineHeight: 1.55 }}>
+            If you disagree with the above, click on the &ldquo;No&rdquo; button below to leave
+            the Website.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex gap-4">
+            <button
+              onClick={handleReject}
+              className="flex-1 py-3.5 border border-white/30 text-white font-semibold text-sm cursor-pointer transition-colors hover:bg-white/10"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              No
+            </button>
+            <button
+              onClick={handleSimpleAccept}
+              className="flex-1 py-3.5 font-semibold text-sm text-white cursor-pointer transition-colors hover:opacity-90"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                backgroundColor: "#5BA8C8",
+              }}
+            >
+              Yes, I&rsquo;m older than 18
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // OkySafe verification (original flow)
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] bg-black flex items-start md:items-center justify-center p-4 overflow-y-auto">
       <div className="w-full max-w-2xl text-center">
         {/* Logo */}
         <h1
@@ -172,7 +273,7 @@ export function AgeVerificationModal({
         </p>
 
         {/* Verification Form */}
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-6">
+        <form onSubmit={handleOkySafeSubmit} className="max-w-md mx-auto mb-6">
           <input
             type="email"
             value={email}
@@ -180,7 +281,7 @@ export function AgeVerificationModal({
             placeholder="Tu email"
             required
             disabled={isSubmitting}
-            className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 mb-4 outline-none focus:border-[#FA4860] transition-colors"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 text-white placeholder-white/50 mb-4 outline-none focus:border-[#FA4860] transition-colors"
             style={{
               fontFamily: "Montserrat",
               fontSize: "16px",
@@ -225,7 +326,7 @@ export function AgeVerificationModal({
               fontWeight: 400,
             }}
           >
-            © Bukkakery.com, {currentYear}
+            &copy; Bukkakery.com, {currentYear}
           </p>
         </div>
       </div>

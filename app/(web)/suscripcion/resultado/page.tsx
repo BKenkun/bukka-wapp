@@ -33,7 +33,7 @@ function SubscriptionResultContent() {
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse"
+              className="w-24 h-24 flex items-center justify-center mx-auto mb-8 animate-pulse"
               style={{ backgroundColor: "var(--success-color)" }}
             >
               <svg
@@ -67,7 +67,7 @@ function SubscriptionResultContent() {
               <Link href="/videos" className="btn-primary inline-block">
                 Explorar Videos
               </Link>
-              <Link href="/mi-cuenta/suscripcion" className="btn-secondary inline-block">
+              <Link href="/my-account/subscription" className="btn-secondary inline-block">
                 Ver Mi Suscripción
               </Link>
             </div>
@@ -83,7 +83,7 @@ function SubscriptionResultContent() {
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8"
+              className="w-24 h-24 flex items-center justify-center mx-auto mb-8"
               style={{ backgroundColor: "var(--error-color)" }}
             >
               <svg
@@ -115,7 +115,7 @@ function SubscriptionResultContent() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/mi-cuenta/suscripcion" className="btn-primary inline-block">
+              <Link href="/my-account/subscription" className="btn-primary inline-block">
                 Reintentar Suscripción
               </Link>
               <Link href="/" className="btn-secondary inline-block">
@@ -135,7 +135,7 @@ function SubscriptionResultContent() {
           <p style={{ color: "var(--text-secondary)" }}>
             No se encontró información de la suscripción.
           </p>
-          <Link href="/mi-cuenta/suscripcion" className="btn-primary inline-block mt-4">
+          <Link href="/my-account/subscription" className="btn-primary inline-block mt-4">
             Ver Suscripciones
           </Link>
         </div>

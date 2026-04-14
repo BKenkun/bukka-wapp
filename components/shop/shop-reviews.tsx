@@ -33,12 +33,12 @@ export function ShopReviews({ enabled, title, items }: ShopReviewsProps) {
             return (
               <div
                 key={index}
-                className="rounded-2xl p-8 border transition-shadow hover:shadow-lg"
+                className="p-8 border transition-shadow hover:shadow-lg"
                 style={{ borderColor: "var(--border-color, #e5e7eb)" }}
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div
-                    className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    className="w-14 h-14 flex items-center justify-center text-white font-bold text-lg"
                     style={{
                       background: `linear-gradient(135deg, var(--brand-color, #E03E54), #a855f7)`,
                     }}

@@ -18,63 +18,63 @@ export function PaymentFailedTemplate({
   reason,
 }: PaymentFailedProps) {
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Problema con el pago del pedido #${orderNumber}`}>
-      <EmailHeading>Problema con tu pago</EmailHeading>
+    <BaseEmail preview={`Payment issue with order #${orderNumber}`}>
+      <EmailHeading>Payment Issue</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Lamentamos informarte que no hemos podido procesar el pago de tu
-        pedido <strong>#{orderNumber}</strong>.
+        We're sorry to inform you that we were unable to process the payment
+        for your order <strong>#{orderNumber}</strong>.
       </EmailText>
 
       <EmailInfoBox variant="error">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          {reason || "El pago ha sido rechazado. Por favor, verifica los datos de tu tarjeta o intenta con otro método de pago."}
+          {reason || "The payment was declined. Please verify your card details or try a different payment method."}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={orderBox}>
-        <Text style={orderTitle}>Detalles del pedido</Text>
+        <Text style={orderTitle}>Order Details</Text>
         <Text style={orderDetail}>
-          <strong>Pedido:</strong> #{orderNumber}
+          <strong>Order:</strong> #{orderNumber}
         </Text>
         <Text style={orderDetail}>
-          <strong>Importe pendiente:</strong> {formatPrice(amount)}
+          <strong>Amount due:</strong> {formatPrice(amount)}
         </Text>
       </Section>
 
       <EmailText>
-        Para completar tu compra, por favor intenta realizar el pago de nuevo:
+        To complete your purchase, please try making the payment again:
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/mi-cuenta/pedidos`}>
-          Reintentar Pago
+          Retry Payment
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        <strong>Posibles causas del fallo:</strong>
+        <strong>Possible reasons for failure:</strong>
       </EmailText>
       <ul style={{ color: "#6b7280", fontSize: "14px", lineHeight: "24px" }}>
-        <li>Fondos insuficientes</li>
-        <li>Datos de la tarjeta incorrectos</li>
-        <li>Tarjeta expirada</li>
-        <li>Límite de la tarjeta excedido</li>
-        <li>El banco rechazó la transacción</li>
+        <li>Insufficient funds</li>
+        <li>Incorrect card details</li>
+        <li>Expired card</li>
+        <li>Card limit exceeded</li>
+        <li>Bank declined the transaction</li>
       </ul>
 
       <EmailText>
-        Si necesitas ayuda, no dudes en contactar con nuestro equipo de soporte.
+        If you need help, feel free to contact our support team.
       </EmailText>
     </BaseEmail>
   )

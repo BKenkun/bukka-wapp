@@ -179,18 +179,18 @@ describe('Entity Relationships', () => {
 
       const productWithPerformer = await prisma.product.findUnique({
         where: { id: product.id },
-        include: { Performer: true },
+        include: { performers: { include: { performer: true } } },
       })
 
-      expect(productWithPerformer?.Performer?.name).toBe('Merch Performer')
+      expect(productWithPerformer?.performers?.[0]?.performer?.name).toBe('Merch Performer')
 
       // Verify from performer side
       const performerWithProducts = await prisma.performer.findUnique({
         where: { id: performer.id },
-        include: { Product: true },
+        include: { products: true },
       })
 
-      expect(performerWithProducts?.Product).toHaveLength(1)
+      expect(performerWithProducts?.products).toHaveLength(1)
     })
   })
 

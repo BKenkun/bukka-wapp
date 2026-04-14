@@ -18,10 +18,10 @@ const megamenuLinkSchema = z.object({
 })
 
 const megamenuConfigSchema = z.object({
-  featuredPerformerIds: z.array(z.string()).max(2),
-  featuredProductIds: z.array(z.string()).max(2).default([]),
+  featuredPerformerIds: z.array(z.string()).max(6),
+  featuredProductIds: z.array(z.string()).max(6).default([]),
   videoSource: z.enum(["MANUAL", "CATEGORY", "LATEST", "POPULAR"]),
-  videoIds: z.array(z.string()).max(4),
+  videoIds: z.array(z.string()).max(8),
   videoCategoryId: z.string().nullable(),
   links: z.array(megamenuLinkSchema),
   linksSectionTitle: z.string().default("Descubre"),

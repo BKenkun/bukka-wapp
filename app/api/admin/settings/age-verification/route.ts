@@ -6,6 +6,7 @@ const SETTINGS_KEY = "age_verification_settings"
 
 const DEFAULT_SETTINGS = {
   enabled: true,
+  okysafeEnabled: true,
   title: "Este es un Sitio Web para adultos",
   description: "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
   enterButtonText: "Tengo 18 años o más - Entrar",
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest) {
 
     const settingsData = {
       enabled: body.enabled ?? DEFAULT_SETTINGS.enabled,
+      okysafeEnabled: body.okysafeEnabled ?? DEFAULT_SETTINGS.okysafeEnabled,
       title: body.title || DEFAULT_SETTINGS.title,
       description: body.description || DEFAULT_SETTINGS.description,
       enterButtonText: body.enterButtonText || DEFAULT_SETTINGS.enterButtonText,

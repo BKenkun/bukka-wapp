@@ -5,6 +5,7 @@ import { AgeVerificationModal } from "./age-verification-modal"
 
 interface AgeVerificationSettings {
   enabled: boolean
+  okysafeEnabled: boolean
   title: string
   description: string
   exitButtonText: string
@@ -13,6 +14,7 @@ interface AgeVerificationSettings {
 
 const DEFAULT_SETTINGS: AgeVerificationSettings = {
   enabled: true,
+  okysafeEnabled: true,
   title: "Este es un Sitio Web para adultos",
   description: "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
   exitButtonText: "Soy menor de 18 años - Salir",
@@ -50,6 +52,7 @@ export function AgeVerificationProvider({
       {settings && (
         <AgeVerificationModal
           enabled={settings.enabled}
+          okysafeEnabled={settings.okysafeEnabled}
           title={settings.title}
           description={settings.description}
           exitButtonText={settings.exitButtonText}

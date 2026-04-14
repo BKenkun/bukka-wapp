@@ -7,11 +7,11 @@ interface GetHeaderMenuOptions {
 
 const DEFAULT_NAV_LINKS: NavItemWithMegamenu[] = [
   { id: "default-1", label: "Vídeos", url: "/videos", hasMegamenu: false },
-  { id: "default-2", label: "Modelos", url: "/modelos", hasMegamenu: false },
+  { id: "default-2", label: "Modelos", url: "/performers", hasMegamenu: false },
   { id: "default-3", label: "Categorías", url: "#", hasMegamenu: false },
-  { id: "default-4", label: "Shop Live", url: "/tienda", hasMegamenu: false },
+  { id: "default-4", label: "Shop Live", url: "/shop", hasMegamenu: false },
   { id: "default-5", label: "Casting", url: "/casting", hasMegamenu: false },
-  { id: "default-6", label: "Blog", url: "/blog", hasMegamenu: false },
+  { id: "default-6", label: "Blog", url: "/news", hasMegamenu: false },
 ]
 
 export async function getHeaderMenu({ userTierLevel }: GetHeaderMenuOptions): Promise<NavItemWithMegamenu[]> {

@@ -20,59 +20,59 @@ export function RenewalReminderTemplate({
   daysRemaining,
 }: RenewalReminderProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Tu suscripción expira en ${daysRemaining} días`}>
-      <EmailHeading>Tu suscripción expira pronto</EmailHeading>
+    <BaseEmail preview={`Your subscription expires in ${daysRemaining} days`}>
+      <EmailHeading>Your subscription expires soon</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Queremos recordarte que tu suscripción <strong>{planName}</strong>
-        expirará en <strong>{daysRemaining} días</strong>.
+        We wanted to remind you that your <strong>{planName}</strong> subscription
+        will expire in <strong>{daysRemaining} days</strong>.
       </EmailText>
 
       <EmailInfoBox variant="warning">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Fecha de expiración: {formatDate(expirationDate)}
+          Expiration date: {formatDate(expirationDate)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={reminderBox}>
-        <Text style={reminderTitle}>No pierdas tu acceso</Text>
+        <Text style={reminderTitle}>Don't lose your access</Text>
         <Text style={reminderText}>
-          Si tu suscripción expira, perderás acceso a:
+          If your subscription expires, you'll lose access to:
         </Text>
-        <Text style={reminderItem}>• Videos exclusivos y contenido premium</Text>
-        <Text style={reminderItem}>• Descargas ilimitadas</Text>
-        <Text style={reminderItem}>• Contenido de acceso anticipado</Text>
-        <Text style={reminderItem}>• Descuentos en la tienda</Text>
+        <Text style={reminderItem}>• Exclusive videos and premium content</Text>
+        <Text style={reminderItem}>• Unlimited downloads</Text>
+        <Text style={reminderItem}>• Early access content</Text>
+        <Text style={reminderItem}>• Store discounts</Text>
       </Section>
 
       <Section style={priceBox}>
-        <Text style={priceLabel}>Renueva por solo</Text>
-        <Text style={priceAmount}>{formatPrice(amount)}/mes</Text>
+        <Text style={priceLabel}>Renew for just</Text>
+        <Text style={priceAmount}>{formatPrice(amount)}/month</Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/suscripciones`}>
-          Renovar Ahora
+          Renew Now
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        Si tu método de pago está configurado, la renovación será automática.
-        Si necesitas actualizar tu información de pago, hazlo antes de la
-        fecha de expiración.
+        If your payment method is set up, renewal will be automatic.
+        If you need to update your payment information, please do so before
+        the expiration date.
       </EmailText>
     </BaseEmail>
   )

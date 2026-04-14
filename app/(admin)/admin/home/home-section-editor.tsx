@@ -711,9 +711,57 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
 
               {/* Tab Estilo */}
               <TabsContent value="estilo" className="space-y-4 mt-4">
+                {/* Banner height */}
+                <div className="space-y-2">
+                  <Label htmlFor="bannerHeight">Banner Height ({(config.height as number) || 486}px)</Label>
+                  <input
+                    id="bannerHeight"
+                    type="range"
+                    min="200"
+                    max="900"
+                    step="10"
+                    value={(config.height as number) || 486}
+                    onChange={(e) => updateConfig("height", parseInt(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>200px</span>
+                    <span>900px</span>
+                  </div>
+                </div>
+
+                {/* Content position */}
+                <div className="space-y-2 pt-4 border-t">
+                  <Label>Content Position</Label>
+                  <div className="grid grid-cols-3 gap-1 w-[180px]">
+                    {[
+                      { value: "top-left", label: "↖" },
+                      { value: "top-center", label: "↑" },
+                      { value: "top-right", label: "↗" },
+                      { value: "center-left", label: "←" },
+                      { value: "center", label: "●" },
+                      { value: "center-right", label: "→" },
+                      { value: "bottom-left", label: "↙" },
+                      { value: "bottom-center", label: "↓" },
+                      { value: "bottom-right", label: "↘" },
+                    ].map((pos) => (
+                      <Button
+                        key={pos.value}
+                        type="button"
+                        variant={(config.contentPosition as string || "center") === pos.value ? "secondary" : "outline"}
+                        size="sm"
+                        className="h-10 text-lg"
+                        onClick={() => updateConfig("contentPosition", pos.value)}
+                      >
+                        {pos.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Title typography */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Tipografía del título</Label>
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="text-sm font-medium">Title Typography</Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="titleFontFamily" className="text-xs text-muted-foreground">Fuente</Label>
@@ -880,6 +928,71 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 <p className="text-xs text-muted-foreground">
                   Si se sube un video, se mostrará en lugar de la imagen con autoplay y sin sonido
                 </p>
+              </div>
+
+              {/* Height */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Altura del countdown ({(config.height as number) || 500}px)</Label>
+                <input
+                  type="range"
+                  min="200"
+                  max="900"
+                  step="10"
+                  value={(config.height as number) || 500}
+                  onChange={(e) => updateConfig("height", parseInt(e.target.value))}
+                  className="w-full accent-primary"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>200px</span>
+                  <span>900px</span>
+                </div>
+              </div>
+
+              {/* Content Position */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Posición del contenido</Label>
+                <div className="grid grid-cols-3 gap-1 w-[180px]">
+                  {[
+                    { value: "top-left", label: "↖" },
+                    { value: "top-center", label: "↑" },
+                    { value: "top-right", label: "↗" },
+                    { value: "center-left", label: "←" },
+                    { value: "center", label: "●" },
+                    { value: "center-right", label: "→" },
+                    { value: "bottom-left", label: "↙" },
+                    { value: "bottom-center", label: "↓" },
+                    { value: "bottom-right", label: "↘" },
+                  ].map((pos) => (
+                    <Button
+                      key={pos.value}
+                      type="button"
+                      variant={(config.contentPosition as string || "center") === pos.value ? "secondary" : "outline"}
+                      size="sm"
+                      className="h-10 text-lg"
+                      onClick={() => updateConfig("contentPosition", pos.value)}
+                    >
+                      {pos.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Overlay opacity */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Intensidad del overlay ({((config.overlayOpacity as number) ?? 0.6).toFixed(1)})</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={(config.overlayOpacity as number) ?? 0.6}
+                  onChange={(e) => updateConfig("overlayOpacity", parseFloat(e.target.value))}
+                  className="w-full accent-primary"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0 (sin overlay)</span>
+                  <span>1 (negro total)</span>
+                </div>
               </div>
             </>
           )}

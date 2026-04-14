@@ -57,9 +57,9 @@ export function FollowButton({ performerId, initialIsFollowing = false }: Follow
         })
         if (res.ok) {
           setIsFollowing(false)
-          toast.success("Has dejado de seguir a esta modelo")
+          toast.success("Unfollowed successfully")
         } else {
-          toast.error("Error al dejar de seguir")
+          toast.error("Error unfollowing")
         }
       } else {
         // Follow
@@ -70,16 +70,16 @@ export function FollowButton({ performerId, initialIsFollowing = false }: Follow
         })
         if (res.ok) {
           setIsFollowing(true)
-          toast.success("Ahora sigues a esta modelo")
+          toast.success("Now following this performer")
         } else if (res.status === 409) {
           setIsFollowing(true)
         } else {
-          toast.error("Error al seguir")
+          toast.error("Error following")
         }
       }
     } catch (error) {
       console.error("Error toggling follow:", error)
-      toast.error("Error al procesar la solicitud")
+      toast.error("Error processing request")
     } finally {
       setLoading(false)
     }
@@ -101,7 +101,7 @@ export function FollowButton({ performerId, initialIsFollowing = false }: Follow
         }}
       >
         <div className="w-4 h-4 rounded-full" style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 30%, transparent)" }} />
-        <div className="w-16 h-4 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 30%, transparent)" }} />
+        <div className="w-16 h-4" style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 30%, transparent)" }} />
       </div>
     )
   }
@@ -123,7 +123,7 @@ export function FollowButton({ performerId, initialIsFollowing = false }: Follow
         />
       </svg>
       <span>
-        {loading ? "..." : isFollowing ? "Siguiendo" : "Seguir"}
+        {loading ? "..." : isFollowing ? "Following" : "Follow"}
       </span>
     </button>
   )

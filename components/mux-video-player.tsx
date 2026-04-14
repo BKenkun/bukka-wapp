@@ -167,7 +167,7 @@ export function MuxVideoPlayer({
           </>
         )}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center z-10">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)" }}>
+          <div className="w-16 h-16 flex items-center justify-center" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)" }}>
             <Lock className="w-8 h-8" style={{ color: "var(--brand-color)" }} />
           </div>
           <div className="max-w-md space-y-4">

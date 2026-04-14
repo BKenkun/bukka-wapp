@@ -20,68 +20,68 @@ export function SubscriptionPaymentFailedTemplate({
   reason,
 }: SubscriptionPaymentFailedProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview="Problema con el pago de tu suscripción">
-      <EmailHeading>Problema con tu pago</EmailHeading>
+    <BaseEmail preview="Issue with your subscription payment">
+      <EmailHeading>Payment Issue</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        No hemos podido procesar el pago de tu suscripción{" "}
-        <strong>{planName}</strong>. Para mantener tu acceso al contenido
-        premium, necesitamos que actualices tu información de pago.
+        We were unable to process the payment for your{" "}
+        <strong>{planName}</strong> subscription. To keep your access to premium
+        content, please update your payment information.
       </EmailText>
 
       <EmailInfoBox variant="error">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          {reason || "El pago ha sido rechazado por tu banco o método de pago."}
+          {reason || "The payment was declined by your bank or payment method."}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={detailsBox}>
-        <Text style={detailsTitle}>Detalles</Text>
+        <Text style={detailsTitle}>Details</Text>
         <Text style={detailItem}>
           <strong>Plan:</strong> {planName}
         </Text>
         <Text style={detailItem}>
-          <strong>Importe:</strong> {formatPrice(amount)}
+          <strong>Amount:</strong> {formatPrice(amount)}
         </Text>
         {retryDate && (
           <Text style={detailItem}>
-            <strong>Próximo intento:</strong> {formatDate(retryDate)}
+            <strong>Next retry:</strong> {formatDate(retryDate)}
           </Text>
         )}
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/mi-cuenta/facturacion`}>
-          Actualizar Método de Pago
+          Update Payment Method
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        <strong>¿Por qué puede fallar el pago?</strong>
+        <strong>Why might the payment fail?</strong>
       </EmailText>
       <ul style={{ color: "#6b7280", fontSize: "14px", lineHeight: "24px" }}>
-        <li>Tarjeta expirada o cancelada</li>
-        <li>Fondos insuficientes</li>
-        <li>Límite de la tarjeta excedido</li>
-        <li>El banco bloqueó la transacción</li>
+        <li>Expired or cancelled card</li>
+        <li>Insufficient funds</li>
+        <li>Card limit exceeded</li>
+        <li>Bank blocked the transaction</li>
       </ul>
 
       <EmailText>
-        Si no actualizas tu método de pago, tu suscripción podría cancelarse
-        y perderás acceso a todo el contenido premium.
+        If you don't update your payment method, your subscription may be
+        cancelled and you'll lose access to all premium content.
       </EmailText>
     </BaseEmail>
   )

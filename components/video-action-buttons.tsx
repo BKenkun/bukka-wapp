@@ -14,17 +14,19 @@ interface VideoActionButtonsProps {
 }
 
 function WaterDropIcon({ filled = false }: { filled?: boolean }) {
+  const iconColor = filled ? "var(--brand-color)" : "color-mix(in srgb, var(--brand-color) 70%, transparent)"
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="20"
       height="26"
       viewBox="0 0 22 29"
-      fill={filled ? "var(--brand-color)" : "none"}
+      fill="none"
+      style={{ color: iconColor }}
     >
       <path
         d="M16.75 5.14597C15.206 3.29906 13.4682 1.63596 11.5688 0.187435C11.4006 0.0654404 11.2003 0 10.995 0C10.7897 0 10.5894 0.0654404 10.4213 0.187435C8.52531 1.63657 6.7909 3.29964 5.25 5.14597C1.81375 9.23319 0 13.5418 0 17.607C0 20.6286 1.15893 23.5265 3.22183 25.6631C5.28473 27.7997 8.08262 29 11 29C13.9174 29 16.7153 27.7997 18.7782 25.6631C20.8411 23.5265 22 20.6286 22 17.607C22 13.5418 20.1863 9.23319 16.75 5.14597ZM11 26.9286C8.61386 26.9258 6.32622 25.9428 4.63896 24.1953C2.95171 22.4478 2.00265 20.0784 2 17.607C2 10.1977 8.93375 4.01314 11 2.33009C13.0662 4.01314 20 10.1951 20 17.607C19.9974 20.0784 19.0483 22.4478 17.361 24.1953C15.6738 25.9428 13.3861 26.9258 11 26.9286Z"
-        fill={filled ? "var(--brand-color)" : "currentColor"}
+        fill="currentColor"
       />
     </svg>
   )

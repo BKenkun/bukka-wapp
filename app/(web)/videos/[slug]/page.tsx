@@ -818,7 +818,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                   {tagsList.map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs px-3 py-1 rounded-full"
+                      className="text-xs px-3 py-1"
                       style={{
                         backgroundColor: "color-mix(in srgb, var(--text-primary) 10%, transparent)",
                         color: "var(--text-muted)",
@@ -866,7 +866,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                         href={`/performers/${actress.slug}`}
                         className="group block text-left"
                       >
-                        <div className="overflow-hidden rounded-md">
+                        <div className="overflow-hidden">
                           <Image
                             src={actress.imageUrl}
                             alt={actress.name}

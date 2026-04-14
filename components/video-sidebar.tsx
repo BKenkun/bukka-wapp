@@ -45,7 +45,7 @@ export function VideoSidebar() {
             >
               {selectedRadio === `radio-${i}` && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
             </div>
-            <div className="h-4 w-32 bg-gray-100/10 rounded" /> {/* Placeholder for text */}
+            <div className="h-4 w-32 bg-gray-100/10" /> {/* Placeholder for text */}
             <input
               type="radio"
               name="filter-radio"
@@ -80,7 +80,7 @@ export function VideoSidebar() {
                 </svg>
               )}
             </div>
-            <div className="h-4 w-32 bg-gray-100/10 rounded" /> {/* Placeholder for text */}
+            <div className="h-4 w-32 bg-gray-100/10" /> {/* Placeholder for text */}
             <input
               type="checkbox"
               className="hidden"
@@ -117,7 +117,7 @@ export function VideoSidebar() {
                 </svg>
               )}
             </div>
-            <div className="h-4 w-32 bg-gray-100/10 rounded" /> {/* Placeholder for text */}
+            <div className="h-4 w-32 bg-gray-100/10" /> {/* Placeholder for text */}
             <input
               type="checkbox"
               className="hidden"

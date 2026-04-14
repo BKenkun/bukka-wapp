@@ -20,57 +20,57 @@ export function PaymentReceivedTemplate({
   transactionId,
 }: PaymentReceivedProps) {
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Pago recibido para pedido #${orderNumber}`}>
-      <EmailHeading>Pago Recibido</EmailHeading>
+    <BaseEmail preview={`Payment received for order #${orderNumber}`}>
+      <EmailHeading>Payment Received</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Hemos recibido correctamente el pago de tu pedido. ¡Gracias por tu compra!
+        We've successfully received the payment for your order. Thank you for your purchase!
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu pago ha sido procesado correctamente.
+          Your payment has been successfully processed.
         </EmailText>
       </EmailInfoBox>
 
       <Section style={paymentBox}>
-        <Text style={paymentTitle}>Detalles del pago</Text>
+        <Text style={paymentTitle}>Payment Details</Text>
         <Text style={paymentDetail}>
-          <strong>Pedido:</strong> #{orderNumber}
+          <strong>Order:</strong> #{orderNumber}
         </Text>
         <Text style={paymentDetail}>
-          <strong>Importe:</strong> {formatPrice(amount)}
+          <strong>Amount:</strong> {formatPrice(amount)}
         </Text>
         {paymentMethod && (
           <Text style={paymentDetail}>
-            <strong>Método:</strong> {paymentMethod}
+            <strong>Method:</strong> {paymentMethod}
           </Text>
         )}
         {transactionId && (
           <Text style={paymentDetail}>
-            <strong>ID Transacción:</strong> {transactionId}
+            <strong>Transaction ID:</strong> {transactionId}
           </Text>
         )}
       </Section>
 
       <EmailText>
-        Tu pedido está siendo procesado y te enviaremos una actualización
-        cuando sea enviado.
+        Your order is being processed and we'll send you an update
+        when it ships.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/mi-cuenta/pedidos`}>
-          Ver Mi Pedido
+          View My Order
         </EmailButton>
       </div>
     </BaseEmail>

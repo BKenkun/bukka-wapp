@@ -27,7 +27,7 @@ export function ShopTrustIcons({ enabled, items }: ShopTrustIconsProps) {
             return (
               <div key={index} className="flex items-center gap-3">
                 <div
-                  className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center"
                   style={{ backgroundColor: "color-mix(in srgb, var(--brand-color, #E03E54) 10%, transparent)" }}
                 >
                   <IconComponent

@@ -49,23 +49,27 @@ export default async function AdminForumPostPage({ params }: Props) {
     orderBy: { order: "asc" },
   })
 
+  // Capture values before server actions (post is guaranteed non-null after notFound() check)
+  const isPinned = post.isPinned
+  const isLocked = post.isLocked
+
   // Server actions
   async function togglePin() {
     "use server"
     await prisma.forumPost.update({
       where: { id },
-      data: { isPinned: !post.isPinned },
+      data: { isPinned: !isPinned },
     })
     revalidatePath(`/admin/forum/posts/${id}`)
     revalidatePath("/admin/forum")
-    revalidatePath("/foro")
+    revalidatePath("/forum")
   }
 
   async function toggleLock() {
     "use server"
     await prisma.forumPost.update({
       where: { id },
-      data: { isLocked: !post.isLocked },
+      data: { isLocked: !isLocked },
     })
     revalidatePath(`/admin/forum/posts/${id}`)
     revalidatePath("/admin/forum")
@@ -81,7 +85,7 @@ export default async function AdminForumPostPage({ params }: Props) {
     })
     revalidatePath(`/admin/forum/posts/${id}`)
     revalidatePath("/admin/forum")
-    revalidatePath("/foro")
+    revalidatePath("/forum")
   }
 
   async function deletePost() {

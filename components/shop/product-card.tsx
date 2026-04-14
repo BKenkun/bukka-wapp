@@ -51,11 +51,11 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group">
       {/* Image Container */}
-      <div className="relative rounded-xl overflow-hidden mb-4" style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}>
+      <div className="relative overflow-hidden mb-4" style={{ backgroundColor: "var(--surface-bg, #f3f4f6)" }}>
         {/* Badge */}
         {badge && (
           <div
-            className="absolute top-3 left-3 z-10 text-xs font-bold px-3 py-1.5 rounded-md text-white"
+            className="absolute top-3 left-3 z-10 text-xs font-bold px-3 py-1.5 text-white"
             style={{
               backgroundColor: badge === "Sale"
                 ? "var(--brand-color, #E03E54)"
@@ -68,18 +68,18 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Product Image */}
-        <Link href={`/tienda/${product.slug}`} className="block aspect-square relative">
+        <Link href={`/shop/${product.slug}`} className="block aspect-[4/5] relative">
           {product.images && product.images.length > 0 ? (
             <Image
               src={product.images[0]}
               alt={product.name}
               fill
-              className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-[60%] h-[50%] rounded-3xl bg-gray-300/50" />
+              <div className="w-[60%] h-[50%] bg-gray-300/50" />
             </div>
           )}
         </Link>
@@ -146,7 +146,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {product.productType === "VARIABLE" ? (
           <Link
             href={`/tienda/${product.slug}`}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold text-white text-sm transition-opacity hover:opacity-90"
+            className="w-full flex items-center justify-center gap-2 py-3 font-bold text-white text-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
           >
             <ShoppingCart className="w-4 h-4" />

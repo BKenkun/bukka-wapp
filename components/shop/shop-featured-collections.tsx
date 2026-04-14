@@ -41,7 +41,7 @@ export function ShopFeaturedCollections({ enabled, title, subtitle, categories }
             <Link
               key={category.id}
               href={`/tienda/categoria/${category.slug}`}
-              className="group relative rounded-2xl overflow-hidden h-80"
+              className="group relative overflow-hidden h-80"
             >
               {category.imageUrl ? (
                 <Image
@@ -63,7 +63,7 @@ export function ShopFeaturedCollections({ enabled, title, subtitle, categories }
                   <p className="text-gray-300 text-sm mb-3 line-clamp-2">{category.description}</p>
                 )}
                 <span
-                  className="inline-flex items-center text-sm font-bold px-4 py-2 rounded-full text-white transition-all group-hover:scale-105"
+                  className="inline-flex items-center text-sm font-bold px-4 py-2 text-white transition-all group-hover:scale-105"
                   style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                 >
                   Ver Coleccion

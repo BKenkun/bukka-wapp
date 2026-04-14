@@ -26,6 +26,10 @@ export type EmailTemplate =
   | "casting/reviewing"
   | "casting/accepted"
   | "casting/rejected"
+  // Contact
+  | "contact/notification"
+  // Performer
+  | "performer/available"
   // Admin
   | "admin/new-casting"
   | "admin/new-order"
@@ -35,7 +39,8 @@ export interface SendEmailOptions {
   to: string
   subject: string
   template: EmailTemplate
-  react: React.ReactElement
+  react?: React.ReactElement
+  html?: string
   metadata?: Record<string, unknown>
 }
 

@@ -1,7 +1,14 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 import { CmsContent } from "@/components/cms-content"
+
+const SLUG_REDIRECTS: Record<string, string> = {
+  "terminos-servicio": "terms-of-service",
+  "politica-privacidad": "privacy-policy",
+  "confianza-seguridad": "trust-safety",
+  "politica-eliminacion": "deletion-policy",
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -50,6 +57,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CmsPage({ params }: PageProps) {
   const { slug } = await params
+
+  if (SLUG_REDIRECTS[slug]) {
+    redirect(`/p/${SLUG_REDIRECTS[slug]}`)
+  }
+
   const page = await getPage(slug)
 
   if (!page) {

@@ -16,45 +16,45 @@ export function SubscriptionExpiredTemplate({
   expiredAt,
 }: SubscriptionExpiredProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   return (
-    <BaseEmail preview="Tu suscripción ha expirado">
-      <EmailHeading>Tu suscripción ha expirado</EmailHeading>
+    <BaseEmail preview="Your subscription has expired">
+      <EmailHeading>Your subscription has expired</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Tu suscripción <strong>{planName}</strong> expiró el{" "}
-        {formatDate(expiredAt)}. Ya no tienes acceso al contenido premium.
+        Your <strong>{planName}</strong> subscription expired on{" "}
+        {formatDate(expiredAt)}. You no longer have access to premium content.
       </EmailText>
 
       <EmailInfoBox variant="warning">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Renueva ahora para no perderte nuestro contenido exclusivo
+          Renew now so you don't miss out on our exclusive content
         </EmailText>
       </EmailInfoBox>
 
       <Section style={missedBox}>
-        <Text style={missedTitle}>Lo que te estás perdiendo:</Text>
-        <Text style={missedItem}>❌ Acceso a videos exclusivos</Text>
-        <Text style={missedItem}>❌ Descargas ilimitadas</Text>
-        <Text style={missedItem}>❌ Contenido de acceso anticipado</Text>
-        <Text style={missedItem}>❌ Descuentos especiales en la tienda</Text>
-        <Text style={missedItem}>❌ Contenido Diamond Exclusive</Text>
+        <Text style={missedTitle}>What you're missing out on:</Text>
+        <Text style={missedItem}>❌ Access to exclusive videos</Text>
+        <Text style={missedItem}>❌ Unlimited downloads</Text>
+        <Text style={missedItem}>❌ Early access content</Text>
+        <Text style={missedItem}>❌ Special store discounts</Text>
+        <Text style={missedItem}>❌ Diamond Exclusive content</Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/suscripciones`}>
-          Renovar Suscripción
+          Renew Subscription
         </EmailButton>
       </div>
 
       <EmailText>
-        ¿Tienes dudas sobre los planes? Echa un vistazo a todas las opciones
-        y encuentra la que mejor se adapte a ti.
+        Have questions about the plans? Take a look at all the options
+        and find the one that best suits you.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "24px 0" }}>
@@ -66,7 +66,7 @@ export function SubscriptionExpiredTemplate({
             fontSize: "14px",
           }}
         >
-          Ver todos los planes
+          View all plans
         </a>
       </div>
     </BaseEmail>

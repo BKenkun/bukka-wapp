@@ -211,7 +211,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       location: performer?.location || "",
       verified: performer?.verified ?? false,
       comingSoon: performer?.comingSoon ?? false,
-      comingSoonDate: performer?.comingSoonDate ? performer.comingSoonDate.slice(0, 16) : "",
+      comingSoonDate: performer?.comingSoonDate ? new Date(performer.comingSoonDate).toISOString().slice(0, 16) : "",
     },
   })
 

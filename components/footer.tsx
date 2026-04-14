@@ -21,9 +21,9 @@ const DEFAULT_SECTIONS: FooterSection[] = [
     title: "SERVICIOS",
     links: [
       { label: "The Bukkake Degree™", url: "#" },
-      { label: "Tienda", url: "/tienda" },
-      { label: "Blog", url: "/blog" },
-      { label: "Foro", url: "/foro" },
+      { label: "Tienda", url: "/shop" },
+      { label: "Blog", url: "/news" },
+      { label: "Foro", url: "/forum" },
     ],
   },
   {
@@ -43,7 +43,7 @@ const DEFAULT_SECTIONS: FooterSection[] = [
       { label: "Content Removal Policy", url: "#" },
       { label: "Casting", url: "/casting" },
       { label: "Webmaster", url: "#" },
-      { label: "Tienda/Apparel", url: "/tienda" },
+      { label: "Tienda/Apparel", url: "/shop" },
     ],
   },
   {

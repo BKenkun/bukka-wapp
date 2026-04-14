@@ -86,7 +86,7 @@ const updateProfileSchema = z.object({
   forumSignature: z.string().max(200).optional().nullable(),
   relationshipStatus: z.enum(["SINGLE", "MARRIED", "IN_RELATIONSHIP"]).optional().nullable(),
   relationshipRole: z.enum(["BULL", "VOYEUR", "CUCKOLD", "STAG", "HOTWIFE", "OTHER"]).optional().nullable(),
-  image: z.string().url().optional().nullable(),
+  image: z.string().min(1).optional().nullable(),
   // Preferencias de notificación
   notifyEmail: z.boolean().optional(),
   notifyNewContent: z.boolean().optional(),

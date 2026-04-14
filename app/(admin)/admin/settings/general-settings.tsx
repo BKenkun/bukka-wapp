@@ -187,7 +187,7 @@ export function GeneralSettings() {
                   alt="Favicon preview"
                   className="w-12 h-12 object-contain border rounded bg-white"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder.png'
+                    (e.target as HTMLImageElement).style.display = 'none'
                   }}
                 />
                 <div className="flex-1">

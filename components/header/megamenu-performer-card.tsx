@@ -47,7 +47,7 @@ function formatViews(views: number): string {
 export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps) {
   return (
     <Link
-      href={`/modelos/${performer.slug}`}
+      href={`/performers/${performer.slug}`}
       className="group block cursor-pointer"
     >
       {/* Vertical image container */}
@@ -71,7 +71,7 @@ export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps)
 
         {/* Hover overlay with "VER" - same as home page */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <span className="text-white font-montserrat font-bold text-xl tracking-wider">VER</span>
+          <span className="text-white font-montserrat font-bold text-xl tracking-wider">VIEW</span>
         </div>
 
         {/* Name at bottom */}
@@ -83,7 +83,7 @@ export function MegamenuPerformerCard({ performer }: MegamenuPerformerCardProps)
           {(performer.videoCount !== undefined || performer.totalViews !== undefined) && (
             <div className="flex items-center gap-1.5 mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
               {performer.videoCount !== undefined && (
-                <span>{performer.videoCount} {performer.videoCount === 1 ? "Vídeo" : "Vídeos"}</span>
+                <span>{performer.videoCount} {performer.videoCount === 1 ? "Video" : "Videos"}</span>
               )}
               {performer.videoCount !== undefined && performer.totalViews !== undefined && (
                 <span style={{ opacity: 0.6 }}>·</span>

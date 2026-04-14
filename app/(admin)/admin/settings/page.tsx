@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { IconSettings, IconShieldCheck, IconLock, IconMail, IconLayoutBottombar, IconPalette, IconPlaylist, IconShoppingBag, IconSearch, IconSpeakerphone } from "@tabler/icons-react"
+import { IconSettings, IconShieldCheck, IconLock, IconMail, IconLayoutBottombar, IconPalette, IconPlaylist, IconShoppingBag, IconSearch, IconSpeakerphone, IconMessageCircle } from "@tabler/icons-react"
 import { GeneralSettings } from "./general-settings"
 import { AgeVerificationSettings } from "./age-verification-settings"
 import { VideoAccessSettings } from "./video-access-settings"
@@ -12,6 +12,7 @@ import { SystemCollectionsSettings } from "./system-collections-settings"
 import { ProductSettings } from "./shop-settings"
 import { SearchSettings } from "./search-settings"
 import { DiscountBannerSettings } from "./discount-banner-settings"
+import { ContactSettings } from "./contact-settings"
 
 export default function SettingsPage() {
   return (
@@ -61,6 +62,10 @@ export default function SettingsPage() {
             <IconSpeakerphone className="size-4" />
             Banners
           </TabsTrigger>
+          <TabsTrigger value="contact" className="gap-2">
+            <IconMessageCircle className="size-4" />
+            Contact
+          </TabsTrigger>
           <TabsTrigger value="collections" className="gap-2">
             <IconPlaylist className="size-4" />
             Colecciones
@@ -101,6 +106,10 @@ export default function SettingsPage() {
 
         <TabsContent value="banners">
           <DiscountBannerSettings />
+        </TabsContent>
+
+        <TabsContent value="contact">
+          <ContactSettings />
         </TabsContent>
 
         <TabsContent value="collections">

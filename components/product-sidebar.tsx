@@ -70,7 +70,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
       {products.map((product) => (
         <div
           key={product.id}
-          className="group relative rounded-lg overflow-hidden transition-all duration-300 flex items-center gap-3"
+          className="group relative overflow-hidden transition-all duration-300 flex items-center gap-3"
           style={{
             backgroundColor: "color-mix(in srgb, var(--text-primary) 5%, transparent)",
             border: "1px solid transparent",
@@ -93,7 +93,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
               />
               {product.tag && (
                 <span
-                  className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-bold rounded"
+                  className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-bold"
                   style={{
                     backgroundColor: "var(--brand-color)",
                     color: "#fff",
@@ -125,7 +125,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
               <button
                 onClick={(e) => handleAddToCart(e, product.id)}
                 disabled={loadingId === product.id}
-                className="h-7 text-xs w-full flex items-center justify-center gap-1.5 rounded font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="h-7 text-xs w-full flex items-center justify-center gap-1.5 font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{
                   backgroundColor: "var(--brand-color)",
                   color: "#fff",

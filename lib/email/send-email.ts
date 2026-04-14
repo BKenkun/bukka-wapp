@@ -45,6 +45,7 @@ export async function sendEmail({
   subject,
   template,
   react,
+  html,
   metadata,
 }: SendEmailOptions): Promise<EmailResult> {
   try {
@@ -64,7 +65,7 @@ export async function sendEmail({
       to,
       replyTo: settings.replyTo || EMAIL_REPLY_TO,
       subject,
-      react,
+      ...(html ? { html } : { react }),
     })
 
     // Log the email

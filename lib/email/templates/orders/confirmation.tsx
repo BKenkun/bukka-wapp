@@ -43,41 +43,41 @@ export function OrderConfirmationTemplate({
   estimatedDelivery,
 }: OrderConfirmationProps) {
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Confirmación de pedido #${orderNumber}`}>
-      <EmailHeading>Pedido Confirmado</EmailHeading>
+    <BaseEmail preview={`Order confirmation #${orderNumber}`}>
+      <EmailHeading>Order Confirmed</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        ¡Gracias por tu compra! Hemos recibido tu pedido y estamos preparándolo
-        para el envío. A continuación encontrarás los detalles de tu pedido.
+        Thank you for your purchase! We've received your order and are preparing
+        it for shipping. Below you'll find your order details.
       </EmailText>
 
       <Section style={orderBox}>
-        <Text style={orderNumber_style}>Pedido #{orderNumber}</Text>
+        <Text style={orderNumber_style}>Order #{orderNumber}</Text>
         {estimatedDelivery && (
           <Text style={deliveryEstimate}>
-            Entrega estimada: {estimatedDelivery}
+            Estimated delivery: {estimatedDelivery}
           </Text>
         )}
       </Section>
 
       {/* Items */}
       <Section style={itemsContainer}>
-        <Text style={sectionTitle}>Productos</Text>
+        <Text style={sectionTitle}>Products</Text>
         {items.map((item, index) => (
           <Row key={index} style={itemRow}>
             <Column style={itemDetails}>
               <Text style={itemName}>{item.name}</Text>
-              <Text style={itemQuantity}>Cantidad: {item.quantity}</Text>
+              <Text style={itemQuantity}>Quantity: {item.quantity}</Text>
             </Column>
             <Column style={itemPrice}>
               <Text style={priceText}>{formatPrice(item.price * item.quantity)}</Text>
@@ -101,7 +101,7 @@ export function OrderConfirmationTemplate({
         {discount > 0 && (
           <Row style={totalRow}>
             <Column style={totalLabel}>
-              <Text style={discountText}>Descuento</Text>
+              <Text style={discountText}>Discount</Text>
             </Column>
             <Column style={totalValue}>
               <Text style={discountText}>-{formatPrice(discount)}</Text>
@@ -110,11 +110,11 @@ export function OrderConfirmationTemplate({
         )}
         <Row style={totalRow}>
           <Column style={totalLabel}>
-            <Text style={totalText}>Envío</Text>
+            <Text style={totalText}>Shipping</Text>
           </Column>
           <Column style={totalValue}>
             <Text style={totalText}>
-              {shipping === 0 ? "GRATIS" : formatPrice(shipping)}
+              {shipping === 0 ? "FREE" : formatPrice(shipping)}
             </Text>
           </Column>
         </Row>
@@ -132,7 +132,7 @@ export function OrderConfirmationTemplate({
 
       {/* Shipping Address */}
       <Section style={addressContainer}>
-        <Text style={sectionTitle}>Dirección de envío</Text>
+        <Text style={sectionTitle}>Shipping Address</Text>
         <Text style={addressText}>
           {shippingAddress.name}
           <br />
@@ -146,12 +146,12 @@ export function OrderConfirmationTemplate({
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/mi-cuenta/pedidos`}>
-          Ver Mi Pedido
+          View My Order
         </EmailButton>
       </div>
 
       <EmailText>
-        Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos.
+        If you have any questions about your order, feel free to contact us.
       </EmailText>
     </BaseEmail>
   )

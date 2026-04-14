@@ -19,7 +19,7 @@ export function VideoGallery({ images }: VideoGalleryProps) {
       {images.map((image, index) => (
         <div
           key={index}
-          className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer"
+          className="relative aspect-video overflow-hidden group cursor-pointer"
         >
           <Image
             src={image.src || "/placeholder.svg"}

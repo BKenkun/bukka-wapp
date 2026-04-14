@@ -22,36 +22,36 @@ export function OrderShippedTemplate({
   trackingUrl,
 }: OrderShippedProps) {
   return (
-    <BaseEmail preview={`Tu pedido #${orderNumber} está en camino`}>
-      <EmailHeading>Tu pedido está en camino</EmailHeading>
+    <BaseEmail preview={`Your order #${orderNumber} is on its way`}>
+      <EmailHeading>Your order is on its way</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        ¡Buenas noticias! Tu pedido <strong>#{orderNumber}</strong> ha sido
-        enviado y está en camino hacia ti.
+        Great news! Your order <strong>#{orderNumber}</strong> has been
+        shipped and is on its way to you.
       </EmailText>
 
       <Section style={trackingBox}>
-        <Text style={trackingTitle}>Información de seguimiento</Text>
-        {carrier && <Text style={trackingDetail}>Transportista: {carrier}</Text>}
+        <Text style={trackingTitle}>Tracking Information</Text>
+        {carrier && <Text style={trackingDetail}>Carrier: {carrier}</Text>}
         {trackingNumber && (
           <Text style={trackingNumber_style}>
-            Nº de seguimiento: <strong>{trackingNumber}</strong>
+            Tracking number: <strong>{trackingNumber}</strong>
           </Text>
         )}
         {estimatedDelivery && (
           <Text style={trackingDetail}>
-            Entrega estimada: {estimatedDelivery}
+            Estimated delivery: {estimatedDelivery}
           </Text>
         )}
       </Section>
 
       {trackingUrl && (
         <div style={{ textAlign: "center", margin: "24px 0" }}>
-          <EmailButton href={trackingUrl}>Rastrear Envío</EmailButton>
+          <EmailButton href={trackingUrl}>Track Shipment</EmailButton>
         </div>
       )}
 
@@ -59,14 +59,13 @@ export function OrderShippedTemplate({
 
       <EmailInfoBox variant="info">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Recibirás tu paquete en los próximos días. Si no estás en casa,
-          el transportista puede dejar un aviso o intentar la entrega en
-          otro momento.
+          You'll receive your package in the coming days. If you're not home,
+          the carrier may leave a notice or attempt delivery at another time.
         </EmailText>
       </EmailInfoBox>
 
       <EmailText>
-        Si tienes alguna pregunta sobre tu envío, no dudes en contactarnos.
+        If you have any questions about your shipment, feel free to contact us.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "24px 0" }}>
@@ -78,7 +77,7 @@ export function OrderShippedTemplate({
             fontSize: "14px",
           }}
         >
-          Ver detalles del pedido
+          View order details
         </a>
       </div>
     </BaseEmail>

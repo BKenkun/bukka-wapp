@@ -147,14 +147,12 @@ export function MegamenuEditor({
   }
 
   const handlePerformerChange = (ids: string[]) => {
-    // Limit to 2 performers
-    const limitedIds = ids.slice(0, 2)
+    const limitedIds = ids.slice(0, 6)
     setConfig((prev) => ({ ...prev, featuredPerformerIds: limitedIds }))
   }
 
   const handleProductChange = (ids: string[]) => {
-    // Limit to 2 products
-    const limitedIds = ids.slice(0, 2)
+    const limitedIds = ids.slice(0, 6)
     setConfig((prev) => ({ ...prev, featuredProductIds: limitedIds }))
   }
 
@@ -200,9 +198,9 @@ export function MegamenuEditor({
 
           <TabsContent value="performers" className="mt-4 space-y-4">
             <div className="space-y-2">
-              <Label>Modelos destacadas (máx. 2)</Label>
+              <Label>Featured Performers (max. 6)</Label>
               <p className="text-xs text-muted-foreground">
-                Selecciona hasta 2 modelos para mostrar en la sección izquierda del megamenu
+                Select up to 6 performers to show in the megamenu
               </p>
             </div>
             <PerformerSearch
@@ -210,18 +208,16 @@ export function MegamenuEditor({
               selectedIds={config.featuredPerformerIds}
               onChange={handlePerformerChange}
             />
-            {config.featuredPerformerIds.length >= 2 && (
-              <p className="text-xs text-amber-500">
-                Has alcanzado el máximo de 2 modelos
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {config.featuredPerformerIds.length}/6 selected
+            </p>
           </TabsContent>
 
           <TabsContent value="products" className="mt-4 space-y-4">
             <div className="space-y-2">
-              <Label>Productos destacados (máx. 2)</Label>
+              <Label>Featured Products (max. 6)</Label>
               <p className="text-xs text-muted-foreground">
-                Selecciona hasta 2 productos para mostrar en el megamenu
+                Select up to 6 products to show in the megamenu
               </p>
             </div>
             <ProductSearch
@@ -229,11 +225,9 @@ export function MegamenuEditor({
               selectedIds={config.featuredProductIds}
               onChange={handleProductChange}
             />
-            {config.featuredProductIds.length >= 2 && (
-              <p className="text-xs text-amber-500">
-                Has alcanzado el máximo de 2 productos
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {config.featuredProductIds.length}/6 selected
+            </p>
           </TabsContent>
 
           <TabsContent value="videos" className="mt-4 space-y-4">

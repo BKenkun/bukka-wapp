@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rutas públicas (no requieren autenticación)
-  const publicRoutes = ["/", "/login", "/register", "/videos", "/actrices", "/tienda", "/blog"]
+  const publicRoutes = ["/", "/login", "/register", "/videos", "/actrices", "/shop", "/news"]
 
   // Verificar si es ruta pública
   const isPublicRoute = publicRoutes.some((route) =>
@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin")
 
   // Rutas que requieren autenticación (mi-cuenta)
-  const isProtectedRoute = pathname.startsWith("/mi-cuenta")
+  const isProtectedRoute = pathname.startsWith("/my-account")
 
   // Obtener sesión usando NextAuth
   const session = await auth()

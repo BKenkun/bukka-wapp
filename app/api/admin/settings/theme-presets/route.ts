@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 
 interface ThemePreset {
   id: string
@@ -81,8 +82,8 @@ export async function POST(request: Request) {
 
     await prisma.siteSettings.upsert({
       where: { key: "theme_presets" },
-      update: { value: presets as unknown as Record<string, unknown>[] },
-      create: { key: "theme_presets", value: presets as unknown as Record<string, unknown>[] },
+      update: { value: presets as unknown as Prisma.InputJsonValue },
+      create: { key: "theme_presets", value: presets as unknown as Prisma.InputJsonValue },
     })
 
     return NextResponse.json({ preset: newPreset })
@@ -124,8 +125,8 @@ export async function DELETE(request: Request) {
 
     await prisma.siteSettings.upsert({
       where: { key: "theme_presets" },
-      update: { value: filtered as unknown as Record<string, unknown>[] },
-      create: { key: "theme_presets", value: filtered as unknown as Record<string, unknown>[] },
+      update: { value: filtered as unknown as Prisma.InputJsonValue },
+      create: { key: "theme_presets", value: filtered as unknown as Prisma.InputJsonValue },
     })
 
     return NextResponse.json({ success: true })

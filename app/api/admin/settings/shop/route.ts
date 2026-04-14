@@ -17,9 +17,9 @@ const DEFAULT_SETTINGS: ShopSettings = {
     title: "Descubre Nuestra Tienda",
     subtitle: "Encuentra los mejores productos con envio discreto y garantia de calidad",
     ctaPrimaryText: "Comprar Ahora",
-    ctaPrimaryUrl: "/tienda#productos",
+    ctaPrimaryUrl: "/shop#productos",
     ctaSecondaryText: "Ver Colecciones",
-    ctaSecondaryUrl: "/tienda#colecciones",
+    ctaSecondaryUrl: "/shop#colecciones",
   },
   trustIcons: {
     enabled: true,
@@ -54,6 +54,10 @@ const DEFAULT_SETTINGS: ShopSettings = {
       { question: "¿Es seguro comprar aqui?", answer: "Absolutamente. Utilizamos encriptacion SSL y pasarelas de pago seguras para proteger tus datos." },
       { question: "¿El envio es discreto?", answer: "Si, todos los envios son completamente discretos. El paquete no contiene ninguna marca o referencia al contenido." },
     ],
+    styles: {
+      bgColor: "",
+      titleColor: "",
+    },
   },
   productDetail: {
     trustBadges: [
@@ -62,11 +66,23 @@ const DEFAULT_SETTINGS: ShopSettings = {
       { icon: "Package", label: "Embalaje Privado" },
       { icon: "RotateCcw", label: "Devolucion 30 Dias" },
     ],
+    trustBadgesStyles: {
+      bgColor: "",
+      titleColor: "",
+      iconColor: "",
+      iconBgColor: "",
+    },
     careInstructions: [
       { title: "Limpieza", description: "Limpiar con agua tibia y jabon neutro antes y despues de cada uso." },
       { title: "Almacenamiento", description: "Guardar en un lugar seco y fresco, preferiblemente en su estuche original." },
       { title: "Proteccion", description: "Evitar la exposicion directa al sol y a temperaturas extremas." },
     ],
+    careInstructionsStyles: {
+      bgColor: "",
+      titleColor: "",
+      cardBgColor: "",
+      textColor: "",
+    },
     faq: {
       enabled: true,
       items: [
@@ -74,6 +90,14 @@ const DEFAULT_SETTINGS: ShopSettings = {
         { question: "¿Tiene garantia?", answer: "Si, todos nuestros productos tienen garantia de calidad." },
         { question: "¿Puedo devolver el producto?", answer: "Si, tienes 30 dias para devolver productos sin abrir." },
       ],
+      styles: {
+        bgColor: "",
+        titleColor: "",
+      },
+    },
+    relatedProductsStyles: {
+      bgColor: "",
+      titleColor: "",
     },
   },
 }

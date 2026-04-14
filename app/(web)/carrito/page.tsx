@@ -163,7 +163,7 @@ export default function CarritoPage() {
             </svg>
             <p className="text-lg mb-6" style={{ color: "var(--cart-empty-text)" }}>Tu carrito esta vacio</p>
             <Link
-              href="/tienda"
+              href="/shop"
               className="btn-primary inline-block"
             >
               Explorar Tienda
@@ -337,7 +337,7 @@ export default function CarritoPage() {
                 </Link>
 
                 <Link
-                  href="/tienda"
+                  href="/shop"
                   className="block w-full text-center font-montserrat py-3 mt-4 hover:underline"
                   style={{ color: "var(--accent-color)" }}
                 >

@@ -9,34 +9,33 @@ interface PasswordChangedEmailProps {
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bukkakery.com"
 
 export function PasswordChangedEmailTemplate({ name, changedAt }: PasswordChangedEmailProps) {
-  const formattedDate = new Intl.DateTimeFormat("es-ES", {
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
     dateStyle: "long",
     timeStyle: "short",
   }).format(changedAt)
 
   return (
-    <BaseEmail preview="Tu contraseña ha sido actualizada correctamente">
-      <EmailHeading>Contraseña actualizada</EmailHeading>
+    <BaseEmail preview="Your password has been successfully updated">
+      <EmailHeading>Password Updated</EmailHeading>
 
       <EmailText>
-        Hola {name || "usuario"},
+        Hi {name || "there"},
       </EmailText>
 
       <EmailText>
-        Te confirmamos que tu contraseña ha sido actualizada correctamente el{" "}
+        We confirm that your password was successfully updated on{" "}
         <strong>{formattedDate}</strong>.
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu cuenta está segura. Ya puedes iniciar sesión con tu nueva contraseña.
+          Your account is secure. You can now sign in with your new password.
         </EmailText>
       </EmailInfoBox>
 
       <EmailText>
-        Si no realizaste este cambio, por favor contacta inmediatamente con
-        nuestro equipo de soporte o solicita un nuevo restablecimiento de
-        contraseña.
+        If you did not make this change, please immediately contact our support
+        team or request a new password reset.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "24px 0" }}>
@@ -48,24 +47,24 @@ export function PasswordChangedEmailTemplate({ name, changedAt }: PasswordChange
             fontSize: "14px",
           }}
         >
-          Restablecer contraseña si no fui yo
+          Reset password if this wasn't me
         </a>
       </div>
 
       <EmailText>
-        Por tu seguridad, te recomendamos:
+        For your security, we recommend:
       </EmailText>
 
       <ul style={{ color: "#374151", fontSize: "14px", lineHeight: "24px" }}>
-        <li>Usar contraseñas únicas para cada servicio</li>
-        <li>No compartir tu contraseña con nadie</li>
-        <li>Cerrar sesión en dispositivos públicos</li>
+        <li>Using unique passwords for each service</li>
+        <li>Never sharing your password with anyone</li>
+        <li>Signing out on public devices</li>
       </ul>
 
       <EmailText>
-        Atentamente,
+        Best regards,
         <br />
-        El equipo de BUKKAKERY
+        The BUKKAKERY Team
       </EmailText>
     </BaseEmail>
   )

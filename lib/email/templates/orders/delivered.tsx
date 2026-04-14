@@ -15,60 +15,60 @@ export function OrderDeliveredTemplate({
   orderNumber,
   deliveredAt,
 }: OrderDeliveredProps) {
-  const formattedDate = new Intl.DateTimeFormat("es-ES", {
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
     dateStyle: "long",
     timeStyle: "short",
   }).format(deliveredAt)
 
   return (
-    <BaseEmail preview={`Tu pedido #${orderNumber} ha sido entregado`}>
-      <EmailHeading>Pedido entregado</EmailHeading>
+    <BaseEmail preview={`Your order #${orderNumber} has been delivered`}>
+      <EmailHeading>Order Delivered</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Tu pedido <strong>#{orderNumber}</strong> ha sido entregado con éxito el{" "}
+        Your order <strong>#{orderNumber}</strong> was successfully delivered on{" "}
         {formattedDate}.
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          ¡Esperamos que disfrutes tu compra! Si tienes algún problema con
-          los productos, tienes 14 días para solicitar un cambio o devolución.
+          We hope you enjoy your purchase! If you have any issues with
+          the products, you have 14 days to request an exchange or return.
         </EmailText>
       </EmailInfoBox>
 
       <Section style={feedbackBox}>
-        <Text style={feedbackTitle}>¿Qué te ha parecido?</Text>
+        <Text style={feedbackTitle}>How was your experience?</Text>
         <Text style={feedbackText}>
-          Tu opinión es muy importante para nosotros. Nos encantaría saber
-          qué te han parecido los productos que has recibido.
+          Your feedback is very important to us. We'd love to know
+          what you think about the products you've received.
         </Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/tienda`}>
-          Seguir Comprando
+          Continue Shopping
         </EmailButton>
       </div>
 
       <EmailText>
-        Si no has recibido tu pedido o hay algún problema con la entrega,
-        por favor contacta con nuestro equipo de atención al cliente.
+        If you haven't received your order or there's an issue with the delivery,
+        please contact our customer support team.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "24px 0" }}>
         <a
-          href={`${APP_URL}/contacto`}
+          href={`${APP_URL}/contact`}
           style={{
             color: "#FA4860",
             textDecoration: "underline",
             fontSize: "14px",
           }}
         >
-          Contactar soporte
+          Contact support
         </a>
       </div>
     </BaseEmail>

@@ -77,6 +77,47 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       },
     })
 
+    // Trigger notifications if comingSoon changed from true to false
+    if (existingPerformer.comingSoon && comingSoon === false) {
+      // Fire and forget — don't block the response
+      prisma.performerNotify.findMany({
+        where: { performerId: existingPerformer.id, notified: false },
+        include: { user: { select: { email: true, name: true } } },
+      }).then(async (subscribers) => {
+        if (subscribers.length === 0) return
+        const { sendEmail } = await import("@/lib/email/send-email")
+        const { render } = await import("@react-email/components")
+        const { ContactNotificationEmail } = await import("@/lib/email/templates/contact/notification")
+
+        for (const sub of subscribers) {
+          try {
+            const html = await render(
+              ContactNotificationEmail({
+                name: "BUKKAKERY",
+                email: "",
+                subject: `${performer.name} is now available!`,
+                message: `Great news! ${performer.name} is now available on BUKKAKERY. Check out their profile at https://bukkakery.com/performers/${performer.slug}`,
+                createdAt: new Date().toISOString(),
+              })
+            )
+            await sendEmail({
+              to: sub.user.email,
+              subject: `${performer.name} is now available on BUKKAKERY!`,
+              html,
+              template: "performer/available",
+            })
+          } catch (e) {
+            console.error(`Failed to notify ${sub.user.email}:`, e)
+          }
+        }
+
+        await prisma.performerNotify.updateMany({
+          where: { performerId: existingPerformer.id, notified: false },
+          data: { notified: true, notifiedAt: new Date() },
+        })
+      }).catch(console.error)
+    }
+
     // Handle gallery photos if provided
     if (galleryPhotos !== undefined) {
       // Get existing photo IDs

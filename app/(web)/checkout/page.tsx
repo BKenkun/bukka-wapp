@@ -291,7 +291,7 @@ export default function CheckoutPage() {
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             {/* Success Animation */}
-            <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse" style={{ backgroundColor: "var(--success-color)" }}>
+            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-8 animate-pulse" style={{ backgroundColor: "var(--success-color)" }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="48"
@@ -312,7 +312,7 @@ export default function CheckoutPage() {
             </h1>
 
             {confirmedOrder && (
-              <div className="p-6 rounded-lg mb-8 text-left max-w-md mx-auto" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
+              <div className="p-6 mb-8 text-left max-w-md mx-auto" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Número de pedido:</p>
                 <p className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>{confirmedOrder.orderNumber}</p>
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Total:</p>
@@ -325,7 +325,7 @@ export default function CheckoutPage() {
             </p>
 
             {paymentMethod === "transfer" && (
-              <div className="p-4 rounded-lg mb-8 max-w-md mx-auto" style={{ backgroundColor: "color-mix(in srgb, var(--warning-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--warning-color) 30%, transparent)" }}>
+              <div className="p-4 mb-8 max-w-md mx-auto" style={{ backgroundColor: "color-mix(in srgb, var(--warning-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--warning-color) 30%, transparent)" }}>
                 <p className="font-medium mb-2" style={{ color: "var(--warning-color)" }}>Pago por Transferencia Bancaria</p>
                 <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
                   Realiza la transferencia a la siguiente cuenta:
@@ -340,13 +340,13 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/mi-cuenta/historial-de-pagos"
+                href="/my-account/payment-history"
                 className="btn-primary inline-block"
               >
                 Ver Mis Pedidos
               </Link>
               <Link
-                href="/tienda"
+                href="/shop"
                 className="btn-secondary inline-block"
               >
                 Seguir Comprando
@@ -373,7 +373,7 @@ export default function CheckoutPage() {
             style={{ color: step === "shipping" ? "var(--brand-color)" : "var(--cart-summary-label)" }}
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
+              className="w-8 h-8 flex items-center justify-center"
               style={step === "shipping" ? { backgroundColor: "var(--brand-color)", color: "var(--text-primary)" } : { backgroundColor: "var(--border-color)", color: "var(--cart-summary-label)" }}
             >
               1
@@ -386,7 +386,7 @@ export default function CheckoutPage() {
             style={{ color: step === "payment" ? "var(--brand-color)" : "var(--cart-summary-label)" }}
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
+              className="w-8 h-8 flex items-center justify-center"
               style={step === "payment" ? { backgroundColor: "var(--brand-color)", color: "var(--text-primary)" } : { backgroundColor: "var(--border-color)", color: "var(--cart-summary-label)" }}
             >
               2
@@ -501,13 +501,14 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Codigo Postal *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Postal Code *</label>
                     <input
                       type="text"
                       value={shippingAddress.postalCode}
                       onChange={(e) =>
                         setShippingAddress({ ...shippingAddress, postalCode: e.target.value })
                       }
+                      placeholder="Postal Code"
                       className="w-full px-4 py-3 focus:outline-none"
                       style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
                       onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
@@ -668,13 +669,13 @@ export default function CheckoutPage() {
                 </div>
 
                 <p className="text-sm mt-4" style={{ color: "var(--form-label-color)" }}>
-                  Al hacer clic en &quot;Confirmar Pedido&quot;, aceptas nuestros{" "}
-                  <Link href="/terminos" className="hover:underline" style={{ color: "var(--accent-color)" }}>
-                    Terminos y Condiciones
+                  By clicking &quot;Confirm Order&quot;, you accept our{" "}
+                  <Link href="/p/terms-of-service" className="hover:underline" style={{ color: "var(--accent-color)" }}>
+                    Terms of Service
                   </Link>{" "}
-                  y{" "}
-                  <Link href="/privacidad" className="hover:underline" style={{ color: "var(--accent-color)" }}>
-                    Politica de Privacidad
+                  and{" "}
+                  <Link href="/p/privacy-policy" className="hover:underline" style={{ color: "var(--accent-color)" }}>
+                    Privacy Policy
                   </Link>
                   .
                 </p>
@@ -714,7 +715,7 @@ export default function CheckoutPage() {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute -top-2 -right-2 text-xs w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
+                      <div className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
                         {item.quantity}
                       </div>
                     </div>

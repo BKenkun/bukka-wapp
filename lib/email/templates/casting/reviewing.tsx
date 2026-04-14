@@ -12,55 +12,55 @@ export function CastingReviewingTemplate({
   submissionId,
 }: CastingReviewingProps) {
   return (
-    <BaseEmail preview="Tu solicitud de casting está siendo revisada">
-      <EmailHeading>Solicitud en Revisión</EmailHeading>
+    <BaseEmail preview="Your casting application is under review">
+      <EmailHeading>Application Under Review</EmailHeading>
 
       <EmailText>
-        Hola {applicantName},
+        Hi {applicantName},
       </EmailText>
 
       <EmailText>
-        Queremos informarte que tu solicitud de casting está siendo revisada
-        activamente por nuestro equipo.
+        We wanted to let you know that your casting application is being
+        actively reviewed by our team.
       </EmailText>
 
       <EmailInfoBox variant="info">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Referencia: <strong>{submissionId}</strong>
+          Reference: <strong>{submissionId}</strong>
         </EmailText>
       </EmailInfoBox>
 
       <Section style={statusBox}>
         <div style={progressContainer}>
           <div style={{ ...progressStep, ...progressComplete }}>
-            <Text style={stepText}>Recibida</Text>
+            <Text style={stepText}>Received</Text>
           </div>
           <div style={{ ...progressStep, ...progressCurrent }}>
-            <Text style={stepText}>En revisión</Text>
+            <Text style={stepText}>Under Review</Text>
           </div>
           <div style={progressStep}>
-            <Text style={stepText}>Decisión</Text>
+            <Text style={stepText}>Decision</Text>
           </div>
         </div>
       </Section>
 
       <EmailText>
-        Estamos evaluando cuidadosamente tu perfil y los materiales que nos
-        enviaste. Te contactaremos si necesitamos información adicional.
+        We're carefully evaluating your profile and the materials you sent us.
+        We'll contact you if we need additional information.
       </EmailText>
 
       <Section style={infoBox}>
-        <Text style={infoTitle}>Mientras tanto...</Text>
+        <Text style={infoTitle}>In the meantime...</Text>
         <Text style={infoText}>
-          Asegúrate de tener tu teléfono y email disponibles por si necesitamos
-          contactarte. También puedes preparar cualquier pregunta que tengas
-          sobre el proceso.
+          Make sure your phone and email are available in case we need to
+          reach you. You can also prepare any questions you may have
+          about the process.
         </Text>
       </Section>
 
       <EmailText>
-        Recibirás un email con nuestra decisión en los próximos días.
-        ¡Gracias por tu paciencia!
+        You'll receive an email with our decision in the coming days.
+        Thank you for your patience!
       </EmailText>
     </BaseEmail>
   )

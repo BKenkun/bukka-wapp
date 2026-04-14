@@ -175,8 +175,8 @@ export function GuestMenuDropdown({
     },
     {
       id: "contact",
-      label: "Contactar soporte",
-      url: "/contacto",
+      label: "Contact Support",
+      url: "/contact",
       icon: "IconHelp",
       customIcon: null,
       highlight: false,
@@ -230,7 +230,7 @@ export function GuestMenuDropdown({
                     className="flex flex-col items-center gap-2 group"
                   >
                     <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center transition-colors"
+                      className="w-12 h-12 flex items-center justify-center transition-colors"
                       style={{
                         backgroundColor: item.highlightColor || "#3f3f46",
                       }}

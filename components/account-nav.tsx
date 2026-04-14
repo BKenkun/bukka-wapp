@@ -8,62 +8,79 @@ export function AccountNav() {
 
   const isActive = (href: string) => pathname === href
 
-  const getIconColor = (href: string) => (isActive(href) ? "#FFFFFF" : "#E5E7EB")
+  const getIconColor = (href: string) => (isActive(href) ? "#FFFFFF" : "var(--text-primary)")
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[10px]">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-[10px]">
       {/* Suscripción */}
-      <Link href="/mi-cuenta/suscripcion">
+      <Link href="/my-account/subscription">
         <div
-          className={`${isActive("/mi-cuenta/suscripcion") ? "bg-[#FA4860]" : "bg-[#3B3B3B]"} p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer`}
+          style={{ backgroundColor: isActive("/my-account/subscription") ? "var(--brand-color)" : "var(--surface-bg)", border: isActive("/my-account/subscription") ? "none" : "1px solid var(--border-color)" }}
+          className="p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 18 16" fill="none">
             <path
               d="M9.65625 3.3125C10.0125 3.09375 10.25 2.69687 10.25 2.25C10.25 1.55937 9.69063 1 9 1C8.30937 1 7.75 1.55937 7.75 2.25C7.75 2.7 7.9875 3.09375 8.34375 3.3125L6.55312 6.89375C6.26875 7.4625 5.53125 7.625 5.03438 7.22813L2.25 5C2.40625 4.79063 2.5 4.53125 2.5 4.25C2.5 3.55938 1.94062 3 1.25 3C0.559375 3 0 3.55938 0 4.25C0 4.94062 0.559375 5.5 1.25 5.5C1.25625 5.5 1.26562 5.5 1.27188 5.5L2.7 13.3562C2.87188 14.3062 3.7 15 4.66875 15H13.3313C14.2969 15 15.125 14.3094 15.3 13.3562L16.7281 5.5C16.7344 5.5 16.7437 5.5 16.75 5.5C17.4406 5.5 18 4.94062 18 4.25C18 3.55938 17.4406 3 16.75 3C16.0594 3 15.5 3.55938 15.5 4.25C15.5 4.53125 15.5938 4.79063 15.75 5L12.9656 7.22813C12.4688 7.625 11.7312 7.4625 11.4469 6.89375L9.65625 3.3125Z"
-              fill={getIconColor("/mi-cuenta/suscripcion")}
+              fill={getIconColor("/my-account/subscription")}
             />
           </svg>
-          <span className="text-[20px] font-normal leading-6 font-[Montserrat] text-white">Suscripción</span>
+          <span className="text-[20px] font-normal leading-6 font-[Montserrat]" style={{ color: "var(--text-primary)" }}>Subscription</span>
         </div>
       </Link>
 
       {/* Historial de Pagos */}
-      <Link href="/mi-cuenta/historial-de-pagos">
+      <Link href="/my-account/payment-history">
         <div
-          className={`${isActive("/mi-cuenta/historial-de-pagos") ? "bg-[#FA4860]" : "bg-[#3B3B3B]"} p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer`}
+          style={{ backgroundColor: isActive("/my-account/payment-history") ? "var(--brand-color)" : "var(--surface-bg)", border: isActive("/my-account/payment-history") ? "none" : "1px solid var(--border-color)" }}
+          className="p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="14" viewBox="0 0 18 14" fill="none">
             <path
               d="M2 0C0.896875 0 0 0.896875 0 2V3H18V2C18 0.896875 17.1031 0 16 0H2ZM18 6H0V12C0 13.1031 0.896875 14 2 14H16C17.1031 14 18 13.1031 18 12V6ZM3.5 10H5.5C5.775 10 6 10.225 6 10.5C6 10.775 5.775 11 5.5 11H3.5C3.225 11 3 10.775 3 10.5C3 10.225 3.225 10 3.5 10ZM7 10.5C7 10.225 7.225 10 7.5 10H11.5C11.775 10 12 10.225 12 10.5C12 10.775 11.775 11 11.5 11H7.5C7.225 11 7 10.775 7 10.5Z"
-              fill={getIconColor("/mi-cuenta/historial-de-pagos")}
+              fill={getIconColor("/my-account/payment-history")}
             />
           </svg>
-          <span className="text-[20px] font-normal leading-6 font-[Montserrat] text-white">Historial de Pagos</span>
+          <span className="text-[20px] font-normal leading-6 font-[Montserrat]" style={{ color: "var(--text-primary)" }}>Payment History</span>
         </div>
       </Link>
 
       {/* Favoritos */}
-      <Link href="/mi-cuenta/favoritos">
+      <Link href="/my-account/favorites">
         <div
-          className={`${isActive("/mi-cuenta/favoritos") ? "bg-[#FA4860]" : "bg-[#3B3B3B]"} p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer`}
+          style={{ backgroundColor: isActive("/my-account/favorites") ? "var(--brand-color)" : "var(--surface-bg)", border: isActive("/my-account/favorites") ? "none" : "1px solid var(--border-color)" }}
+          className="p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="14" viewBox="0 0 16 14" fill="none">
             <path
               d="M1.4875 8.07028L7.13438 13.3422C7.36875 13.5609 7.67812 13.6828 8 13.6828C8.32187 13.6828 8.63125 13.5609 8.86563 13.3422L14.5125 8.07028C15.4625 7.18591 16 5.94528 16 4.64841V4.46716C16 2.28278 14.4219 0.420285 12.2688 0.0609095C10.8438 -0.17659 9.39375 0.289035 8.375 1.30778L8 1.68278L7.625 1.30778C6.60625 0.289035 5.15625 -0.17659 3.73125 0.0609095C1.57812 0.420285 0 2.28278 0 4.46716V4.64841C0 5.94528 0.5375 7.18591 1.4875 8.07028Z"
-              fill={getIconColor("/mi-cuenta/favoritos")}
+              fill={getIconColor("/my-account/favorites")}
             />
           </svg>
-          <span className="text-[20px] font-normal leading-6 font-[Montserrat] text-white">Favoritos</span>
+          <span className="text-[20px] font-normal leading-6 font-[Montserrat]" style={{ color: "var(--text-primary)" }}>Favorites</span>
         </div>
       </Link>
 
-      {/* Configuración - icono de persona con engranaje */}
-      <Link href="/mi-cuenta/configuracion">
+      {/* Notifications */}
+      <Link href="/my-account/notifications">
         <div
-          className={`${isActive("/mi-cuenta/configuracion") ? "bg-[#FA4860]" : "bg-[#3B3B3B]"} p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer`}
+          style={{ backgroundColor: isActive("/my-account/notifications") ? "var(--brand-color)" : "var(--surface-bg)", border: isActive("/my-account/notifications") ? "none" : "1px solid var(--border-color)" }}
+          className="p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
         >
-          <ConfigIcon color={getIconColor("/mi-cuenta/configuracion")} />
-          <span className="text-[20px] font-normal leading-6 font-[Montserrat] text-white">Configuración</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="18" viewBox="0 0 24 24" fill={getIconColor("/my-account/notifications")}>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke={getIconColor("/my-account/notifications")} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
+          <span className="text-[20px] font-normal leading-6 font-[Montserrat]" style={{ color: "var(--text-primary)" }}>Notifications</span>
+        </div>
+      </Link>
+
+      {/* Configuración */}
+      <Link href="/my-account/settings">
+        <div
+          style={{ backgroundColor: isActive("/my-account/settings") ? "var(--brand-color)" : "var(--surface-bg)", border: isActive("/my-account/settings") ? "none" : "1px solid var(--border-color)" }}
+          className="p-6 flex items-center justify-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
+        >
+          <ConfigIcon color={getIconColor("/my-account/settings")} />
+          <span className="text-[20px] font-normal leading-6 font-[Montserrat]" style={{ color: "var(--text-primary)" }}>Settings</span>
         </div>
       </Link>
     </div>

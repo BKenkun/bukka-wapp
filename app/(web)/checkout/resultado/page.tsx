@@ -113,7 +113,7 @@ function CheckoutResultContent() {
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse"
+              className="w-24 h-24 flex items-center justify-center mx-auto mb-8 animate-pulse"
               style={{ backgroundColor: "var(--success-color)" }}
             >
               <svg
@@ -140,7 +140,7 @@ function CheckoutResultContent() {
 
             {order && (
               <div
-                className="p-6 rounded-lg mb-8 text-left max-w-md mx-auto"
+                className="p-6 mb-8 text-left max-w-md mx-auto"
                 style={{
                   backgroundColor: "var(--surface-bg)",
                   border: "1px solid var(--border-color)",
@@ -180,10 +180,10 @@ function CheckoutResultContent() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/mi-cuenta/historial-de-pagos" className="btn-primary inline-block">
+              <Link href="/my-account/payment-history" className="btn-primary inline-block">
                 Ver Mis Pedidos
               </Link>
-              <Link href="/tienda" className="btn-secondary inline-block">
+              <Link href="/shop" className="btn-secondary inline-block">
                 Seguir Comprando
               </Link>
             </div>
@@ -200,7 +200,7 @@ function CheckoutResultContent() {
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-8">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8"
+              className="w-24 h-24 flex items-center justify-center mx-auto mb-8"
               style={{ backgroundColor: "var(--error-color)" }}
             >
               <svg
@@ -233,7 +233,7 @@ function CheckoutResultContent() {
 
             {order && (
               <div
-                className="p-6 rounded-lg mb-8 text-left max-w-md mx-auto"
+                className="p-6 mb-8 text-left max-w-md mx-auto"
                 style={{
                   backgroundColor: "var(--surface-bg)",
                   border: "1px solid var(--border-color)",
@@ -264,7 +264,7 @@ function CheckoutResultContent() {
                   {retrying ? "Procesando..." : "Reintentar Pago"}
                 </button>
               )}
-              <Link href="/tienda" className="btn-secondary inline-block">
+              <Link href="/shop" className="btn-secondary inline-block">
                 Volver a la Tienda
               </Link>
             </div>
@@ -282,7 +282,7 @@ function CheckoutResultContent() {
           <p style={{ color: "var(--text-secondary)" }}>
             No se encontró información del pedido.
           </p>
-          <Link href="/tienda" className="btn-primary inline-block mt-4">
+          <Link href="/shop" className="btn-primary inline-block mt-4">
             Ir a la Tienda
           </Link>
         </div>

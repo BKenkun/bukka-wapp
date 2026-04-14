@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Lock } from "lucide-react"
 import { VideoGrid } from "./video-grid"
 import { useSubscription } from "@/hooks/use-subscription"
+import { ReportModal } from "@/components/report-modal"
 
 interface Author {
   id: string
@@ -77,6 +78,7 @@ export function RelatedContentTabs({
   const [loadingVideos, setLoadingVideos] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [reportTarget, setReportTarget] = useState<string | null>(null)
 
   // Fetch related videos when tab is activated
   useEffect(() => {
@@ -308,26 +310,40 @@ export function RelatedContentTabs({
                         >
                           {comment.content}
                         </p>
-                        <div className="flex items-center gap-2">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                              d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
-                              stroke="var(--accent-color)"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span
-                            style={{
-                              color: "var(--accent-color)",
-                              fontFamily: "var(--global-font)",
-                              fontSize: "14px",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {comment.likeCount}
-                          </span>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                                stroke="var(--accent-color)"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span
+                              style={{
+                                color: "var(--accent-color)",
+                                fontFamily: "var(--global-font)",
+                                fontSize: "14px",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {comment.likeCount}
+                            </span>
+                          </div>
+                          {session?.user && (
+                            <button
+                              onClick={() => setReportTarget(comment.id)}
+                              className="flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="var(--text-muted, #4B5563)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <line x1="4" y1="22" x2="4" y2="15" stroke="var(--text-muted, #4B5563)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)", fontSize: "12px" }}>Report</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -376,26 +392,40 @@ export function RelatedContentTabs({
                             {reply.content}
                           </p>
                           <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                  d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
-                                  stroke="var(--accent-color)"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span
-                                style={{
-                                  color: "var(--accent-color)",
-                                  fontFamily: "var(--global-font)",
-                                  fontSize: "14px",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {reply.likeCount}
-                              </span>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                                    stroke="var(--accent-color)"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span
+                                  style={{
+                                    color: "var(--accent-color)",
+                                    fontFamily: "var(--global-font)",
+                                    fontSize: "14px",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {reply.likeCount}
+                                </span>
+                              </div>
+                              {session?.user && (
+                                <button
+                                  onClick={() => setReportTarget(reply.id)}
+                                  className="flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="var(--text-muted, #4B5563)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    <line x1="4" y1="22" x2="4" y2="15" stroke="var(--text-muted, #4B5563)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                  <span style={{ color: "var(--text-muted)", fontFamily: "var(--global-font)", fontSize: "11px" }}>Report</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -504,6 +534,13 @@ export function RelatedContentTabs({
           </div>
         )}
       </div>
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        itemType="VIDEO_COMMENT"
+        itemId={reportTarget || ""}
+      />
     </div>
   )
 }

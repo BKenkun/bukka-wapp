@@ -49,13 +49,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Este código ha alcanzado su límite de uso" }, { status: 400 })
     }
 
-    // Check minimum purchase
-    if (promoCode.minPurchase !== null && subtotal < Number(promoCode.minPurchase)) {
-      return NextResponse.json({
-        error: `Compra mínima de ${Number(promoCode.minPurchase).toFixed(2)}€ requerida`
-      }, { status: 400 })
-    }
-
     // Calculate discount
     let discountAmount = 0
     if (promoCode.discountType === "PERCENTAGE") {

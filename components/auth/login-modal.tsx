@@ -18,11 +18,19 @@ interface LoginModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultView?: "login" | "register" | "forgot-password"
+  callbackUrl?: string | null
 }
 
 type ModalView = "login" | "register" | "forgot-password" | "forgot-password-success"
 
-export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginModalProps) {
+const inputStyles = "rounded-none"
+const inputStyle = {
+  backgroundColor: "var(--form-input-bg)",
+  borderColor: "var(--form-input-border)",
+  color: "var(--form-input-text)",
+}
+
+export function LoginModal({ open, onOpenChange, defaultView = "login", callbackUrl }: LoginModalProps) {
   const router = useRouter()
   const [view, setView] = useState<ModalView>(defaultView)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,13 +38,11 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
   const [success, setSuccess] = useState("")
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
 
-  // Login form state
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
   })
 
-  // Register form state
   const [registerData, setRegisterData] = useState({
     name: "",
     email: "",
@@ -44,7 +50,6 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
     confirmPassword: "",
   })
 
-  // Reset state when modal opens/closes
   React.useEffect(() => {
     if (open) {
       setView(defaultView)
@@ -54,7 +59,6 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
     }
   }, [open, defaultView])
 
-  // Clear errors when changing views
   React.useEffect(() => {
     setError("")
     setSuccess("")
@@ -79,7 +83,11 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
       }
 
       onOpenChange(false)
-      router.refresh()
+      if (callbackUrl) {
+        router.push(callbackUrl)
+      } else {
+        router.refresh()
+      }
     } catch {
       setError("Error al iniciar sesión")
       setIsLoading(false)
@@ -124,12 +132,10 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
         return
       }
 
-      // Show success message and switch to login tab
       setSuccess("¡Cuenta creada! Revisa tu email para verificarla.")
       setRegisterData({ name: "", email: "", password: "", confirmPassword: "" })
       setIsLoading(false)
 
-      // Switch to login tab after a short delay
       setTimeout(() => {
         setView("login")
         setSuccess("")
@@ -185,42 +191,43 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] bg-black border-zinc-800 p-0 gap-0 rounded-none">
+      <DialogContent
+        className="sm:max-w-[400px] p-0 gap-0 rounded-none"
+        style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--border-color)" }}
+      >
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-white text-xl font-bold text-center">
+          <DialogTitle className="text-xl font-bold text-center" style={{ color: "var(--text-primary)" }}>
             {getTitle()}
           </DialogTitle>
         </DialogHeader>
 
-        {/* Tabs - only show for login/register */}
         {(view === "login" || view === "register") && (
-          <div className="flex border-b border-zinc-800 mx-6 mt-4">
+          <div className="flex mx-6 mt-4" style={{ borderBottom: "1px solid var(--border-color)" }}>
             <button
               type="button"
               onClick={() => setView("login")}
-              className={`flex-1 pb-3 text-sm font-medium transition-colors cursor-pointer ${
-                view === "login"
-                  ? "text-[#FA4860] border-b-2 border-[#FA4860]"
-                  : "text-zinc-400 hover:text-white"
-              }`}
+              className="flex-1 pb-3 text-sm font-medium transition-colors cursor-pointer"
+              style={{
+                color: view === "login" ? "var(--accent-color)" : "var(--text-muted)",
+                borderBottom: view === "login" ? "2px solid var(--accent-color)" : "2px solid transparent",
+              }}
             >
               Iniciar Sesión
             </button>
             <button
               type="button"
               onClick={() => setView("register")}
-              className={`flex-1 pb-3 text-sm font-medium transition-colors cursor-pointer ${
-                view === "register"
-                  ? "text-[#FA4860] border-b-2 border-[#FA4860]"
-                  : "text-zinc-400 hover:text-white"
-              }`}
+              className="flex-1 pb-3 text-sm font-medium transition-colors cursor-pointer"
+              style={{
+                color: view === "register" ? "var(--accent-color)" : "var(--text-muted)",
+                borderBottom: view === "register" ? "2px solid var(--accent-color)" : "2px solid transparent",
+              }}
             >
               Registrarse
             </button>
           </div>
         )}
 
-        {/* Login Form */}
         {view === "login" && (
           <form onSubmit={handleLoginSubmit} className="p-6 space-y-5">
             {error && (
@@ -230,7 +237,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="login-email" className="text-white text-sm">
+              <Label htmlFor="login-email" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Email
               </Label>
               <Input
@@ -241,12 +248,13 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="login-password" className="text-white text-sm">
+              <Label htmlFor="login-password" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Contraseña
               </Label>
               <Input
@@ -257,7 +265,8 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
@@ -280,7 +289,8 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
               <button
                 type="button"
                 onClick={() => setView("forgot-password")}
-                className="text-zinc-400 text-sm hover:text-white transition-colors cursor-pointer"
+                className="text-sm transition-colors cursor-pointer"
+                style={{ color: "var(--text-muted)" }}
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -288,7 +298,6 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
           </form>
         )}
 
-        {/* Register Form */}
         {view === "register" && (
           <form onSubmit={handleRegisterSubmit} className="p-6 space-y-4">
             {error && (
@@ -304,7 +313,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="register-name" className="text-white text-sm">
+              <Label htmlFor="register-name" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Nombre
               </Label>
               <Input
@@ -315,12 +324,13 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="register-email" className="text-white text-sm">
+              <Label htmlFor="register-email" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Email
               </Label>
               <Input
@@ -331,12 +341,13 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="register-password" className="text-white text-sm">
+              <Label htmlFor="register-password" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Contraseña
               </Label>
               <Input
@@ -347,12 +358,13 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="register-confirm" className="text-white text-sm">
+              <Label htmlFor="register-confirm" className="text-sm" style={{ color: "var(--text-primary)" }}>
                 Confirmar Contraseña
               </Label>
               <Input
@@ -363,7 +375,8 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                 required
                 disabled={isLoading}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                className={inputStyles}
+                style={inputStyle}
               />
             </div>
 
@@ -384,19 +397,19 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
           </form>
         )}
 
-        {/* Forgot Password Form */}
         {view === "forgot-password" && (
           <div className="p-6 space-y-5">
             <button
               type="button"
               onClick={() => setView("login")}
-              className="flex items-center gap-2 text-zinc-400 hover:text-white text-sm transition-colors"
+              className="flex items-center gap-2 text-sm transition-colors"
+              style={{ color: "var(--text-muted)" }}
             >
               <ArrowLeft className="w-4 h-4" />
               Volver
             </button>
 
-            <p className="text-zinc-400 text-sm text-center">
+            <p className="text-sm text-center" style={{ color: "var(--text-muted)" }}>
               Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
             </p>
 
@@ -408,7 +421,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="forgot-email" className="text-white text-sm">
+                <Label htmlFor="forgot-email" className="text-sm" style={{ color: "var(--text-primary)" }}>
                   Email
                 </Label>
                 <Input
@@ -419,7 +432,8 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                   onChange={(e) => setForgotPasswordEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#FA4860] focus:ring-[#FA4860] rounded-none"
+                  className={inputStyles}
+                  style={inputStyle}
                 />
               </div>
 
@@ -441,7 +455,6 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
           </div>
         )}
 
-        {/* Forgot Password Success */}
         {view === "forgot-password-success" && (
           <div className="p-6 space-y-6">
             <div className="flex flex-col items-center gap-4 text-center">
@@ -449,17 +462,17 @@ export function LoginModal({ open, onOpenChange, defaultView = "login" }: LoginM
                 <Mail className="w-8 h-8 text-green-500" />
               </div>
               <div className="space-y-2">
-                <p className="text-white text-sm">
+                <p className="text-sm" style={{ color: "var(--text-primary)" }}>
                   Hemos enviado un enlace a
                 </p>
-                <p className="text-[#FA4860] font-medium">
+                <p className="font-medium" style={{ color: "var(--accent-color)" }}>
                   {forgotPasswordEmail}
                 </p>
               </div>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 Si existe una cuenta con ese email, recibirás instrucciones para restablecer tu contraseña.
               </p>
-              <p className="text-zinc-500 text-xs">
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                 El enlace expirará en 1 hora.
               </p>
             </div>

@@ -122,7 +122,7 @@ export function VariantSelector({
                     key={val.id}
                     type="button"
                     onClick={() => handleValueChange(attr.id, val.id)}
-                    className="px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+                    className="px-6 py-3 text-sm font-semibold transition-all"
                     style={isSelected ? {
                       backgroundColor: "var(--variant-selected-bg, var(--brand-color, #E03E54))",
                       color: "var(--variant-selected-text, #fff)",
@@ -148,7 +148,7 @@ export function VariantSelector({
                     type="button"
                     onClick={() => handleValueChange(attr.id, val.id)}
                     className={cn(
-                      "relative size-10 rounded-full border-2 transition-all",
+                      "relative size-10 border-2 transition-all",
                       isSelected
                         ? "ring-2 ring-primary ring-offset-2"
                         : "hover:scale-110"
@@ -173,7 +173,7 @@ export function VariantSelector({
                     type="button"
                     onClick={() => handleValueChange(attr.id, val.id)}
                     className={cn(
-                      "relative size-16 rounded-lg border-2 overflow-hidden transition-all",
+                      "relative size-16 border-2 overflow-hidden transition-all",
                       isSelected
                         ? "ring-2 ring-primary ring-offset-2 border-primary"
                         : "hover:scale-105 border-muted"

@@ -524,11 +524,6 @@ export function VideoForm({ video, performers, categories, products, subscriptio
     if (!allowedVideoTypes.includes(file.type) && !file.name.match(/\.(mp4|mov|mkv|webm|avi)$/i)) {
       return "Formato no soportado. Usa MP4, MOV, MKV, WebM o AVI"
     }
-    // Check file size (10GB max)
-    const maxSize = 10 * 1024 * 1024 * 1024 // 10GB
-    if (file.size > maxSize) {
-      return "El archivo es demasiado grande. Máximo 10GB"
-    }
     return null
   }
 
@@ -1194,7 +1189,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                         Arrastra un video o haz clic
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        MP4, MOV, MKV, WebM, AVI (hasta 10GB)
+                        MP4, MOV, MKV, WebM, AVI
                       </p>
                     </div>
                   )}

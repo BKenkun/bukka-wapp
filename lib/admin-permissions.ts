@@ -22,6 +22,7 @@ export type Permission =
   | "orders"
   | "users"
   | "forum"
+  | "reports"
   | "casting"
   | "subscriptions"
   | "promo_codes"
@@ -47,7 +48,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     "promo_codes",
     "orders", // solo lectura
   ],
-  COMMUNITY_MODERATOR: ["dashboard", "users", "forum", "casting"],
+  COMMUNITY_MODERATOR: ["dashboard", "users", "forum", "reports", "casting"],
 }
 
 export function hasPermission(
@@ -78,6 +79,7 @@ export function getPermissionsForRole(role: AdminRole): Permission[] {
       "orders",
       "users",
       "forum",
+      "reports",
       "casting",
       "subscriptions",
       "promo_codes",
@@ -104,6 +106,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/admin/orders": "orders",
   "/admin/users": "users",
   "/admin/forum": "forum",
+  "/admin/reports": "reports",
   "/admin/casting": "casting",
   "/admin/subscriptions": "subscriptions",
   "/admin/promo-codes": "promo_codes",

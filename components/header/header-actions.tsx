@@ -27,6 +27,7 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [loginModalView, setLoginModalView] = useState<"login" | "register" | "forgot-password">("login")
+  const [loginCallbackUrl, setLoginCallbackUrl] = useState<string | null>(null)
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -61,6 +62,8 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
     }
 
     if (login === "true") {
+      const cb = searchParams.get("callbackUrl")
+      if (cb) setLoginCallbackUrl(cb)
       setLoginModalView("login")
       setIsLoginModalOpen(true)
       router.replace("/", { scroll: false })
@@ -116,13 +119,13 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
               </div>
               <DropdownMenuSeparator style={{ backgroundColor: "var(--footer-border-color)" }} />
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/mi-cuenta">Mi cuenta</Link>
+                <Link href="/my-account">Mi cuenta</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/mi-cuenta/favoritos">Favoritos</Link>
+                <Link href="/my-account/favorites">Favoritos</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/mi-cuenta/configuracion">Configuración</Link>
+                <Link href="/my-account/settings">Configuración</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator style={{ backgroundColor: "var(--footer-border-color)" }} />
               <DropdownMenuItem onClick={handleSignOut} style={{ color: "var(--brand-color)" }}>
@@ -145,7 +148,7 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
           />
         )}
 
-        <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} defaultView={loginModalView} />
+        <LoginModal open={isLoginModalOpen} onOpenChange={(open) => { setIsLoginModalOpen(open); if (!open) setLoginCallbackUrl(null) }} defaultView={loginModalView} callbackUrl={loginCallbackUrl} />
 
         <CartButton />
       </div>

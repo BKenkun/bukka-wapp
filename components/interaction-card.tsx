@@ -10,10 +10,10 @@ interface InteractionCardProps {
 
 export function InteractionCard({ title, count, icon, href }: InteractionCardProps) {
   const content = (
-    <div className={`flex-1 flex items-center justify-between bg-[#3B3B3B] border-0 border-[rgba(229,231,235,0.43)] p-6 gap-4 ${href ? "cursor-pointer hover:bg-[#4B4B4B] transition-colors" : ""}`}>
+    <div className={`flex-1 flex items-center justify-between p-6 gap-4 ${href ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
       <div className="flex flex-col gap-2">
-        <p className="text-white font-montserrat text-[20.956px] font-semibold leading-[29.937px]">{title}</p>
-        <p className="text-white font-inter text-[35.925px] font-bold leading-[47.9px]">{count}</p>
+        <p className="font-montserrat text-[20.956px] font-semibold leading-[29.937px]" style={{ color: "var(--text-primary)" }}>{title}</p>
+        <p className="font-inter text-[35.925px] font-bold leading-[47.9px]" style={{ color: "var(--text-primary)" }}>{count}</p>
       </div>
       <div className="flex-shrink-0">{icon}</div>
     </div>

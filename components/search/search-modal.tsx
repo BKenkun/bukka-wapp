@@ -296,7 +296,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-white">Estrellas porno y modelos en tendencia</span>
                   <Link
-                    href="/modelos"
+                    href="/performers"
                     onClick={() => onOpenChange(false)}
                     className="text-[#FA4860] text-sm font-medium hover:underline"
                   >
@@ -309,7 +309,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       key={performer.id}
                       href={`/modelos/${performer.slug}`}
                       onClick={() => onOpenChange(false)}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                      className="flex items-center gap-3 p-2 hover:bg-zinc-800 transition-colors"
                     >
                       <div className="relative w-12 h-12 shrink-0 bg-zinc-800 rounded-full overflow-hidden">
                         {performer.profileImage ? (
@@ -364,9 +364,9 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       key={video.id}
                       href={`/videos/${video.slug}`}
                       onClick={() => onOpenChange(false)}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                      className="flex items-center gap-3 p-2 hover:bg-zinc-800 transition-colors"
                     >
-                      <div className="relative w-20 h-12 shrink-0 bg-zinc-800 overflow-hidden rounded">
+                      <div className="relative w-20 h-12 shrink-0 bg-zinc-800 overflow-hidden">
                         {video.thumbnailUrl ? (
                           <Image
                             src={video.thumbnailUrl}
@@ -380,7 +380,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           </div>
                         )}
                         {video.duration > 0 && (
-                          <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium rounded">
+                          <div className="absolute bottom-1 right-1 bg-black/80 px-1 text-[10px] text-white font-medium">
                             {formatDuration(video.duration)}
                           </div>
                         )}
@@ -403,7 +403,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-white">Productos destacados</span>
                   <Link
-                    href="/tienda"
+                    href="/shop"
                     onClick={() => onOpenChange(false)}
                     className="text-[#FA4860] text-sm font-medium hover:underline"
                   >
@@ -416,9 +416,9 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       key={product.id}
                       href={`/tienda/${product.slug}`}
                       onClick={() => onOpenChange(false)}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition-colors"
+                      className="flex items-center gap-3 p-2 hover:bg-zinc-800 transition-colors"
                     >
-                      <div className="relative w-12 h-12 shrink-0 bg-zinc-800 overflow-hidden rounded">
+                      <div className="relative w-12 h-12 shrink-0 bg-zinc-800 overflow-hidden">
                         {product.images?.[0] ? (
                           <Image
                             src={product.images[0]}
@@ -473,7 +473,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           recordSearch(query)
                           onOpenChange(false)
                         }}
-                        className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                        className={`flex items-center gap-3 p-2 transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
                       >
@@ -528,7 +528,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           recordSearch(query)
                           onOpenChange(false)
                         }}
-                        className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                        className={`flex items-center gap-3 p-2 transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
                       >
@@ -583,7 +583,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           recordSearch(query)
                           onOpenChange(false)
                         }}
-                        className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                        className={`flex items-center gap-3 p-2 transition-colors ${
                           isSelected ? "bg-zinc-800" : "hover:bg-zinc-800"
                         }`}
                       >

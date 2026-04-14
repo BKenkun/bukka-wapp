@@ -1192,7 +1192,7 @@ export function ThemeSettings() {
                       <h4 className="font-medium text-sm">Dimensiones</h4>
                       <NumberField label="Tamano (px)" value={theme.carouselArrows.size} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, size: v } }))} min={24} max={80} />
                       <NumberField label="Grosor del Borde (px)" value={theme.carouselArrows.borderWidth} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderWidth: v } }))} min={0} max={6} />
-                      <NumberField label="Redondeo (%)" value={theme.carouselArrows.borderRadius} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderRadius: v } }))} min={0} max={50} tooltip="50% = circulo, 0% = cuadrado" />
+                      <NumberField label="Redondeo (%)" value={theme.carouselArrows.borderRadius} onChange={(v) => setTheme((p) => ({ ...p, carouselArrows: { ...p.carouselArrows, borderRadius: v } }))} min={0} max={50} />
                     </div>
                   </div>
                 </TabsContent>

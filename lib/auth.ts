@@ -102,6 +102,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const freshUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: {
+            name: true,
+            image: true,
             adminRole: true,
             subscriptionEnd: true,
             SubscriptionPlan: {
@@ -122,6 +124,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         })
         if (freshUser) {
+          token.name = freshUser.name
+          token.picture = freshUser.image
           token.adminRole = freshUser.adminRole
           token.SubscriptionPlan = freshUser.SubscriptionPlan
           token.subscriptionEnd = freshUser.subscriptionEnd

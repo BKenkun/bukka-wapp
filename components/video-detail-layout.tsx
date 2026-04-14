@@ -254,7 +254,7 @@ export function VideoDetailLayout({
               <CarouselContent className="-ml-4">
                 {galleryImages.map((image, index) => (
                   <CarouselItem key={index} className="basis-full md:basis-1/3 lg:basis-1/4 pl-4">
-                    <div className="relative aspect-video cursor-pointer group rounded-lg overflow-hidden">
+                    <div className="relative aspect-video cursor-pointer group overflow-hidden">
                       <Image
                         src={image.src || "/placeholder.svg"}
                         alt={image.alt}
@@ -306,7 +306,7 @@ export function VideoDetailLayout({
             <div className="flex gap-1">
               <button
                 onClick={() => setCommentFilter("popular")}
-                className="cursor-pointer px-3 py-1 text-xs rounded transition-colors border-none"
+                className="cursor-pointer px-3 py-1 text-xs transition-colors border-none"
                 style={{
                   backgroundColor: commentFilter === "popular"
                     ? "color-mix(in srgb, var(--accent-color) 20%, transparent)"
@@ -319,7 +319,7 @@ export function VideoDetailLayout({
               </button>
               <button
                 onClick={() => setCommentFilter("new")}
-                className="cursor-pointer px-3 py-1 text-xs rounded transition-colors border-none"
+                className="cursor-pointer px-3 py-1 text-xs transition-colors border-none"
                 style={{
                   backgroundColor: commentFilter === "new"
                     ? "color-mix(in srgb, var(--accent-color) 20%, transparent)"
@@ -340,7 +340,7 @@ export function VideoDetailLayout({
                 placeholder="Escribe tu comentario..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="w-full min-h-[80px] p-4 rounded-lg resize-none outline-none text-sm"
+                className="w-full min-h-[80px] p-4 resize-none outline-none text-sm"
                 style={{
                   backgroundColor: "var(--form-input-bg)",
                   borderWidth: "1px",
@@ -362,7 +362,7 @@ export function VideoDetailLayout({
             </div>
           ) : isAuthenticated && !canComment ? (
             <div
-              className="w-full p-6 flex flex-col items-center gap-4 rounded-lg"
+              className="w-full p-6 flex flex-col items-center gap-4"
               style={{
                 background: "color-mix(in srgb, var(--surface-bg) 50%, transparent)",
                 borderLeft: "4px solid var(--accent-color)",
@@ -386,7 +386,7 @@ export function VideoDetailLayout({
             </div>
           ) : (
             <div
-              className="w-full p-6 text-center rounded-lg"
+              className="w-full p-6 text-center"
               style={{ background: "color-mix(in srgb, var(--surface-bg) 50%, transparent)" }}
             >
               <p style={{ color: "var(--text-muted)" }}>

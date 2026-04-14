@@ -10,34 +10,33 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bukkakery.com"
 
 export function WelcomeEmailTemplate({ name }: WelcomeEmailProps) {
   return (
-    <BaseEmail preview="Tu cuenta ha sido verificada. Explora todo nuestro contenido exclusivo.">
-      <EmailHeading>Bienvenido a BUKKAKERY</EmailHeading>
+    <BaseEmail preview="Your account has been verified. Explore all our exclusive content.">
+      <EmailHeading>Welcome to BUKKAKERY</EmailHeading>
 
       <EmailText>
-        Hola {name || "usuario"},
+        Hi {name || "there"},
       </EmailText>
 
       <EmailText>
-        Tu cuenta ha sido verificada correctamente. Ahora tienes acceso completo a
-        nuestra plataforma con contenido exclusivo de la más alta calidad.
+        Your account has been successfully verified. You now have full access to
+        our platform with the highest quality exclusive content.
       </EmailText>
 
       <Section style={featuresContainer}>
-        <Text style={featureTitle}>Lo que puedes hacer ahora:</Text>
-        <Text style={featureItem}>✓ Explorar nuestra colección de videos exclusivos</Text>
-        <Text style={featureItem}>✓ Descubrir a nuestras actrices</Text>
-        <Text style={featureItem}>✓ Comprar productos en nuestra tienda</Text>
-        <Text style={featureItem}>✓ Suscribirte para acceso premium</Text>
+        <Text style={featureTitle}>What you can do now:</Text>
+        <Text style={featureItem}>✓ Browse our exclusive video collection</Text>
+        <Text style={featureItem}>✓ Discover our performers</Text>
+        <Text style={featureItem}>✓ Shop products in our store</Text>
+        <Text style={featureItem}>✓ Subscribe for premium access</Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
-        <EmailButton href={`${APP_URL}/videos`}>Explorar Videos</EmailButton>
+        <EmailButton href={`${APP_URL}/videos`}>Browse Videos</EmailButton>
       </div>
 
       <EmailText>
-        ¿Quieres acceso ilimitado a todo nuestro contenido? Echa un vistazo a
-        nuestros planes de suscripción para desbloquear videos exclusivos,
-        descargas y mucho más.
+        Want unlimited access to all our content? Check out our subscription
+        plans to unlock exclusive videos, downloads, and much more.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "24px 0" }}>
@@ -49,18 +48,18 @@ export function WelcomeEmailTemplate({ name }: WelcomeEmailProps) {
             fontSize: "16px",
           }}
         >
-          Ver planes de suscripción
+          View subscription plans
         </a>
       </div>
 
       <EmailText>
-        Si tienes alguna pregunta, no dudes en contactarnos.
+        If you have any questions, feel free to contact us.
       </EmailText>
 
       <EmailText>
-        Atentamente,
+        Best regards,
         <br />
-        El equipo de BUKKAKERY
+        The BUKKAKERY Team
       </EmailText>
     </BaseEmail>
   )

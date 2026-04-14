@@ -1,9 +1,7 @@
-import { deleteFile, isLocalFileUrl, isBlobUrl } from "./storage"
+import { deleteFile, isLocalFileUrl, isBlobUrl, isR2Url } from "./storage"
 
 /**
- * Delete a file from storage (local or cloud)
- * @param url - The URL of the file
- * @returns true if deleted, false if not found or couldn't delete
+ * Delete a file from storage
  */
 export async function deleteLocalFile(url: string | null | undefined): Promise<boolean> {
   if (!url) return false
@@ -11,11 +9,10 @@ export async function deleteLocalFile(url: string | null | undefined): Promise<b
 }
 
 /**
- * Check if a URL is a managed file URL (local or blob)
+ * Check if a URL is a managed file URL (R2, legacy local, or legacy blob)
  */
 export function isManagedFileUrl(url: string | null | undefined): boolean {
-  return isLocalFileUrl(url) || isBlobUrl(url)
+  return isR2Url(url) || isLocalFileUrl(url) || isBlobUrl(url)
 }
 
-// Re-export for backwards compatibility
-export { isLocalFileUrl, isBlobUrl }
+export { isLocalFileUrl, isBlobUrl, isR2Url }

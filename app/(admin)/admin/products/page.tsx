@@ -83,6 +83,7 @@ export default async function AdminProductsPage({
       ...p,
       price: Number(p.price),
       compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+      weight: p.weight ? Number(p.weight) : null,
       stock: effectiveStock,
       performers: p.performers.map((pp) => pp.performer),
       categories: p.ProductToCategory.map((ptc) => ({

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { Hero } from "@/components/hero"
 import { SectionHeader } from "@/components/section-header"
 import { VideoGrid } from "@/components/video-grid"
+import { VideoCarousel } from "@/components/video-carousel"
 import { CtaBanner } from "@/components/cta-banner"
 import { ActressesCarousel } from "@/components/actresses-carousel"
 import { CountdownTimer } from "@/components/countdown-timer"
@@ -67,6 +68,8 @@ interface CtaBannerConfig {
   overlayOpacity?: number
   blurEnabled?: boolean
   blurIntensity?: number
+  height?: number
+  contentPosition?: string
 }
 
 interface CountdownConfig {
@@ -459,9 +462,8 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
       return (
         <>
           {section.title && <SectionHeader title={section.title} />}
-          <VideoGrid
+          <VideoCarousel
             videos={videos.length > 0 ? videos : undefined}
-            columns={videoConfig.columns}
           />
         </>
       )
@@ -471,36 +473,12 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
       const actressConfig = config as ActressGridConfig
       const performers = await getPerformersForSection(actressConfig)
 
-      const MOCKUP_PERFORMERS = [
-        { name: "Valentina Rose", image: "/beauty-portrait-photography.jpg" },
-        { name: "Luna Starr", image: "/contemporary-model-portrait.jpg" },
-        { name: "Mia Deluxe", image: "/professional-model-photo.jpg" },
-        { name: "Sofia Blaze", image: "/fashion-model-portrait.png" },
-        { name: "Carmen Lux", image: "/elegant-woman-portrait.png" },
-        { name: "Isabella Noir", image: "/modern-fashion-portrait.jpg" },
-        { name: "Natalia Vixen", image: "/professional-woman-portrait-photo.jpg" },
-        { name: "Adriana Sky", image: "/woman-in-black-bikini-on-beach.jpg" },
-        { name: "Victoria Chase", image: "/woman-in-black-dress-sitting-on-beige-chair.jpg" },
-        { name: "Daniela Storm", image: "/red-lips-artistic.jpg" },
-      ]
-
-      const mockupCount = Math.max(0, 10 - performers.length)
-      const mockups = MOCKUP_PERFORMERS.slice(0, mockupCount).map((mock, i) => ({
-        id: `mockup-${i}`,
-        slug: undefined,
-        name: mock.name,
-        imageUrl: mock.image,
-        videoCount: 0,
-        totalViews: 0,
-        verified: false,
-      }))
-
-      const allPerformers = [...performers, ...mockups]
+      if (performers.length === 0) return null
 
       return (
         <>
           {section.title && <SectionHeader title={section.title} />}
-          <ActressesCarousel actresses={allPerformers} />
+          <ActressesCarousel actresses={performers} />
         </>
       )
     }
@@ -537,6 +515,8 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
           overlayOpacity={ctaConfig.overlayOpacity}
           blurEnabled={ctaConfig.blurEnabled}
           blurIntensity={ctaConfig.blurIntensity}
+          height={ctaConfig.height}
+          contentPosition={ctaConfig.contentPosition as any}
         />
       )
     }
@@ -550,6 +530,9 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
           subtitle={countdownConfig.subtitle}
           backgroundImage={countdownConfig.backgroundImage}
           videoUrl={countdownConfig.videoUrl}
+          height={(countdownConfig as Record<string, unknown>).height as number | undefined}
+          contentPosition={(countdownConfig as Record<string, unknown>).contentPosition as "center" | undefined}
+          overlayOpacity={(countdownConfig as Record<string, unknown>).overlayOpacity as number | undefined}
         />
       )
     }

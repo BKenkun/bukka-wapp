@@ -16,58 +16,58 @@ export function CastingRejectedTemplate({
   customMessage,
 }: CastingRejectedProps) {
   return (
-    <BaseEmail preview="Actualización sobre tu solicitud de casting">
-      <EmailHeading>Actualización de tu Solicitud</EmailHeading>
+    <BaseEmail preview="Update on your casting application">
+      <EmailHeading>Application Update</EmailHeading>
 
       <EmailText>
-        Hola {applicantName},
+        Hi {applicantName},
       </EmailText>
 
       <EmailText>
-        Gracias por tu interés en formar parte del equipo de BUKKAKERY y por
-        tomarte el tiempo de enviarnos tu solicitud (#{submissionId}).
+        Thank you for your interest in joining the BUKKAKERY team and for
+        taking the time to send us your application (#{submissionId}).
       </EmailText>
 
       <EmailText>
-        Después de revisar cuidadosamente tu perfil, lamentamos comunicarte
-        que en esta ocasión no podremos continuar con tu solicitud.
+        After carefully reviewing your profile, we regret to inform you
+        that we're unable to move forward with your application at this time.
       </EmailText>
 
       {customMessage && (
         <Section style={messageBox}>
-          <Text style={messageTitle}>Mensaje del equipo:</Text>
+          <Text style={messageTitle}>Message from the team:</Text>
           <Text style={messageText}>{customMessage}</Text>
         </Section>
       )}
 
       <Section style={infoBox}>
-        <Text style={infoTitle}>No te desanimes</Text>
+        <Text style={infoTitle}>Don't be discouraged</Text>
         <Text style={infoText}>
-          Esta decisión no refleja tu valor como persona o profesional.
-          Nuestras necesidades y criterios varían según los proyectos, y
-          tu perfil podría encajar mejor en futuras oportunidades.
+          This decision does not reflect your value as a person or professional.
+          Our needs and criteria vary by project, and your profile may be a
+          better fit for future opportunities.
         </Text>
       </Section>
 
       <EmailText>
-        Te animamos a que sigas tu camino y, si lo deseas, puedes volver a
-        aplicar en el futuro si consideras que tu situación ha cambiado.
+        We encourage you to keep pursuing your path, and you're welcome to
+        reapply in the future if your circumstances have changed.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/casting`}>
-          Ver Requisitos de Casting
+          View Casting Requirements
         </EmailButton>
       </div>
 
       <EmailText>
-        Te deseamos mucho éxito en tus proyectos futuros.
+        We wish you great success in your future endeavors.
       </EmailText>
 
       <EmailText>
-        Atentamente,
+        Best regards,
         <br />
-        El equipo de BUKKAKERY
+        The BUKKAKERY Team
       </EmailText>
     </BaseEmail>
   )

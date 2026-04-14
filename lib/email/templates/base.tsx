@@ -53,25 +53,25 @@ export function BaseEmail({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              Este email fue enviado por BUKKAKERY.
+              This email was sent by BUKKAKERY.
               <br />
-              Si no solicitaste este email, puedes ignorarlo.
+              If you did not request this email, you can safely ignore it.
             </Text>
             <Text style={footerLinks}>
               <Link href={`${APP_URL}/paginas/privacidad`} style={footerLink}>
-                Privacidad
+                Privacy
               </Link>
               {" | "}
               <Link href={`${APP_URL}/paginas/terminos`} style={footerLink}>
-                Términos
+                Terms
               </Link>
               {" | "}
-              <Link href={`${APP_URL}/contacto`} style={footerLink}>
-                Contacto
+              <Link href={`${APP_URL}/contact`} style={footerLink}>
+                Contact
               </Link>
             </Text>
             <Text style={copyright}>
-              © {new Date().getFullYear()} BUKKAKERY. Todos los derechos reservados.
+              © {new Date().getFullYear()} BUKKAKERY. All rights reserved.
             </Text>
           </Section>
         </Container>

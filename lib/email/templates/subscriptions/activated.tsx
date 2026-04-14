@@ -22,45 +22,45 @@ export function SubscriptionActivatedTemplate({
   amount,
 }: SubscriptionActivatedProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Tu suscripción ${planName} está activa`}>
-      <EmailHeading>Suscripción Activada</EmailHeading>
+    <BaseEmail preview={`Your ${planName} subscription is active`}>
+      <EmailHeading>Subscription Activated</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        ¡Bienvenido al club! Tu suscripción <strong>{planName}</strong> ya está
-        activa y tienes acceso a todo el contenido exclusivo.
+        Welcome to the club! Your <strong>{planName}</strong> subscription is now
+        active and you have access to all exclusive content.
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu suscripción se activó correctamente el {formatDate(startDate)}
+          Your subscription was successfully activated on {formatDate(startDate)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={planBox}>
         <Text style={planTitle}>{planName}</Text>
-        <Text style={planPrice}>{formatPrice(amount)}/mes</Text>
+        <Text style={planPrice}>{formatPrice(amount)}/month</Text>
         {nextBillingDate && (
           <Text style={planBilling}>
-            Próximo cobro: {formatDate(nextBillingDate)}
+            Next billing date: {formatDate(nextBillingDate)}
           </Text>
         )}
       </Section>
 
       <Section style={featuresBox}>
-        <Text style={featuresTitle}>Ahora puedes disfrutar de:</Text>
+        <Text style={featuresTitle}>You can now enjoy:</Text>
         {features.map((feature, index) => (
           <Text key={index} style={featureItem}>
             ✓ {feature}
@@ -70,13 +70,13 @@ export function SubscriptionActivatedTemplate({
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/videos`}>
-          Explorar Videos Exclusivos
+          Browse Exclusive Videos
         </EmailButton>
       </div>
 
       <EmailText>
-        Gracias por confiar en BUKKAKERY. Si tienes alguna pregunta sobre
-        tu suscripción, estamos aquí para ayudarte.
+        Thank you for choosing BUKKAKERY. If you have any questions about
+        your subscription, we're here to help.
       </EmailText>
     </BaseEmail>
   )

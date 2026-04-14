@@ -30,6 +30,7 @@ function VerifiedBadge({ className }: { className?: string }) {
 }
 
 interface ActressCardProps {
+  id?: string
   name: string
   image: string
   slug?: string
@@ -88,13 +89,62 @@ function useCountdown(targetDate?: string | null): TimeLeft {
   return timeLeft
 }
 
-function ComingSoonCard({ name, image, comingSoonDate }: { name: string; image: string; comingSoonDate?: string | null }) {
+function BellIcon({ ringing }: { ringing?: boolean }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={ringing ? "animate-[ring_0.5s_ease-in-out]" : ""}
+    >
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  )
+}
+
+function ComingSoonCard({ performerId, name, image, comingSoonDate }: { performerId?: string; name: string; image: string; comingSoonDate?: string | null }) {
   const timeLeft = useCountdown(comingSoonDate)
+  const [subscribed, setSubscribed] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [justToggled, setJustToggled] = useState(false)
   const pad = (n: number) => n.toString().padStart(2, "0")
 
+  useEffect(() => {
+    if (!performerId) return
+    fetch(`/api/performers/${performerId}/notify`)
+      .then(r => r.json())
+      .then(data => setSubscribed(data.subscribed))
+      .catch(() => {})
+  }, [performerId])
+
+  const handleNotify = async () => {
+    if (!performerId) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/performers/${performerId}/notify`, { method: "POST" })
+      if (res.status === 401) {
+        window.location.href = "/?login=true"
+        return
+      }
+      const data = await res.json()
+      setSubscribed(data.subscribed)
+      setJustToggled(true)
+      setTimeout(() => setJustToggled(false), 2500)
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="relative h-[640px] overflow-hidden">
-      {/* Background image darkened */}
+    <div className="relative aspect-[9/16] overflow-hidden">
       <Image
         src={image || "/placeholder.svg"}
         alt={name}
@@ -102,35 +152,20 @@ function ComingSoonCard({ name, image, comingSoonDate }: { name: string; image: 
         className="object-cover brightness-[0.3]"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
       />
-
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40" />
-
-      {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-        {/* NEW PERFORMER label */}
         <div
-          className="px-4 py-1.5 rounded-sm mb-4 text-xs font-bold tracking-widest uppercase"
-          style={{
-            backgroundColor: "var(--cs-label-bg, #2D3748)",
-            color: "var(--cs-label-color, #FFFFFF)",
-          }}
+          className="px-4 py-1.5 mb-4 text-xs font-bold tracking-widest uppercase"
+          style={{ backgroundColor: "var(--cs-label-bg, #2D3748)", color: "var(--cs-label-color, #FFFFFF)" }}
         >
           NEW PERFORMER
         </div>
-
-        {/* Name */}
         <div
-          className="px-5 py-2 rounded-sm mb-8 text-lg font-bold text-center"
-          style={{
-            backgroundColor: "var(--cs-name-bg, #2D3748)",
-            color: "var(--cs-name-color, #FFFFFF)",
-          }}
+          className="px-5 py-2 mb-8 text-lg font-bold text-center"
+          style={{ backgroundColor: "var(--cs-name-bg, #2D3748)", color: "var(--cs-name-color, #FFFFFF)" }}
         >
           {name}
         </div>
-
-        {/* Countdown */}
         <div className="flex gap-4 mb-8">
           {[
             { value: timeLeft.days, label: "D" },
@@ -139,50 +174,83 @@ function ComingSoonCard({ name, image, comingSoonDate }: { name: string; image: 
             { value: timeLeft.seconds, label: "S" },
           ].map((item) => (
             <div key={item.label} className="flex flex-col items-center">
-              <span
-                className="text-3xl font-bold tabular-nums"
-                style={{ color: "var(--cs-number-color, #FFFFFF)" }}
-              >
+              <span className="text-3xl font-bold tabular-nums" style={{ color: "var(--cs-number-color, #FFFFFF)" }}>
                 {pad(item.value)}
               </span>
-              <span
-                className="text-xs font-medium mt-1"
-                style={{ color: "var(--cs-letter-color, #9CA3AF)" }}
-              >
+              <span className="text-xs font-medium mt-1" style={{ color: "var(--cs-letter-color, #9CA3AF)" }}>
                 {item.label}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Notify Me button */}
+        {/* Notify Button */}
         <button
-          className="px-6 py-2.5 rounded-sm text-sm font-bold tracking-wide uppercase transition-opacity hover:opacity-90"
+          onClick={handleNotify}
+          disabled={loading}
+          className="flex items-center gap-2 px-7 py-3 text-sm font-bold tracking-wide uppercase transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-50 cursor-pointer"
           style={{
-            backgroundColor: "var(--cs-button-bg, #F4A0AB)",
+            backgroundColor: subscribed ? "var(--brand-color, #40E0D0)" : "var(--cs-button-bg, #F4A0AB)",
             color: "var(--cs-button-color, #FFFFFF)",
+            boxShadow: subscribed ? "0 0 20px rgba(64, 224, 208, 0.3)" : "none",
           }}
         >
-          Notify Me
+          {loading ? (
+            <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+          ) : (
+            <BellIcon ringing={justToggled && subscribed} />
+          )}
+          {loading ? "..." : subscribed ? "Subscribed ✓" : "Notify Me"}
         </button>
+
+        {/* Toast feedback */}
+        {justToggled && (
+          <div
+            className="mt-4 px-4 py-2 text-xs font-medium animate-[fadeInUp_0.3s_ease-out]"
+            style={{
+              backgroundColor: subscribed ? "rgba(64, 224, 208, 0.15)" : "rgba(255,255,255,0.1)",
+              color: subscribed ? "var(--brand-color, #40E0D0)" : "var(--cs-letter-color, #9CA3AF)",
+              border: subscribed ? "1px solid rgba(64, 224, 208, 0.3)" : "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {subscribed
+              ? "You'll be notified when this performer debuts!"
+              : "Notification removed"}
+          </div>
+        )}
       </div>
+
+      <style jsx>{`
+        @keyframes ring {
+          0% { transform: rotate(0deg); }
+          20% { transform: rotate(15deg); }
+          40% { transform: rotate(-15deg); }
+          60% { transform: rotate(10deg); }
+          80% { transform: rotate(-10deg); }
+          100% { transform: rotate(0deg); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   )
 }
 
-export function ActressCard({ name, image, slug, verified = false, viewMode = "grid", videoCount, totalViews, comingSoon, comingSoonDate }: ActressCardProps) {
+export function ActressCard({ id, name, image, slug, verified = false, viewMode = "grid", videoCount, totalViews, comingSoon, comingSoonDate }: ActressCardProps) {
   // Coming soon mode - render countdown overlay instead of normal card
   if (comingSoon) {
-    return <ComingSoonCard name={name} image={image} comingSoonDate={comingSoonDate} />
+    return <ComingSoonCard performerId={id} name={name} image={image} comingSoonDate={comingSoonDate} />
   }
 
-  const href = slug ? `/modelos/${slug}` : `/modelos/${name.toLowerCase().replace(/\s+/g, "-")}`
+  const href = slug ? `/performers/${slug}` : `/performers/${name.toLowerCase().replace(/\s+/g, "-")}`
 
   if (viewMode === "list") {
     return (
       <Link
         href={href}
-        className="flex gap-4 bg-gray-900/30 rounded-lg overflow-hidden group cursor-pointer hover:bg-gray-900/50 transition-colors"
+        className="flex gap-4 bg-gray-900/30 overflow-hidden group cursor-pointer hover:bg-gray-900/50 transition-colors"
       >
         <div className="relative w-[300px] h-[200px] flex-shrink-0">
           <Image
@@ -232,7 +300,7 @@ export function ActressCard({ name, image, slug, verified = false, viewMode = "g
   return (
     <Link
       href={href}
-      className="block relative h-[640px] overflow-hidden group cursor-pointer"
+      className="block relative aspect-[9/16] overflow-hidden group cursor-pointer"
     >
       <Image
         src={image || "/placeholder.svg"}

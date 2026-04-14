@@ -264,7 +264,7 @@ export function FreeShippingProgress({ remaining, percentage, threshold }: FreeS
           )}
         </p>
       </div>
-      <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--border-color)" }}>
+      <div className="w-full h-2 overflow-hidden" style={{ backgroundColor: "var(--border-color)" }}>
         <div
           className="h-full transition-all duration-500"
           style={{

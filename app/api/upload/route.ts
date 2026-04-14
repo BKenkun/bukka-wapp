@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload file (uses Vercel Blob in production, local in development)
+    // Upload file to R2
     const result = await uploadFile(file, folder)
 
     return NextResponse.json(result)

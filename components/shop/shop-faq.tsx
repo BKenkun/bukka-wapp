@@ -7,21 +7,23 @@ interface ShopFaqProps {
   enabled: boolean
   title: string
   items: ShopSettingsFaqItem[]
+  bgColor?: string
+  titleColor?: string
 }
 
-export function ShopFaq({ enabled, title, items }: ShopFaqProps) {
+export function ShopFaq({ enabled, title, items, bgColor, titleColor }: ShopFaqProps) {
   if (!enabled || items.length === 0) return null
 
   return (
     <section
       className="py-16"
-      style={{ backgroundColor: "var(--surface-bg, #f9fafb)" }}
+      style={{ backgroundColor: bgColor || "var(--surface-bg, #f9fafb)" }}
     >
       <div className="max-w-3xl mx-auto px-6">
         <div className="text-center mb-12">
           <h2
             className="text-3xl md:text-4xl font-bold mb-4"
-            style={{ color: "var(--text-primary, #000)" }}
+            style={{ color: titleColor || "var(--text-primary, #000)" }}
           >
             {title}
           </h2>
@@ -30,7 +32,7 @@ export function ShopFaq({ enabled, title, items }: ShopFaqProps) {
           {items.map((item, index) => (
             <details
               key={index}
-              className="group rounded-2xl border overflow-hidden transition-colors"
+              className="group border overflow-hidden transition-colors"
               style={{
                 borderColor: "var(--border-color, #e5e7eb)",
                 backgroundColor: "var(--global-bg, #fff)",

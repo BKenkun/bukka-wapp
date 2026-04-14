@@ -30,7 +30,7 @@ export function ShopHero({ hero }: ShopHeroProps) {
         <div className="max-w-2xl">
           {hero.badgeText && (
             <span
-              className="inline-block text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider"
+              className="inline-block text-xs font-bold px-4 py-1.5 mb-6 tracking-wider"
               style={{
                 backgroundColor: "var(--brand-color, #E03E54)",
                 color: "#fff",
@@ -49,7 +49,7 @@ export function ShopHero({ hero }: ShopHeroProps) {
             {hero.ctaPrimaryText && (
               <Link
                 href={hero.ctaPrimaryUrl}
-                className="inline-flex items-center px-8 py-4 rounded-full text-white font-bold text-lg transition-all hover:opacity-90 hover:scale-105"
+                className="inline-flex items-center px-8 py-4 text-white font-bold text-lg transition-all hover:opacity-90 hover:scale-105"
                 style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
               >
                 {hero.ctaPrimaryText}
@@ -58,7 +58,7 @@ export function ShopHero({ hero }: ShopHeroProps) {
             {hero.ctaSecondaryText && (
               <Link
                 href={hero.ctaSecondaryUrl}
-                className="inline-flex items-center px-8 py-4 rounded-full text-white font-bold text-lg border-2 border-white/30 transition-all hover:bg-white/10 hover:scale-105"
+                className="inline-flex items-center px-8 py-4 text-white font-bold text-lg border-2 border-white/30 transition-all hover:bg-white/10 hover:scale-105"
               >
                 {hero.ctaSecondaryText}
               </Link>

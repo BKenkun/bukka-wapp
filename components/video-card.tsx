@@ -187,13 +187,13 @@ export function VideoCard({
         onMouseLeave={handleMouseLeave}
       >
         {/* Video thumbnail / preview */}
-        <div className="relative w-full aspect-[476/309] overflow-hidden rounded-sm mb-3 bg-black">
+        <div className="relative w-full aspect-[476/309] overflow-hidden mb-3 bg-black">
           {/* Trailer limit overlay */}
           {showTrailerLimit && <TrailerLimitOverlay />}
 
           {/* Play icon - center */}
           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-            <div className={`bg-black/50 rounded-full p-3 transition-transform duration-300 ${isHovering ? "scale-110" : ""}`}>
+            <div className={`bg-black/50 p-3 transition-transform duration-300 ${isHovering ? "scale-110" : ""}`}>
               <PlayIcon className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -277,7 +277,7 @@ export function VideoCard({
 
         {/* Play icon - center */}
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div className={`bg-black/50 rounded-full p-3 transition-transform duration-300 ${isHovering ? "scale-110" : ""}`}>
+          <div className={`bg-black/50 p-3 transition-transform duration-300 ${isHovering ? "scale-110" : ""}`}>
             <PlayIcon className="w-8 h-8 text-white" />
           </div>
         </div>

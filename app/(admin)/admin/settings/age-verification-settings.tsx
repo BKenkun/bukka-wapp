@@ -13,6 +13,7 @@ import { toast } from "sonner"
 
 interface AgeVerificationData {
   enabled: boolean
+  okysafeEnabled: boolean
   title: string
   description: string
   enterButtonText: string
@@ -22,6 +23,7 @@ interface AgeVerificationData {
 
 const DEFAULT_DATA: AgeVerificationData = {
   enabled: true,
+  okysafeEnabled: true,
   title: "Este es un Sitio Web para adultos",
   description: "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
   enterButtonText: "Tengo 18 años o más - Entrar",
@@ -111,6 +113,21 @@ export function AgeVerificationSettings() {
               onCheckedChange={(checked) => updateField("enabled", checked)}
             />
           </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Verificación con OkySafe</Label>
+              <p className="text-sm text-muted-foreground">
+                Usa OkySafe para verificar la edad por email. Si se desactiva, se muestra un verificador simple con aceptación de términos.
+              </p>
+            </div>
+            <Switch
+              checked={data.okysafeEnabled}
+              onCheckedChange={(checked) => updateField("okysafeEnabled", checked)}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -192,34 +209,65 @@ export function AgeVerificationSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-black rounded-lg p-8 text-center">
-            <h1
-              className="text-[#FA4860] font-black mb-4"
-              style={{ fontFamily: "Montserrat", fontSize: "28px" }}
-            >
-              BUKKAKERY
-            </h1>
-            <h2
-              className="text-white font-bold mb-4"
-              style={{ fontFamily: "Montserrat", fontSize: "20px" }}
-            >
-              {data.title}
-            </h2>
-            <p
-              className="text-white/80 mb-6 text-sm max-w-md mx-auto"
-              style={{ fontFamily: "Montserrat" }}
-            >
-              {data.description}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <span className="px-4 py-2 border-2 border-[#FA4860] bg-[#FA4860] text-white text-sm font-bold">
-                {data.enterButtonText}
-              </span>
-              <span className="px-4 py-2 border-2 border-[#FA4860] bg-transparent text-white text-sm font-bold">
-                {data.exitButtonText}
-              </span>
+          {!data.okysafeEnabled ? (
+            <div className="bg-[#222222] rounded-2xl p-6 text-left" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <h1 className="text-center text-white font-black mb-1" style={{ fontSize: "24px" }}>
+                BUKKAKERY
+              </h1>
+              <h2 className="text-center font-bold mb-4" style={{ fontSize: "12px", color: "#6CB4D9" }}>
+                WARNING: THIS WEBSITE IS FOR ADULTS ONLY!
+              </h2>
+              <p className="text-white/80 text-xs mb-3" style={{ lineHeight: 1.5 }}>
+                This Website is for use solely by individuals who are at least 18 years of age...
+              </p>
+              <p className="text-white font-bold text-xs mb-2">
+                BY CLICKING &ldquo;YES, I&rsquo;M OLDER THAN 18&rdquo; BELOW, YOU STATE THAT...
+              </p>
+              <ul className="text-white/80 text-xs list-disc pl-4 mb-3 space-y-1" style={{ lineHeight: 1.4 }}>
+                <li>You are at least 18 years of age...</li>
+                <li>You will promptly leave this Website...</li>
+                <li>You will not hold the Website&rsquo;s owners responsible...</li>
+                <li>You acknowledge the Terms of Service...</li>
+              </ul>
+              <div className="flex gap-3 mt-4">
+                <span className="flex-1 py-2 rounded-lg border border-white/30 text-white text-xs font-semibold text-center">
+                  No
+                </span>
+                <span className="flex-1 py-2 rounded-lg text-white text-xs font-semibold text-center" style={{ backgroundColor: "#5BA8C8" }}>
+                  Yes, I&rsquo;m older than 18
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-black rounded-lg p-8 text-center">
+              <h1
+                className="text-[#FA4860] font-black mb-4"
+                style={{ fontFamily: "Montserrat", fontSize: "28px" }}
+              >
+                BUKKAKERY
+              </h1>
+              <h2
+                className="text-white font-bold mb-4"
+                style={{ fontFamily: "Montserrat", fontSize: "20px" }}
+              >
+                {data.title}
+              </h2>
+              <p
+                className="text-white/80 mb-6 text-sm max-w-md mx-auto"
+                style={{ fontFamily: "Montserrat" }}
+              >
+                {data.description}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <span className="px-4 py-2 border-2 border-[#FA4860] bg-[#FA4860] text-white text-sm font-bold">
+                  {data.enterButtonText}
+                </span>
+                <span className="px-4 py-2 border-2 border-[#FA4860] bg-transparent text-white text-sm font-bold">
+                  {data.exitButtonText}
+                </span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

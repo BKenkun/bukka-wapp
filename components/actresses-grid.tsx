@@ -31,6 +31,7 @@ export function ActressesGrid({ actresses = defaultActresses, isFilterOpen = fal
         {actresses.map((actress, index) => (
           <div key={actress.id || index} className="w-full">
             <ActressCard
+              id={actress.id}
               name={actress.name}
               image={actress.imageUrl}
               slug={actress.slug}

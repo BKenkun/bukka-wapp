@@ -120,7 +120,8 @@ export function CartButton() {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
+          style={{ color: "var(--header-nav-text)" }}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -141,7 +142,8 @@ export function CartButton() {
     >
       <button
         onClick={handleClick}
-        className={`relative p-2 ${isEmpty ? "cursor-default" : "cursor-pointer"}`}
+        className={`relative p-1 hover:opacity-80 transition-opacity ${isEmpty ? "cursor-default" : "cursor-pointer"}`}
+        style={{ color: "var(--header-nav-text)" }}
         aria-label="Carrito de compras"
       >
         <svg
@@ -150,17 +152,18 @@ export function CartButton() {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className="w-5 h-5"
         >
           <circle cx="9" cy="21" r="1" />
           <circle cx="20" cy="21" r="1" />
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
         {cart && cart.itemCount > 0 && (
-          <span className="absolute -top-1 -right-1 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
+          <span className="absolute -top-1 -right-1 text-xs font-bold w-5 h-5 flex items-center justify-center" style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}>
             {cart.itemCount > 9 ? "9+" : cart.itemCount}
           </span>
         )}

@@ -144,7 +144,7 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
       {/* Left arrow */}
       <button
         onClick={() => scroll("left")}
-        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer hover:scale-110"
+        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer hover:scale-110"
         style={arrowStyle}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = "var(--carousel-arrow-hover-bg, #000000)"
@@ -162,7 +162,7 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
       {/* Right arrow */}
       <button
         onClick={() => scroll("right")}
-        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer hover:scale-110"
+        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer hover:scale-110"
         style={arrowStyle}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = "var(--carousel-arrow-hover-bg, #000000)"
@@ -202,6 +202,7 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
             className="flex-shrink-0 w-[60vw] sm:w-[42vw] md:w-[32vw] lg:w-[25vw] xl:w-[20vw] 2xl:w-[17vw]"
           >
             <ActressCard
+              id={actress.id}
               name={actress.name}
               image={actress.imageUrl}
               slug={actress.slug}

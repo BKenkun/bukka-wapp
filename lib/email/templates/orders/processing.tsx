@@ -16,54 +16,54 @@ export function OrderProcessingTemplate({
   estimatedShipDate,
 }: OrderProcessingProps) {
   return (
-    <BaseEmail preview={`Tu pedido #${orderNumber} está siendo preparado`}>
-      <EmailHeading>Preparando tu pedido</EmailHeading>
+    <BaseEmail preview={`Your order #${orderNumber} is being prepared`}>
+      <EmailHeading>Preparing Your Order</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Tu pedido <strong>#{orderNumber}</strong> está siendo preparado para el envío.
-        Nuestro equipo está trabajando para que lo recibas lo antes posible.
+        Your order <strong>#{orderNumber}</strong> is being prepared for shipping.
+        Our team is working to get it to you as soon as possible.
       </EmailText>
 
       <Section style={statusBox}>
-        <Text style={statusTitle}>Estado del pedido</Text>
+        <Text style={statusTitle}>Order Status</Text>
         <div style={progressContainer}>
           <div style={{ ...progressStep, ...progressComplete }}>
-            <Text style={stepText}>Confirmado</Text>
+            <Text style={stepText}>Confirmed</Text>
           </div>
           <div style={{ ...progressStep, ...progressCurrent }}>
-            <Text style={stepText}>Procesando</Text>
+            <Text style={stepText}>Processing</Text>
           </div>
           <div style={progressStep}>
-            <Text style={stepText}>Enviado</Text>
+            <Text style={stepText}>Shipped</Text>
           </div>
           <div style={progressStep}>
-            <Text style={stepText}>Entregado</Text>
+            <Text style={stepText}>Delivered</Text>
           </div>
         </div>
         {estimatedShipDate && (
           <Text style={estimateText}>
-            Fecha estimada de envío: {estimatedShipDate}
+            Estimated ship date: {estimatedShipDate}
           </Text>
         )}
       </Section>
 
       <EmailText>
-        Te enviaremos otro email con el número de seguimiento cuando tu
-        pedido sea enviado.
+        We'll send you another email with the tracking number when your
+        order ships.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/mi-cuenta/pedidos`}>
-          Ver Mi Pedido
+          View My Order
         </EmailButton>
       </div>
 
       <EmailText>
-        Si tienes alguna pregunta, no dudes en contactarnos.
+        If you have any questions, feel free to contact us.
       </EmailText>
     </BaseEmail>
   )

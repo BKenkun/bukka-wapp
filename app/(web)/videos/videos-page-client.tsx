@@ -87,6 +87,7 @@ export function VideosPageClient({
   basePath = "/videos",
 }: VideosPageClientProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isSortOpen, setIsSortOpen] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -103,9 +104,15 @@ export function VideosPageClient({
     return `${basePath}?${params.toString()}`
   }
 
-  // Count active filters
   const activeFilterCount =
     (selectedCategory ? 1 : 0) + selectedPerformers.length + selectedTags.length
+
+  const sortLabels: Record<string, string> = {
+    newest: "Newest",
+    popular: "Popular",
+    oldest: "Oldest",
+    title: "A-Z",
+  }
 
   return (
     <div className="pt-8 pb-12 flex flex-col gap-12 flex-1 px-4 md:px-8">
@@ -113,10 +120,10 @@ export function VideosPageClient({
         {/* Header */}
         <div className="flex flex-col items-start">
           <h2 className="text-center font-montserrat text-[22px] font-bold leading-[48px] mb-[15px]" style={{ color: "var(--text-primary)" }}>
-            {categoryTitle || activeFilters.category || "Vídeos"}
+            {categoryTitle || activeFilters.category || "Videos"}
             {(activeFilterCount > 0 || categoryTitle) && (
               <span className="text-[16px] font-normal ml-2" style={{ color: "var(--text-muted)" }}>
-                ({totalCount} resultados)
+                ({totalCount} results)
               </span>
             )}
           </h2>
@@ -125,46 +132,35 @@ export function VideosPageClient({
           )}
           <div className="flex gap-2 flex-wrap">
             {/* Sort Dropdown */}
-            <div className="relative group">
-              <button className="font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 cursor-pointer" style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}>
+            <div className="relative">
+              <button
+                onClick={() => setIsSortOpen(!isSortOpen)}
+                className="font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] flex items-center gap-2 cursor-pointer"
+                style={{ backgroundColor: isSortOpen ? "var(--brand-color)" : "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--text-primary)" }}
+              >
                 <ArrowUpDown size={14} />
-                {sortOption === "newest" && "Más recientes"}
-                {sortOption === "popular" && "Populares"}
-                {sortOption === "oldest" && "Más antiguos"}
-                {sortOption === "title" && "A-Z"}
+                {sortLabels[sortOption] || "Newest"}
               </button>
-              <div className="absolute top-full left-0 pt-1 hidden group-hover:block z-10 min-w-[150px]">
-                <div className="border" style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--footer-border-color)" }}>
-                  <Link
-                    href={buildSortUrl("newest")}
-                    className="block px-4 py-2 text-sm hover:opacity-80 cursor-pointer"
-                    style={{ color: sortOption === "newest" ? "var(--brand-color)" : "var(--text-primary)" }}
-                  >
-                    Más recientes
-                  </Link>
-                  <Link
-                    href={buildSortUrl("popular")}
-                    className="block px-4 py-2 text-sm hover:opacity-80 cursor-pointer"
-                    style={{ color: sortOption === "popular" ? "var(--brand-color)" : "var(--text-primary)" }}
-                  >
-                    Populares
-                  </Link>
-                  <Link
-                    href={buildSortUrl("oldest")}
-                    className="block px-4 py-2 text-sm hover:opacity-80 cursor-pointer"
-                    style={{ color: sortOption === "oldest" ? "var(--brand-color)" : "var(--text-primary)" }}
-                  >
-                    Más antiguos
-                  </Link>
-                  <Link
-                    href={buildSortUrl("title")}
-                    className="block px-4 py-2 text-sm hover:opacity-80 cursor-pointer"
-                    style={{ color: sortOption === "title" ? "var(--brand-color)" : "var(--text-primary)" }}
-                  >
-                    A-Z
-                  </Link>
-                </div>
-              </div>
+              {isSortOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)} />
+                  <div className="absolute top-full left-0 pt-1 z-20 min-w-[150px]">
+                    <div className="border shadow-lg" style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--border-color)" }}>
+                      {Object.entries(sortLabels).map(([value, label]) => (
+                        <Link
+                          key={value}
+                          href={buildSortUrl(value)}
+                          onClick={() => setIsSortOpen(false)}
+                          className="block px-4 py-2 text-sm hover:opacity-80 cursor-pointer"
+                          style={{ color: sortOption === value ? "var(--brand-color)" : "var(--text-primary)" }}
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Filter Toggle */}
@@ -172,13 +168,13 @@ export function VideosPageClient({
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className="font-montserrat text-[14px] font-normal leading-[14px] px-[18px] py-[7px] cursor-pointer flex items-center gap-2 hover:opacity-90 transition-opacity"
               style={{
-                backgroundColor: isFilterOpen || activeFilterCount > 0 ? "var(--brand-color)" : "var(--accent-color)",
+                backgroundColor: isFilterOpen || activeFilterCount > 0 ? "var(--brand-color)" : "color-mix(in srgb, var(--brand-color) 20%, transparent)",
                 color: "var(--text-primary)",
               }}
             >
-              Filtrar
+              Filter
               {activeFilterCount > 0 && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full font-bold" style={{ backgroundColor: "var(--text-primary)", color: "var(--brand-color)" }}>
+                <span className="text-xs px-1.5 py-0.5 font-bold" style={{ backgroundColor: "var(--text-primary)", color: "var(--brand-color)" }}>
                   {activeFilterCount}
                 </span>
               )}
@@ -189,18 +185,18 @@ export function VideosPageClient({
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
               {activeFilters.category && (
-                <span className="text-sm px-3 py-1 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
-                  Categoría: {activeFilters.category}
+                <span className="text-sm px-3 py-1" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
+                  Category: {activeFilters.category}
                 </span>
               )}
               {activeFilters.performers && (
-                <span className="text-sm px-3 py-1 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
-                  {activeFilters.performers} actriz(ces)
+                <span className="text-sm px-3 py-1" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
+                  {activeFilters.performers} performer(s)
                 </span>
               )}
               {activeFilters.tags && (
-                <span className="text-sm px-3 py-1 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
-                  {activeFilters.tags} etiqueta(s)
+                <span className="text-sm px-3 py-1" style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--brand-color)" }}>
+                  {activeFilters.tags} tag(s)
                 </span>
               )}
               <button
@@ -208,7 +204,7 @@ export function VideosPageClient({
                 className="text-sm hover:opacity-80 underline"
                 style={{ color: "var(--text-muted)" }}
               >
-                Borrar todos los filtros
+                Clear all filters
               </button>
             </div>
           )}
@@ -262,9 +258,9 @@ export function VideosPageClient({
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-lg" style={{ color: "var(--text-muted)" }}>No hay videos disponibles</p>
+                <p className="text-lg" style={{ color: "var(--text-muted)" }}>No videos available</p>
                 <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>
-                  Prueba a cambiar los filtros o buscar otra cosa
+                  Try changing the filters or search for something else
                 </p>
               </div>
             )}
@@ -276,9 +272,9 @@ export function VideosPageClient({
                   <Link
                     href={buildPageUrl(currentPage - 1)}
                     className="px-4 py-2 font-montserrat text-sm hover:opacity-80 transition-colors"
-                    style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}
+                    style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--text-primary)" }}
                   >
-                    Anterior
+                    Previous
                   </Link>
                 )}
 
@@ -315,9 +311,9 @@ export function VideosPageClient({
                   <Link
                     href={buildPageUrl(currentPage + 1)}
                     className="px-4 py-2 font-montserrat text-sm hover:opacity-80 transition-colors"
-                    style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}
+                    style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 20%, transparent)", color: "var(--text-primary)" }}
                   >
-                    Siguiente
+                    Next
                   </Link>
                 )}
               </div>
@@ -326,8 +322,8 @@ export function VideosPageClient({
             {/* Results count */}
             <div className="text-center mt-6">
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Mostrando {Math.min((currentPage - 1) * 12 + 1, totalCount)}-
-                {Math.min(currentPage * 12, totalCount)} de {totalCount} videos
+                Showing {Math.min((currentPage - 1) * 12 + 1, totalCount)}-
+                {Math.min(currentPage * 12, totalCount)} of {totalCount} videos
               </p>
             </div>
           </div>

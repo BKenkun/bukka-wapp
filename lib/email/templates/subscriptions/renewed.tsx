@@ -20,58 +20,58 @@ export function SubscriptionRenewedTemplate({
   amount,
 }: SubscriptionRenewedProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Tu suscripción ${planName} ha sido renovada`}>
-      <EmailHeading>Suscripción Renovada</EmailHeading>
+    <BaseEmail preview={`Your ${planName} subscription has been renewed`}>
+      <EmailHeading>Subscription Renewed</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Tu suscripción <strong>{planName}</strong> ha sido renovada
-        correctamente. ¡Gracias por continuar con nosotros!
+        Your <strong>{planName}</strong> subscription has been successfully
+        renewed. Thank you for staying with us!
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Pago procesado correctamente el {formatDate(renewedAt)}
+          Payment successfully processed on {formatDate(renewedAt)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={billingBox}>
-        <Text style={billingTitle}>Resumen de facturación</Text>
+        <Text style={billingTitle}>Billing Summary</Text>
         <Text style={billingDetail}>
           <strong>Plan:</strong> {planName}
         </Text>
         <Text style={billingDetail}>
-          <strong>Importe:</strong> {formatPrice(amount)}
+          <strong>Amount:</strong> {formatPrice(amount)}
         </Text>
         <Text style={billingDetail}>
-          <strong>Próximo cobro:</strong> {formatDate(nextBillingDate)}
+          <strong>Next billing date:</strong> {formatDate(nextBillingDate)}
         </Text>
       </Section>
 
       <EmailText>
-        Continúa disfrutando de todo el contenido exclusivo que tenemos para ti.
+        Keep enjoying all the exclusive content we have for you.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/videos`}>
-          Ver Contenido Nuevo
+          View New Content
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        Puedes gestionar tu suscripción en cualquier momento desde tu cuenta.
+        You can manage your subscription at any time from your account.
       </EmailText>
     </BaseEmail>
   )

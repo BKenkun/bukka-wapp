@@ -16,67 +16,67 @@ export function CastingAcceptedTemplate({
   nextSteps,
 }: CastingAcceptedProps) {
   return (
-    <BaseEmail preview="Tu solicitud de casting ha sido aceptada">
-      <EmailHeading>¡Felicidades! Has sido seleccionada</EmailHeading>
+    <BaseEmail preview="Your casting application has been accepted">
+      <EmailHeading>Congratulations! You've been selected</EmailHeading>
 
       <EmailText>
-        Hola {applicantName},
+        Hi {applicantName},
       </EmailText>
 
       <EmailText>
-        ¡Tenemos excelentes noticias! Después de revisar tu solicitud, nuestro
-        equipo ha decidido que tu perfil encaja perfectamente con lo que
-        buscamos en BUKKAKERY.
+        We have great news! After reviewing your application, our team
+        has decided that your profile is a perfect fit for what we're
+        looking for at BUKKAKERY.
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu solicitud <strong>#{submissionId}</strong> ha sido{" "}
-          <strong>ACEPTADA</strong>
+          Your application <strong>#{submissionId}</strong> has been{" "}
+          <strong>ACCEPTED</strong>
         </EmailText>
       </EmailInfoBox>
 
       <Section style={celebrationBox}>
         <Text style={celebrationEmoji}>🎉</Text>
-        <Text style={celebrationTitle}>Bienvenida al equipo</Text>
+        <Text style={celebrationTitle}>Welcome to the team</Text>
         <Text style={celebrationText}>
-          Estamos emocionados de tenerte con nosotros
+          We're excited to have you with us
         </Text>
       </Section>
 
       {nextSteps ? (
         <Section style={nextStepsBox}>
-          <Text style={nextStepsTitle}>Próximos pasos</Text>
+          <Text style={nextStepsTitle}>Next Steps</Text>
           <Text style={nextStepsText}>{nextSteps}</Text>
         </Section>
       ) : (
         <Section style={nextStepsBox}>
-          <Text style={nextStepsTitle}>Próximos pasos</Text>
+          <Text style={nextStepsTitle}>Next Steps</Text>
           <Text style={nextStepsItem}>
-            1. Nos pondremos en contacto contigo para coordinar una reunión
+            1. We'll get in touch to schedule a meeting
           </Text>
           <Text style={nextStepsItem}>
-            2. Discutiremos los detalles del contrato y condiciones
+            2. We'll discuss contract details and conditions
           </Text>
           <Text style={nextStepsItem}>
-            3. Planificaremos tu primera sesión de grabación
+            3. We'll plan your first recording session
           </Text>
         </Section>
       )}
 
       <EmailText>
-        Un miembro de nuestro equipo se pondrá en contacto contigo muy pronto
-        para discutir los siguientes pasos.
+        A member of our team will reach out to you very soon to discuss
+        the next steps.
       </EmailText>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
-        <EmailButton href={`${APP_URL}/contacto`}>
-          Contactar con Nosotros
+        <EmailButton href={`${APP_URL}/contact`}>
+          Contact Us
         </EmailButton>
       </div>
 
       <EmailText>
-        ¡Gracias por confiar en BUKKAKERY! Estamos deseando trabajar contigo.
+        Thank you for trusting BUKKAKERY! We look forward to working with you.
       </EmailText>
     </BaseEmail>
   )

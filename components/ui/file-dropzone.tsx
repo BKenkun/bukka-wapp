@@ -1,13 +1,12 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { upload } from "@vercel/blob/client"
 import { cn } from "@/lib/utils"
 import { Upload, X, FileVideo, Image as ImageIcon, Loader2 } from "lucide-react"
 import { Button } from "./button"
 
-// Threshold for using client-side upload (4MB)
-const CLIENT_UPLOAD_THRESHOLD = 4 * 1024 * 1024
+// Threshold for using presigned URL upload (4MB)
+const PRESIGNED_UPLOAD_THRESHOLD = 4 * 1024 * 1024
 
 interface FileDropzoneProps {
   value?: string | null
@@ -73,17 +72,53 @@ export function FileDropzone({
         throw new Error(`Archivo demasiado grande. Máximo: ${maxSizeMB}MB`)
       }
 
-      // Use client-side upload for large files (bypasses serverless function limit)
-      if (file.size > CLIENT_UPLOAD_THRESHOLD) {
+      // Use presigned URL for large files (bypasses serverless function limit)
+      if (file.size > PRESIGNED_UPLOAD_THRESHOLD) {
         setUploadProgress(0)
-        const blob = await upload(`${folder}/${file.name}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload/client",
-          onUploadProgress: (progress) => {
-            setUploadProgress(Math.round(progress.percentage))
-          },
+
+        // Get presigned URL from our API
+        const presignRes = await fetch("/api/upload/client", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folder,
+            filename: file.name,
+            contentType: file.type,
+          }),
         })
-        onChange(blob.url)
+
+        if (!presignRes.ok) {
+          const data = await presignRes.json()
+          throw new Error(data.error || "Error al generar URL de subida")
+        }
+
+        const { uploadUrl, publicUrl } = await presignRes.json()
+
+        // Upload directly to R2 using XHR for progress tracking
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open("PUT", uploadUrl)
+          xhr.setRequestHeader("Content-Type", file.type)
+
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100))
+            }
+          }
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve()
+            } else {
+              reject(new Error(`Upload failed: ${xhr.status}`))
+            }
+          }
+
+          xhr.onerror = () => reject(new Error("Error de red al subir archivo"))
+          xhr.send(file)
+        })
+
+        onChange(publicUrl)
       } else {
         // Use regular API upload for small files
         const formData = new FormData()

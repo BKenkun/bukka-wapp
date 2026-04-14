@@ -240,7 +240,7 @@ export function ShopSectionEditor({ section, categories, onSave, onClose }: Shop
                 <Input
                   value={(config.linkUrl as string) || ""}
                   onChange={(e) => updateConfig("linkUrl", e.target.value)}
-                  placeholder="/tienda o https://..."
+                  placeholder="/shop o https://..."
                 />
               </div>
             </>
@@ -474,6 +474,39 @@ export function ShopSectionEditor({ section, categories, onSave, onClose }: Shop
                 <IconPlus className="size-4 mr-2" />
                 Agregar pregunta
               </Button>
+              <div className="space-y-2 rounded-lg border p-3 bg-muted/30 mt-3">
+                <span className="text-xs font-medium text-muted-foreground">Estilos (vacio = color por defecto)</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={(config.bgColor as string) || "#f9fafb"}
+                    onChange={(e) => updateConfig("bgColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer border"
+                  />
+                  <Input
+                    value={(config.bgColor as string) || ""}
+                    onChange={(e) => updateConfig("bgColor", e.target.value)}
+                    placeholder="#hex"
+                    className="w-32 text-xs"
+                  />
+                  <span className="text-xs text-muted-foreground">Fondo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={(config.titleColor as string) || "#000000"}
+                    onChange={(e) => updateConfig("titleColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer border"
+                  />
+                  <Input
+                    value={(config.titleColor as string) || ""}
+                    onChange={(e) => updateConfig("titleColor", e.target.value)}
+                    placeholder="#hex"
+                    className="w-32 text-xs"
+                  />
+                  <span className="text-xs text-muted-foreground">Color titulo</span>
+                </div>
+              </div>
             </>
           )}
 

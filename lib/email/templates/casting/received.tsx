@@ -14,61 +14,61 @@ export function CastingReceivedTemplate({
   submittedAt,
 }: CastingReceivedProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", {
+    new Intl.DateTimeFormat("en-US", {
       dateStyle: "long",
       timeStyle: "short",
     }).format(date)
 
   return (
-    <BaseEmail preview="Hemos recibido tu solicitud de casting">
-      <EmailHeading>Solicitud Recibida</EmailHeading>
+    <BaseEmail preview="We've received your casting application">
+      <EmailHeading>Application Received</EmailHeading>
 
       <EmailText>
-        Hola {applicantName},
+        Hi {applicantName},
       </EmailText>
 
       <EmailText>
-        Hemos recibido correctamente tu solicitud para unirte a nuestro equipo
-        de actrices. ¡Gracias por tu interés en BUKKAKERY!
+        We've successfully received your application to join our team
+        of performers. Thank you for your interest in BUKKAKERY!
       </EmailText>
 
       <EmailInfoBox variant="success">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          Tu solicitud ha sido registrada el {formatDate(submittedAt)}
+          Your application was registered on {formatDate(submittedAt)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={detailsBox}>
-        <Text style={detailsTitle}>Detalles de tu solicitud</Text>
+        <Text style={detailsTitle}>Application Details</Text>
         <Text style={detailItem}>
-          <strong>Número de referencia:</strong> {submissionId}
+          <strong>Reference number:</strong> {submissionId}
         </Text>
         <Text style={detailItem}>
-          <strong>Estado:</strong> Pendiente de revisión
+          <strong>Status:</strong> Pending review
         </Text>
       </Section>
 
       <Section style={nextStepsBox}>
-        <Text style={nextStepsTitle}>¿Qué sigue?</Text>
+        <Text style={nextStepsTitle}>What's next?</Text>
         <Text style={nextStepsItem}>
-          1. Nuestro equipo revisará tu solicitud y materiales
+          1. Our team will review your application and materials
         </Text>
         <Text style={nextStepsItem}>
-          2. Te contactaremos si necesitamos información adicional
+          2. We'll contact you if we need additional information
         </Text>
         <Text style={nextStepsItem}>
-          3. Recibirás una respuesta por email con nuestra decisión
+          3. You'll receive an email with our decision
         </Text>
       </Section>
 
       <EmailText>
-        El proceso de revisión suele tardar entre 5 y 10 días laborables.
-        Te notificaremos tan pronto como tengamos una actualización.
+        The review process typically takes 5 to 10 business days.
+        We'll notify you as soon as we have an update.
       </EmailText>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        Si tienes alguna pregunta mientras tanto, puedes responder a este
-        email o contactarnos a través de nuestra página de contacto.
+        If you have any questions in the meantime, you can reply to this
+        email or contact us through our contact page.
       </EmailText>
     </BaseEmail>
   )

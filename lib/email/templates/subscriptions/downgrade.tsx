@@ -20,59 +20,59 @@ export function SubscriptionDowngradeTemplate({
   newAmount,
 }: SubscriptionDowngradeProps) {
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date)
+    new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(date)
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-ES", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "EUR",
     }).format(price)
 
   return (
-    <BaseEmail preview={`Cambio de plan a ${newPlan} confirmado`}>
-      <EmailHeading>Cambio de Plan Confirmado</EmailHeading>
+    <BaseEmail preview={`Plan change to ${newPlan} confirmed`}>
+      <EmailHeading>Plan Change Confirmed</EmailHeading>
 
       <EmailText>
-        Hola {customerName},
+        Hi {customerName},
       </EmailText>
 
       <EmailText>
-        Te confirmamos que tu plan ha sido cambiado de{" "}
-        <strong>{previousPlan}</strong> a <strong>{newPlan}</strong>.
+        We confirm that your plan has been changed from{" "}
+        <strong>{previousPlan}</strong> to <strong>{newPlan}</strong>.
       </EmailText>
 
       <EmailInfoBox variant="info">
         <EmailText style={{ margin: 0, fontSize: "14px" }}>
-          El cambio será efectivo a partir del {formatDate(effectiveDate)}
+          The change will take effect on {formatDate(effectiveDate)}
         </EmailText>
       </EmailInfoBox>
 
       <Section style={planBox}>
-        <Text style={planTitle}>Tu nuevo plan: {newPlan}</Text>
-        <Text style={planPrice}>{formatPrice(newAmount)}/mes</Text>
+        <Text style={planTitle}>Your new plan: {newPlan}</Text>
+        <Text style={planPrice}>{formatPrice(newAmount)}/month</Text>
       </Section>
 
       <EmailText>
-        Hasta la fecha del cambio, seguirás disfrutando de todos los beneficios
-        de tu plan actual <strong>{previousPlan}</strong>.
+        Until the change date, you'll continue to enjoy all the benefits
+        of your current <strong>{previousPlan}</strong> plan.
       </EmailText>
 
       <Section style={noteBox}>
-        <Text style={noteTitle}>Ten en cuenta:</Text>
+        <Text style={noteTitle}>Please note:</Text>
         <Text style={noteText}>
-          Después del cambio, algunas funciones premium pueden dejar de estar
-          disponibles. Siempre puedes volver a mejorar tu plan cuando lo desees.
+          After the change, some premium features may no longer be available.
+          You can always upgrade your plan again whenever you wish.
         </Text>
       </Section>
 
       <div style={{ textAlign: "center", margin: "32px 0" }}>
         <EmailButton href={`${APP_URL}/suscripciones`}>
-          Ver Planes Disponibles
+          View Available Plans
         </EmailButton>
       </div>
 
       <EmailText style={{ fontSize: "14px", color: "#6b7280" }}>
-        Si tienes alguna pregunta sobre el cambio, no dudes en contactarnos.
+        If you have any questions about the change, feel free to contact us.
       </EmailText>
     </BaseEmail>
   )

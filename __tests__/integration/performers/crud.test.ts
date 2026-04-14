@@ -85,12 +85,12 @@ describe('Performers API - CRUD Operations', () => {
       expect(data.performers[0].name).toBe('Maria Garcia')
     })
 
-    it('should filter by nationality', async () => {
-      await createPerformer({ name: 'Performer 1', nationality: 'Spain' })
-      await createPerformer({ name: 'Performer 2', nationality: 'France' })
+    it('should filter by location', async () => {
+      await createPerformer({ name: 'Performer 1', location: 'Spain' })
+      await createPerformer({ name: 'Performer 2', location: 'France' })
 
       const request = createMockRequest('/api/performers', {
-        searchParams: { nationality: 'Spain' },
+        searchParams: { location: 'Spain' },
       })
       const response = await getPerformers(request)
       const data = await getResponseJson<{ performers: { name: string }[] }>(response)
@@ -115,7 +115,7 @@ describe('Performers API - CRUD Operations', () => {
       await createPerformer({
         name: 'Test Performer',
         slug: 'test-performer',
-        nationality: 'Spain',
+        location: 'Spain',
         bio: 'A test bio',
       })
 
@@ -124,14 +124,14 @@ describe('Performers API - CRUD Operations', () => {
       const data = await getResponseJson<{
         name: string
         slug: string
-        nationality: string
+        location: string
         bio: string
       }>(response)
 
       expect(response.status).toBe(200)
       expect(data.name).toBe('Test Performer')
       expect(data.slug).toBe('test-performer')
-      expect(data.nationality).toBe('Spain')
+      expect(data.location).toBe('Spain')
       expect(data.bio).toBe('A test bio')
     })
 

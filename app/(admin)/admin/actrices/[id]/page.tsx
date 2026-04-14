@@ -177,7 +177,10 @@ export default async function EditPerformerPage({ params }: Props) {
         </Card>
       )}
 
-      <PerformerForm performer={performer} />
+      <PerformerForm performer={{
+        ...performer,
+        comingSoonDate: performer.comingSoonDate?.toISOString() ?? null,
+      }} />
     </div>
   )
 }

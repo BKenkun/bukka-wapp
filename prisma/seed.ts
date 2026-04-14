@@ -374,11 +374,11 @@ async function main() {
   if (headerItemCount === 0) {
     const headerItems = [
       { label: "Vídeos", url: "/videos", order: 1 },
-      { label: "Modelos", url: "/modelos", order: 2 },
+      { label: "Modelos", url: "/performers", order: 2 },
       { label: "Categorías", url: "/categorias", order: 3 },
-      { label: "Shop Live", url: "/tienda", order: 4 },
+      { label: "Shop Live", url: "/shop", order: 4 },
       { label: "Casting", url: "/casting", order: 5 },
-      { label: "Blog", url: "/blog", order: 6 },
+      { label: "Blog", url: "/news", order: 6 },
     ]
 
     for (const item of headerItems) {
@@ -402,9 +402,9 @@ async function main() {
       description: "Columna de servicios en el footer",
       items: [
         { label: "The Bukkake Degree™", url: "#", order: 1 },
-        { label: "Tienda", url: "/tienda", order: 2 },
-        { label: "Blog", url: "/blog", order: 3 },
-        { label: "Foro", url: "/foro", order: 4 },
+        { label: "Tienda", url: "/shop", order: 2 },
+        { label: "Blog", url: "/news", order: 3 },
+        { label: "Foro", url: "/forum", order: 4 },
       ],
     },
     {
@@ -412,9 +412,8 @@ async function main() {
       name: "Footer Contacto",
       description: "Columna de contacto en el footer",
       items: [
-        { label: "Contact & Support", url: "/contacto", order: 1 },
-        { label: "Report Content", url: "/reportar", order: 2 },
-        { label: "Login", url: "/login", order: 3 },
+        { label: "Contact & Support", url: "/contact", order: 1 },
+        { label: "Login", url: "/login", order: 2 },
       ],
     },
     {
@@ -422,12 +421,11 @@ async function main() {
       name: "Footer Información",
       description: "Columna de información en el footer",
       items: [
-        { label: "Terms of Service", url: "/p/terminos-servicio", order: 1 },
-        { label: "Privacy Policy", url: "/p/politica-privacidad", order: 2 },
-        { label: "Trust and Safety", url: "/p/confianza-seguridad", order: 3 },
-        { label: "Content Removal Policy", url: "/p/politica-eliminacion", order: 4 },
+        { label: "Terms of Service", url: "/p/terms-of-service", order: 1 },
+        { label: "Privacy Policy", url: "/p/privacy-policy", order: 2 },
+        { label: "Trust and Safety", url: "/p/trust-safety", order: 3 },
+        { label: "Content Removal Policy", url: "/p/deletion-policy", order: 4 },
         { label: "Casting", url: "/casting", order: 5 },
-        { label: "Webmaster", url: "/webmaster", order: 6 },
       ],
     },
     {
@@ -612,9 +610,9 @@ async function main() {
         title: "Official Bukkakery Gear",
         subtitle: "Exclusive merchandise designed for our community. Premium quality, limited quantities.",
         ctaPrimaryText: "Shop Now",
-        ctaPrimaryUrl: "/tienda#productos",
+        ctaPrimaryUrl: "/shop#productos",
         ctaSecondaryText: "Explore Collections",
-        ctaSecondaryUrl: "/tienda#colecciones",
+        ctaSecondaryUrl: "/shop#colecciones",
       },
     },
     {

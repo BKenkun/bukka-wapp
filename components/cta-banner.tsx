@@ -4,6 +4,8 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+type ContentPosition = "top-left" | "top-center" | "top-right" | "center-left" | "center" | "center-right" | "bottom-left" | "bottom-center" | "bottom-right"
+
 interface CtaBannerProps {
   title: string
   description: string
@@ -21,6 +23,8 @@ interface CtaBannerProps {
   overlayOpacity?: number
   blurEnabled?: boolean
   blurIntensity?: number
+  height?: number
+  contentPosition?: ContentPosition
 }
 
 export function CtaBanner({
@@ -40,10 +44,25 @@ export function CtaBanner({
   overlayOpacity,
   blurEnabled = false,
   blurIntensity = 4,
+  height = 486,
+  contentPosition = "center",
 }: CtaBannerProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   const blurStyle = blurEnabled ? { filter: `blur(${blurIntensity}px)`, transform: "scale(1.1)" } : undefined
+
+  const positionMap: Record<ContentPosition, { items: string; justify: string; text: string }> = {
+    "top-left":      { items: "items-start", justify: "justify-start", text: "text-left" },
+    "top-center":    { items: "items-start", justify: "justify-center", text: "text-center" },
+    "top-right":     { items: "items-start", justify: "justify-end", text: "text-right" },
+    "center-left":   { items: "items-center", justify: "justify-start", text: "text-left" },
+    "center":        { items: "items-center", justify: "justify-center", text: "text-center" },
+    "center-right":  { items: "items-center", justify: "justify-end", text: "text-right" },
+    "bottom-left":   { items: "items-end", justify: "justify-start", text: "text-left" },
+    "bottom-center": { items: "items-end", justify: "justify-center", text: "text-center" },
+    "bottom-right":  { items: "items-end", justify: "justify-end", text: "text-right" },
+  }
+  const pos = positionMap[contentPosition] || positionMap.center
 
   const buttonStyle = {
     backgroundColor: isHovered
@@ -55,7 +74,7 @@ export function CtaBanner({
   }
 
   return (
-    <div className="relative w-full h-[486px] flex items-center justify-center overflow-hidden">
+    <div className={`relative w-full flex flex-col ${pos.justify} ${pos.items} overflow-hidden`} style={{ height: `${height}px` }}>
       {/* Background Video or Image */}
       <div className="absolute inset-0 z-0">
         {videoUrl ? (
@@ -93,7 +112,7 @@ export function CtaBanner({
       )}
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-4xl px-4">
+      <div className={`relative z-10 flex flex-col ${pos.items} ${pos.text} max-w-4xl px-8 py-8`}>
         <h2
           className="font-bold leading-[48px]"
           style={{

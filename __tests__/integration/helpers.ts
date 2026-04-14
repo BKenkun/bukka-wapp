@@ -216,7 +216,7 @@ interface CreatePerformerOptions {
   slug?: string
   name?: string
   bio?: string
-  nationality?: string
+  location?: string
   profileImage?: string
   userId?: string
 }
@@ -227,7 +227,7 @@ export async function createPerformer(options: CreatePerformerOptions = {}) {
       slug: options.slug || faker.helpers.slugify(faker.person.fullName().toLowerCase()) + '-' + faker.string.nanoid(4),
       name: options.name || faker.person.fullName(),
       bio: options.bio || faker.lorem.paragraphs(2),
-      nationality: options.nationality || faker.location.country(),
+      location: options.location || null,
       profileImage: options.profileImage || faker.image.avatar(),
       userId: options.userId || null,
     },
@@ -260,8 +260,10 @@ export async function createProduct(options: CreateProductOptions = {}) {
       compareAtPrice: options.compareAtPrice ?? null,
       stock: options.stock ?? faker.number.int({ min: 0, max: 100 }),
       status: options.status || 'ACTIVE',
-      performerId: options.performerId || null,
       images: options.images || [faker.image.url(), faker.image.url()],
+      ...(options.performerId
+        ? { performers: { create: { performerId: options.performerId } } }
+        : {}),
     },
   })
 }

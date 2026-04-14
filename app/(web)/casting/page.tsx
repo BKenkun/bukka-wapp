@@ -278,7 +278,7 @@ export default function CastingPage() {
       <main className="min-h-screen bg-black text-white pt-8 pb-16">
         <div className="px-4 md:px-8 max-w-2xl mx-auto text-center">
           <div className="mb-8">
-            <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-green-500/20 flex items-center justify-center mx-auto mb-6">
               <Check className="w-10 h-10 text-green-500" />
             </div>
             <h1 className="text-3xl font-bold mb-4">Application Submitted!</h1>
@@ -286,19 +286,19 @@ export default function CastingPage() {
               We have received your casting application. Our team will review it and contact you soon.
             </p>
           </div>
-          <div className="bg-[rgba(55,65,81,0.42)] rounded-lg p-6 mb-8">
+          <div className="bg-[rgba(55,65,81,0.42)] p-6 mb-8">
             <h2 className="font-semibold mb-4">What&apos;s next?</h2>
             <ul className="text-left space-y-3">
               <li className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">1</div>
+                <div className="w-6 h-6 bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">1</div>
                 <span className="text-gray-300">We will review your profile and portfolio in the coming days.</span>
               </li>
               <li className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">2</div>
+                <div className="w-6 h-6 bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">2</div>
                 <span className="text-gray-300">If your profile is selected, we will contact you by email.</span>
               </li>
               <li className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">3</div>
+                <div className="w-6 h-6 bg-[#06B6D4] flex items-center justify-center text-white text-sm flex-shrink-0">3</div>
                 <span className="text-gray-300">We will schedule an in-person or virtual audition.</span>
               </li>
             </ul>
@@ -316,7 +316,7 @@ export default function CastingPage() {
       {/* Verification overlay */}
       {isVerifying && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-[rgba(55,65,81,0.95)] rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl border border-[#06B6D4]/30">
+          <div className="bg-[rgba(55,65,81,0.95)] p-8 max-w-sm mx-4 text-center shadow-2xl border border-[#06B6D4]/30">
             <div className="relative w-20 h-20 mx-auto mb-6">
               <svg className="animate-spin w-20 h-20 text-[#06B6D4]" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
@@ -339,7 +339,7 @@ export default function CastingPage() {
       <div className="px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="sticky top-24 border border-[#E5E7EB] rounded-lg p-6 shadow-[0_4px_6px_0_rgba(0,0,0,0.1),0_10px_15px_0_rgba(0,0,0,0.1)]">
+          <div className="sticky top-24 border border-[#E5E7EB] p-6 shadow-[0_4px_6px_0_rgba(0,0,0,0.1),0_10px_15px_0_rgba(0,0,0,0.1)]">
             <h2 className="font-['Montserrat'] text-2xl font-bold mb-6">Casting Information</h2>
             <div className="mb-6 border-l-4 border-[#06B6D4] pl-4">
               <h3 className="font-['Montserrat'] text-base font-semibold mb-4 leading-6">General Requirements</h3>
@@ -367,7 +367,7 @@ export default function CastingPage() {
               <ul className="space-y-3">
                 {["Online application", "Portfolio review", "In-person audition", "Final selection"].map((step, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#06B6D4] flex items-center justify-center text-white font-['Montserrat'] font-semibold flex-shrink-0">
+                    <div className="w-10 h-10 bg-[#06B6D4] flex items-center justify-center text-white font-['Montserrat'] font-semibold flex-shrink-0">
                       {i + 1}
                     </div>
                     <span className="font-['Montserrat'] text-sm">{step}</span>
@@ -375,7 +375,7 @@ export default function CastingPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-[rgba(250,72,96,0.22)] border-0 border-[#E5E7EB] rounded-lg p-5">
+            <div className="bg-[rgba(250,72,96,0.22)] border-0 border-[#E5E7EB] p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Clock className="w-5 h-5 text-[#FA4860]" />
                 <h3 className="text-[#FA4860] font-['Montserrat'] text-base font-semibold leading-normal">Important Dates</h3>
@@ -403,7 +403,7 @@ export default function CastingPage() {
               {STEPS.map((step) => (
                 <div key={step.id} className="flex flex-col items-center flex-1">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                    className={`w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors ${
                       step.id < currentStep
                         ? "bg-green-500 text-white"
                         : step.id === currentStep
@@ -426,9 +426,9 @@ export default function CastingPage() {
               ))}
             </div>
             {/* Progress bar */}
-            <div className="w-full h-1 bg-[rgba(55,65,81,0.42)] rounded-full mt-3">
+            <div className="w-full h-1 bg-[rgba(55,65,81,0.42)] mt-3">
               <div
-                className="h-full bg-[#06B6D4] rounded-full transition-all duration-300"
+                className="h-full bg-[#06B6D4] transition-all duration-300"
                 style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
               />
             </div>
@@ -446,7 +446,7 @@ export default function CastingPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* DNI Front */}
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[250px]">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] p-8 bg-transparent min-h-[250px]">
                   <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -468,7 +468,7 @@ export default function CastingPage() {
                   <button
                     type="button"
                     onClick={() => document.getElementById("dniFront")?.click()}
-                    className="bg-[#06B6D4] text-white px-6 py-2.5 rounded font-['Montserrat'] text-sm font-medium"
+                    className="bg-[#06B6D4] text-white px-6 py-2.5 font-['Montserrat'] text-sm font-medium"
                   >
                     Select File
                   </button>
@@ -481,7 +481,7 @@ export default function CastingPage() {
                 </div>
 
                 {/* DNI Back */}
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[250px]">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] p-8 bg-transparent min-h-[250px]">
                   <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -503,7 +503,7 @@ export default function CastingPage() {
                   <button
                     type="button"
                     onClick={() => document.getElementById("dniBack")?.click()}
-                    className="bg-[#06B6D4] text-white px-6 py-2.5 rounded font-['Montserrat'] text-sm font-medium"
+                    className="bg-[#06B6D4] text-white px-6 py-2.5 font-['Montserrat'] text-sm font-medium"
                   >
                     Select File
                   </button>
@@ -517,7 +517,7 @@ export default function CastingPage() {
               </div>
 
               {/* Info note about verification */}
-              <div className="flex items-start gap-3 bg-[rgba(6,182,212,0.1)] border border-[#06B6D4]/30 rounded-lg p-4">
+              <div className="flex items-start gap-3 bg-[rgba(6,182,212,0.1)] border border-[#06B6D4]/30 p-4">
                 <svg className="w-5 h-5 text-[#06B6D4] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
@@ -543,7 +543,7 @@ export default function CastingPage() {
               </div>
 
               {/* General photos */}
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[200px]">
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] p-8 bg-transparent min-h-[200px]">
                 <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -563,7 +563,7 @@ export default function CastingPage() {
                 <button
                   type="button"
                   onClick={() => document.getElementById("generalPhotos")?.click()}
-                  className="bg-[#06B6D4] text-white px-6 py-2 rounded font-['Montserrat'] text-sm"
+                  className="bg-[#06B6D4] text-white px-6 py-2 font-['Montserrat'] text-sm"
                 >
                   Select Files
                 </button>
@@ -578,7 +578,7 @@ export default function CastingPage() {
               </div>
 
               {/* Presentation video */}
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] rounded-lg p-8 bg-transparent min-h-[200px]">
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#D1D5DB] p-8 bg-transparent min-h-[200px]">
                 <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
@@ -594,7 +594,7 @@ export default function CastingPage() {
                 <button
                   type="button"
                   onClick={() => document.getElementById("presentationVideo")?.click()}
-                  className="bg-[#06B6D4] text-white px-6 py-2 rounded font-['Montserrat'] text-sm mb-2"
+                  className="bg-[#06B6D4] text-white px-6 py-2 font-['Montserrat'] text-sm mb-2"
                 >
                   Select Video
                 </button>
@@ -611,7 +611,7 @@ export default function CastingPage() {
               </div>
 
               {/* Verification notice */}
-              <div className="flex items-start gap-3 bg-[rgba(250,176,5,0.1)] border border-yellow-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3 bg-[rgba(250,176,5,0.1)] border border-yellow-500/30 p-4">
                 <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
@@ -635,8 +635,8 @@ export default function CastingPage() {
               </div>
 
               {verificationPassed && (
-                <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 p-4">
+                  <div className="w-8 h-8 bg-green-500/20 flex items-center justify-center flex-shrink-0">
                     <Check className="w-5 h-5 text-green-500" />
                   </div>
                   <div>
@@ -657,7 +657,7 @@ export default function CastingPage() {
                     placeholder="Full Name"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full ${errors.fullName ? "border border-red-500" : ""}`}
+                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full ${errors.fullName ? "border border-red-500" : ""}`}
                   />
                   {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
                 </div>
@@ -668,7 +668,7 @@ export default function CastingPage() {
                     name="birthDate"
                     value={formData.birthDate}
                     onChange={handleInputChange}
-                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full ${errors.birthDate ? "border border-red-500" : ""}`}
+                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] w-full ${errors.birthDate ? "border border-red-500" : ""}`}
                   />
                   {errors.birthDate && <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>}
                 </div>
@@ -680,7 +680,7 @@ export default function CastingPage() {
                     placeholder="Email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full ${errors.email ? "border border-red-500" : ""}`}
+                    className={`bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full ${errors.email ? "border border-red-500" : ""}`}
                   />
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
@@ -692,7 +692,7 @@ export default function CastingPage() {
                     placeholder="Phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full"
+                    className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full"
                   />
                 </div>
               </div>
@@ -710,7 +710,7 @@ export default function CastingPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Gender</label>
-                  <select name="gender" value={formData.gender} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
+                  <select name="gender" value={formData.gender} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
                     <option value="">Gender</option>
                     <option value="Masculino">Male</option>
                     <option value="Femenino">Female</option>
@@ -719,7 +719,7 @@ export default function CastingPage() {
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Height</label>
-                  <select name="height" value={formData.height} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
+                  <select name="height" value={formData.height} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
                     <option value="">Height</option>
                     <option value="150-160">150-160 cm</option>
                     <option value="160-170">160-170 cm</option>
@@ -729,21 +729,21 @@ export default function CastingPage() {
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Weight</label>
-                  <input type="text" name="weight" placeholder="Weight" value={formData.weight} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
+                  <input type="text" name="weight" placeholder="Weight" value={formData.weight} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Bust</label>
-                  <input type="text" name="bust" placeholder="Bust" value={formData.bust} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
+                  <input type="text" name="bust" placeholder="Bust" value={formData.bust} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Waist</label>
-                  <input type="text" name="waist" placeholder="Waist" value={formData.waist} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
+                  <input type="text" name="waist" placeholder="Waist" value={formData.waist} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Hips</label>
-                  <input type="text" name="hips" placeholder="Hips" value={formData.hips} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
+                  <input type="text" name="hips" placeholder="Hips" value={formData.hips} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
                 </div>
               </div>
 
@@ -751,7 +751,7 @@ export default function CastingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Hair Color</label>
-                  <select name="hairColor" value={formData.hairColor} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
+                  <select name="hairColor" value={formData.hairColor} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
                     <option value="">Hair Color</option>
                     <option value="Negro">Black</option>
                     <option value="Castaño">Brown</option>
@@ -761,7 +761,7 @@ export default function CastingPage() {
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Eye Color</label>
-                  <select name="eyeColor" value={formData.eyeColor} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
+                  <select name="eyeColor" value={formData.eyeColor} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
                     <option value="">Eye Color</option>
                     <option value="Negro">Black</option>
                     <option value="Marrón">Brown</option>
@@ -771,7 +771,7 @@ export default function CastingPage() {
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Skin Tone</label>
-                  <select name="skinTone" value={formData.skinTone} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
+                  <select name="skinTone" value={formData.skinTone} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] appearance-none cursor-pointer w-full" style={selectStyle}>
                     <option value="">Skin Tone</option>
                     <option value="Claro">Fair</option>
                     <option value="Medio">Medium</option>
@@ -780,7 +780,7 @@ export default function CastingPage() {
                 </div>
                 <div>
                   <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Tattoos</label>
-                  <input type="text" name="tattoos" placeholder="Describe tattoos if any" value={formData.tattoos} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
+                  <input type="text" name="tattoos" placeholder="Describe tattoos if any" value={formData.tattoos} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] placeholder:text-lg placeholder:font-normal w-full" />
                 </div>
               </div>
             </div>
@@ -796,7 +796,7 @@ export default function CastingPage() {
 
               <div>
                 <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Experience Level</label>
-                <select name="experience" value={formData.experience} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full appearance-none cursor-pointer" style={selectStyle}>
+                <select name="experience" value={formData.experience} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] w-full appearance-none cursor-pointer" style={selectStyle}>
                   <option value="">No experience</option>
                   <option value="1-2">1-2 years</option>
                   <option value="3-5">3-5 years</option>
@@ -812,7 +812,7 @@ export default function CastingPage() {
                   value={formData.additionalInfo}
                   onChange={handleInputChange}
                   rows={5}
-                  className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal resize-none"
+                  className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal resize-none"
                 />
               </div>
 
@@ -821,11 +821,11 @@ export default function CastingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="font-['Montserrat'] text-sm font-medium mb-2 block">Instagram</label>
-                    <input type="url" name="socialMedia" placeholder="Instagram link" value={formData.socialMedia} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
+                    <input type="url" name="socialMedia" placeholder="Instagram link" value={formData.socialMedia} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
                   </div>
                   <div>
                     <label className="font-['Montserrat'] text-sm font-medium mb-2 block">OnlyFans</label>
-                    <input type="url" name="socialMedia2" placeholder="OnlyFans link" value={formData.socialMedia2} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] rounded-lg font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
+                    <input type="url" name="socialMedia2" placeholder="OnlyFans link" value={formData.socialMedia2} onChange={handleInputChange} className="bg-[rgba(55,65,81,0.42)] px-4 py-[13px] font-['Montserrat'] w-full placeholder:text-lg placeholder:font-normal" />
                   </div>
                 </div>
               </div>

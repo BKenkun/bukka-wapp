@@ -412,6 +412,7 @@ model Performer {
   PerformerPhoto   PerformerPhoto[]
   products         ProductPerformer[]
   VideoPerformer   VideoPerformer[]
+  PerformerNotify  PerformerNotify[]
 }
 
 model PerformerPhoto {
@@ -424,6 +425,21 @@ model PerformerPhoto {
   performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
 
   @@index([performerId])
+}
+
+model PerformerNotify {
+  id          String    @id @default(cuid())
+  userId      String
+  performerId String
+  notified    Boolean   @default(false)
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  performer Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, performerId])
+  @@index([performerId, notified])
 }
 
 model Product {
@@ -630,6 +646,8 @@ model User {
   WatchHistory                                 WatchHistory[]
   EmailVerificationToken                       EmailVerificationToken[]
   PasswordResetToken                           PasswordResetToken[]
+  PerformerNotify                              PerformerNotify[]
+  ContentReport                                ContentReport[]
 }
 
 model UserBadge {
@@ -935,6 +953,45 @@ enum ProductType {
   VARIABLE
 }
 
+enum ReportItemType {
+  FORUM_POST
+  FORUM_REPLY
+  VIDEO_COMMENT
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE
+  MISINFORMATION
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+model ContentReport {
+  id            String         @id @default(cuid())
+  reporterId    String
+  itemType      ReportItemType
+  itemId        String
+  reason        ReportReason
+  message       String?
+  status        ReportStatus   @default(PENDING)
+  adminNotes    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reporter      User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([itemType, itemId])
+  @@index([status])
+}
+
 // ============================================
 // SISTEMA DE ATRIBUTOS Y VARIANTES
 // ============================================
@@ -1110,6 +1167,26 @@ model SearchTrend {
   createdAt DateTime @default(now())
 
   @@index([count(sort: Desc)])
+}
+
+// ============================================
+// CONTACT MESSAGES
+// ============================================
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
+  repliedAt DateTime?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
 }
 
 // ============================================

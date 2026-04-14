@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { planId } = await request.json()
 
     if (!planId) {
       return NextResponse.json(
-        { error: "planId es requerido" },
+        { error: "planId is required" },
         { status: 400 }
       )
     }
@@ -27,21 +27,21 @@ export async function POST(request: NextRequest) {
 
     if (!plan) {
       return NextResponse.json(
-        { error: "Plan no encontrado" },
+        { error: "Plan not found" },
         { status: 404 }
       )
     }
 
     if (!plan.isActive) {
       return NextResponse.json(
-        { error: "Este plan no está disponible" },
+        { error: "This plan is not available" },
         { status: 400 }
       )
     }
 
     if (plan.isFree) {
       return NextResponse.json(
-        { error: "No se puede pagar por un plan gratuito" },
+        { error: "Cannot pay for a free plan" },
         { status: 400 }
       )
     }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const monthlyPrice = Number(plan.monthlyPrice)
     if (monthlyPrice <= 0) {
       return NextResponse.json(
-        { error: "Precio de plan no válido" },
+        { error: "Invalid plan price" },
         { status: 400 }
       )
     }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     // Get client IP
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         id: plan.slug,
         amount: monthlyPrice,
         rebill_amount: monthlyPrice,
-        description: `Suscripción ${plan.name} - Mensual`,
+        description: `${plan.name} Subscription - Monthly`,
       },
       user: {
         id: stringToNumericId(user.id),
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     if (result.result !== "OK" || !result["pay-link"]) {
       console.error("[EasierPay] Init subscription failed:", result)
       return NextResponse.json(
-        { error: result.message || "Error al iniciar el pago de suscripción" },
+        { error: result.message || "Failed to initiate subscription payment" },
         { status: 502 }
       )
     }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[EasierPay] Error initiating subscription:", error)
     return NextResponse.json(
-      { error: "Error al procesar la suscripción" },
+      { error: "Failed to process subscription" },
       { status: 500 }
     )
   }

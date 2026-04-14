@@ -284,7 +284,7 @@ export function LocalUploadDropzone({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       className={cn(
-        "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+        "border-2 border-dashed p-6 text-center cursor-pointer transition-colors",
         isDragging && "border-primary bg-primary/5",
         !isDragging && "border-muted-foreground/25 hover:border-muted-foreground/50",
         (disabled || isUploading) && "opacity-50 cursor-not-allowed",
