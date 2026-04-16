@@ -42,6 +42,7 @@ interface RelatedContentTabsProps {
 
 interface RelatedVideo {
   id: string
+  slug: string
   title: string
   subtitle: string
   views: string
@@ -92,6 +93,7 @@ export function RelatedContentTabs({
             setRelatedVideos(
               data.videos.map((v: { id: string; slug: string; title: string; thumbnailUrl: string; viewCount: number; likeCount: number; performers?: { performer: { name: string } }[] }) => ({
                 id: v.id,
+                slug: v.slug,
                 title: v.title,
                 subtitle: v.performers?.[0]?.performer?.name || "",
                 views: formatViews(v.viewCount),

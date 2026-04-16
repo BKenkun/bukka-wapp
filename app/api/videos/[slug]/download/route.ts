@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkVideoAccess } from "@/lib/subscription-guard"
-import { getVideoToken, planQualityToMuxResolution } from "@/lib/mux/client"
+import { getVideoToken, getMuxAsset } from "@/lib/mux/client"
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
     }
 
-    if (!video.muxPlaybackId) {
+    if (!video.muxPlaybackId || !video.muxAssetId) {
       return NextResponse.json(
         { error: "Video no disponible para descarga" },
         { status: 404 }
@@ -96,29 +96,60 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Determinar la calidad de descarga basada en el plan
-    const maxVideoQuality = user.SubscriptionPlan?.maxVideoQuality || "720p"
-    const muxResolution = planQualityToMuxResolution(maxVideoQuality)
+    // Consultar el asset de Mux para obtener las rendiciones MP4 reales disponibles
+    const asset = await getMuxAsset(video.muxAssetId)
+    const staticFiles = asset.static_renditions?.files ?? []
+    const mp4Files = staticFiles.filter((f) => f.name?.endsWith(".mp4") && f.status === "ready")
 
-    // Mapear resolución Mux a calidad de descarga MP4
-    let downloadQuality: "low" | "medium" | "high" = "medium"
-    if (muxResolution === "2160p" || muxResolution === "1440p" || muxResolution === "1080p") {
-      downloadQuality = "high"
-    } else if (muxResolution === "720p") {
-      downloadQuality = "medium"
-    } else {
-      downloadQuality = "low"
+    if (mp4Files.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "El video aún no tiene renditions MP4 listas para descarga. Intenta de nuevo en unos minutos.",
+        },
+        { status: 503 }
+      )
+    }
+
+    // Orden de preferencia: mejor calidad primero
+    const preferenceOrder = [
+      "capped-1080p.mp4",
+      "high.mp4",
+      "medium.mp4",
+      "low.mp4",
+      "audio.m4a",
+    ]
+    const maxVideoQuality = user.SubscriptionPlan?.maxVideoQuality || "720p"
+    const allowHighQuality = ["1080p", "1440p", "2160p", "4k"].includes(
+      maxVideoQuality.toLowerCase()
+    )
+
+    // Si el plan no permite alta calidad, filtrar capped-1080p y high
+    const availableByPreference = preferenceOrder
+      .map((name) => mp4Files.find((f) => f.name === name))
+      .filter((f): f is NonNullable<typeof f> => Boolean(f))
+
+    const chosenFile = allowHighQuality
+      ? availableByPreference[0]
+      : availableByPreference.find((f) => f.name !== "capped-1080p.mp4" && f.name !== "high.mp4") ??
+        availableByPreference[availableByPreference.length - 1]
+
+    if (!chosenFile || !chosenFile.name) {
+      return NextResponse.json(
+        { error: "No se encontró una rendition MP4 compatible" },
+        { status: 503 }
+      )
     }
 
     // Generar token firmado para la descarga
     const token = await getVideoToken(video.muxPlaybackId)
 
     // Construir URL de descarga
-    const downloadUrl = `https://stream.mux.com/${video.muxPlaybackId}/${downloadQuality}.mp4?token=${token}&download=${encodeURIComponent(video.title)}`
+    const downloadUrl = `https://stream.mux.com/${video.muxPlaybackId}/${chosenFile.name}?token=${token}&download=${encodeURIComponent(video.title)}`
 
     return NextResponse.json({
       downloadUrl,
-      quality: downloadQuality,
+      quality: chosenFile.name,
       maxQuality: maxVideoQuality,
       filename: `${video.title}.mp4`,
     })

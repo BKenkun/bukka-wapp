@@ -46,6 +46,7 @@ interface GalleryImage {
 
 interface RelatedVideo {
   id: string
+  slug: string
   title: string
   subtitle: string
   views: string
@@ -147,6 +148,7 @@ export function VideoDetailLayout({
                 performers?: { performer: { name: string } }[]
               }) => ({
                 id: v.id,
+                slug: v.slug,
                 title: v.title,
                 subtitle: v.performers?.[0]?.performer?.name || "",
                 views: formatViews(v.viewCount),

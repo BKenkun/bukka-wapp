@@ -28,11 +28,17 @@ export async function POST(request: Request) {
     // Create Mux upload
     const { uploadUrl, uploadId } = await createMuxUpload()
 
-    // If videoId provided, update video with upload ID
+    // If videoId provided, update video with new upload ID and clear old Mux data
     if (videoId) {
       await prisma.video.update({
         where: { id: videoId },
-        data: { muxUploadId: uploadId },
+        data: {
+          muxUploadId: uploadId,
+          muxAssetId: null,
+          muxPlaybackId: null,
+          duration: 0,
+          status: "DRAFT",
+        },
       })
     }
 

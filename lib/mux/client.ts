@@ -29,7 +29,7 @@ export async function createMuxUpload(): Promise<CreateUploadResult> {
       playback_policy: ["signed"], // URLs firmadas para protección
       encoding_tier: "smart",
       master_access: "temporary", // Permite descargas temporales
-      mp4_support: "standard", // Habilita renditions MP4 para preview
+      mp4_support: "capped-1080p", // Habilita rendition MP4 capped-1080p para descarga
     },
   })
 
@@ -69,7 +69,7 @@ export async function getSignedPlaybackUrl(
     keyId: signingKeyId,
     keySecret: signingKeySecret,
     type: "video",
-    expiration: "4h",
+    expiration: "30m",
     params: {
       // Metadatos opcionales para analytics
       ...(userId && { viewer_id: userId }),
@@ -118,7 +118,7 @@ export async function getPlaybackToken(
     keyId: signingKeyId,
     keySecret: signingKeySecret,
     type: "video",
-    expiration: "4h",
+    expiration: "30m",
     params: {
       ...(userId && { viewer_id: userId }),
       // Restricción de resolución máxima basada en suscripción
@@ -139,7 +139,7 @@ export async function getThumbnailToken(playbackId: string): Promise<string> {
     keyId: signingKeyId,
     keySecret: signingKeySecret,
     type: "thumbnail",
-    expiration: "24h",
+    expiration: "2h",
   })
 }
 
@@ -165,7 +165,7 @@ export async function getGifToken(playbackId: string): Promise<string> {
     keyId: signingKeyId,
     keySecret: signingKeySecret,
     type: "gif",
-    expiration: "24h",
+    expiration: "2h",
   })
 }
 
@@ -242,7 +242,7 @@ export async function getVideoToken(playbackId: string): Promise<string> {
     keyId: signingKeyId,
     keySecret: signingKeySecret,
     type: "video",
-    expiration: "24h",
+    expiration: "5m",
   })
 }
 

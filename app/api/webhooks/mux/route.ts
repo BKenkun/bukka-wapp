@@ -127,7 +127,11 @@ export async function POST(request: Request) {
         if (video) {
           await prisma.video.update({
             where: { id: video.id },
-            data: { muxAssetId: assetId },
+            data: {
+              muxAssetId: assetId,
+              muxPlaybackId: null,
+              duration: 0,
+            },
           })
           console.log(`[Mux Webhook] Video ${video.id} asset created: ${assetId}`)
         }
