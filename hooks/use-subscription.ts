@@ -1,45 +1,20 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useCallback, useEffect, useState } from "react"
-
-const TRAILER_LIMIT = 3
-const TRAILERS_KEY = "bukka_trailers_viewed"
-
-interface TrailerData {
-  viewedIds: string[]
-  lastReset: number
-}
+import { useCallback } from "react"
+import { useTrailerViews } from "@/components/subscription-provider"
 
 /**
  * Hook para gestionar las restricciones de suscripción
  */
 export function useSubscription() {
   const { data: session, status } = useSession()
-  const [viewedTrailers, setViewedTrailers] = useState<string[]>([])
-
-  // Load trailer views from localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return
-
-    try {
-      const stored = localStorage.getItem(TRAILERS_KEY)
-      if (stored) {
-        const data: TrailerData = JSON.parse(stored)
-        // Reset if older than 24 hours
-        const dayInMs = 24 * 60 * 60 * 1000
-        if (Date.now() - data.lastReset > dayInMs) {
-          localStorage.removeItem(TRAILERS_KEY)
-          setViewedTrailers([])
-        } else {
-          setViewedTrailers(data.viewedIds)
-        }
-      }
-    } catch {
-      // Invalid data, clear it
-      localStorage.removeItem(TRAILERS_KEY)
-    }
-  }, [])
+  const {
+    viewedTrailers,
+    trailerLimit,
+    trackTrailerView: trackTrailerViewCtx,
+    canViewTrailer: canViewTrailerCtx,
+  } = useTrailerViews()
 
   const isAuthenticated = status === "authenticated"
   const isLoading = status === "loading"
@@ -55,47 +30,24 @@ export function useSubscription() {
   /**
    * Track a trailer view for limited users (Visitante/Free)
    */
-  const trackTrailerView = useCallback((videoId: string) => {
-    if (!shouldLimitTrailers) return true // Premium+ users can view unlimited trailers
-
-    if (viewedTrailers.includes(videoId)) return true // Already viewed
-
-    if (viewedTrailers.length >= TRAILER_LIMIT) {
-      return false // Limit reached
-    }
-
-    const newTrailers = [...viewedTrailers, videoId]
-    setViewedTrailers(newTrailers)
-
-    try {
-      localStorage.setItem(
-        TRAILERS_KEY,
-        JSON.stringify({
-          viewedIds: newTrailers,
-          lastReset: Date.now(),
-        } as TrailerData)
-      )
-    } catch {
-      // localStorage might be full or disabled
-    }
-
-    return true
-  }, [shouldLimitTrailers, viewedTrailers])
+  const trackTrailerView = useCallback(
+    (videoId: string) => trackTrailerViewCtx(videoId, shouldLimitTrailers),
+    [trackTrailerViewCtx, shouldLimitTrailers],
+  )
 
   /**
    * Check if user can view more trailers
    */
-  const canViewTrailer = useCallback((videoId: string): boolean => {
-    if (!shouldLimitTrailers) return true
-    if (viewedTrailers.includes(videoId)) return true
-    return viewedTrailers.length < TRAILER_LIMIT
-  }, [shouldLimitTrailers, viewedTrailers])
+  const canViewTrailer = useCallback(
+    (videoId: string): boolean => canViewTrailerCtx(videoId, shouldLimitTrailers),
+    [canViewTrailerCtx, shouldLimitTrailers],
+  )
 
   /**
    * Get remaining trailer views for limited users
    */
   const remainingTrailers = shouldLimitTrailers
-    ? Math.max(0, TRAILER_LIMIT - viewedTrailers.length)
+    ? Math.max(0, trailerLimit - viewedTrailers.length)
     : Infinity
 
   /**
@@ -181,7 +133,7 @@ export function useSubscription() {
     canViewTrailer,
     trackTrailerView,
     shouldLimitTrailers,
-    trailerLimit: TRAILER_LIMIT,
+    trailerLimit,
 
     // Plan capabilities
     canComment,

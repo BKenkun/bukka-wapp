@@ -1,10 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, Lock, Calendar } from "lucide-react"
 import { useState, useRef } from "react"
 import { useSubscription } from "@/hooks/use-subscription"
+import { useAuthModal } from "@/components/auth/auth-modal-provider"
 
 // Play icon SVG component
 function PlayIcon({ className }: { className?: string }) {
@@ -79,6 +79,7 @@ export function VideoCard({
   const videoRef = useRef<HTMLVideoElement>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { canViewTrailer, trackTrailerView, isAuthenticated } = useSubscription()
+  const { openAuthModal } = useAuthModal()
 
   const effectiveVideoId = videoId || slug
 
@@ -135,6 +136,15 @@ export function VideoCard({
     router.push(`/modelos/${performerSlug}`)
   }
 
+  const handleTrailerLimitCta = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isAuthenticated) {
+      router.push("/suscripciones")
+    } else {
+      openAuthModal({ view: "register" })
+    }
+  }
+
   // Trailer limit overlay component
   const TrailerLimitOverlay = () => (
     <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-20 p-4 text-center">
@@ -145,13 +155,14 @@ export function VideoCard({
           ? "Has alcanzado tu límite diario de trailers. Mejora tu plan para ver más."
           : "Los visitantes pueden ver 3 trailers. Regístrate para ver más."}
       </p>
-      <Link
-        href={isAuthenticated ? "/suscripciones" : "/?register=true"}
-        className="text-white px-6 py-2 text-sm font-medium transition-colors"
+      <button
+        type="button"
+        onClick={handleTrailerLimitCta}
+        className="text-white px-6 py-2 text-sm font-medium transition-colors cursor-pointer"
         style={{ backgroundColor: "var(--brand-color)" }}
       >
         {isAuthenticated ? "Ver Suscripciones" : "Registrarse Gratis"}
-      </Link>
+      </button>
     </div>
   )
 

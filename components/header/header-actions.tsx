@@ -14,9 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { CartButton } from "@/components/cart/cart-button"
-import { LoginModal } from "@/components/auth/login-modal"
 import { SearchModal } from "@/components/search/search-modal"
 import { GuestMenuDropdown } from "./guest-menu-dropdown"
+import { useAuthModal } from "@/components/auth/auth-modal-provider"
 import type { GuestMenuData } from "@/lib/get-guest-menu"
 
 interface HeaderActionsProps {
@@ -25,10 +25,8 @@ interface HeaderActionsProps {
 
 export function HeaderActions({ guestMenu }: HeaderActionsProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
-  const [loginModalView, setLoginModalView] = useState<"login" | "register" | "forgot-password">("login")
-  const [loginCallbackUrl, setLoginCallbackUrl] = useState<string | null>(null)
   const { data: session, status } = useSession()
+  const { openAuthModal } = useAuthModal()
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -63,24 +61,20 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
 
     if (login === "true") {
       const cb = searchParams.get("callbackUrl")
-      if (cb) setLoginCallbackUrl(cb)
-      setLoginModalView("login")
-      setIsLoginModalOpen(true)
+      openAuthModal({ view: "login", callbackUrl: cb })
       router.replace("/", { scroll: false })
     }
 
     if (register === "true") {
-      setLoginModalView("register")
-      setIsLoginModalOpen(true)
+      openAuthModal({ view: "register" })
       router.replace("/", { scroll: false })
     }
 
     if (forgotPassword === "true") {
-      setLoginModalView("forgot-password")
-      setIsLoginModalOpen(true)
+      openAuthModal({ view: "forgot-password" })
       router.replace("/", { scroll: false })
     }
-  }, [searchParams, router])
+  }, [searchParams, router, openAuthModal])
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" })
@@ -137,18 +131,10 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
         ) : (
           <GuestMenuDropdown
             menuData={guestMenu || null}
-            onLoginClick={() => {
-              setLoginModalView("login")
-              setIsLoginModalOpen(true)
-            }}
-            onRegisterClick={() => {
-              setLoginModalView("register")
-              setIsLoginModalOpen(true)
-            }}
+            onLoginClick={() => openAuthModal({ view: "login" })}
+            onRegisterClick={() => openAuthModal({ view: "register" })}
           />
         )}
-
-        <LoginModal open={isLoginModalOpen} onOpenChange={(open) => { setIsLoginModalOpen(open); if (!open) setLoginCallbackUrl(null) }} defaultView={loginModalView} callbackUrl={loginCallbackUrl} />
 
         <CartButton />
       </div>
