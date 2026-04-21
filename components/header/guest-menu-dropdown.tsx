@@ -215,7 +215,7 @@ export function GuestMenuDropdown({
                         border: "1px solid var(--brand-color-hover)",
                       }}
                     >
-                      <span style={{ color: "var(--brand-color)" }}>{renderIcon(item, "size-5")}</span>
+                      <span style={{ color: "var(--brand-color-hover)" }}>{renderIcon(item, "size-5")}</span>
                     </div>
                     <span className="text-xs text-center whitespace-nowrap hover:opacity-80 transition-colors" style={{ color: "var(--text-primary)" }}>
                       {item.label}
