@@ -121,7 +121,7 @@ export function CtaBanner({
             fontFamily: titleFontFamily || "var(--font-montserrat, Montserrat, sans-serif)",
           }}
         >
-          &ldquo;{title}&rdquo;
+          {title}
         </h2>
 
         <p
