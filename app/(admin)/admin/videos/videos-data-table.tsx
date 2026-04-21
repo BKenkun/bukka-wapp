@@ -153,6 +153,7 @@ export function VideosDataTable({
   const [searchValue, setSearchValue] = React.useState(searchParams.get("search") || "")
   const [deleteVideo, setDeleteVideo] = React.useState<VideoRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [isSyncingDuration, setIsSyncingDuration] = React.useState(false)
 
   const columns: ColumnDef<VideoRow>[] = [
     {
@@ -478,6 +479,37 @@ export function VideosDataTable({
               <SelectItem value="ARCHIVED">Archivado</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            disabled={isSyncingDuration}
+            onClick={async () => {
+              setIsSyncingDuration(true)
+              try {
+                const res = await fetch("/api/admin/videos/sync-duration", {
+                  method: "POST",
+                })
+                const data = await res.json()
+                if (!res.ok) {
+                  toast.error(data.error || "Error al sincronizar")
+                } else if (data.total === 0) {
+                  toast.info("Todas las duraciones están sincronizadas")
+                } else {
+                  toast.success(
+                    `${data.updated}/${data.total} duraciones actualizadas` +
+                      (data.errors.length ? ` · ${data.errors.length} errores` : "")
+                  )
+                  router.refresh()
+                }
+              } catch {
+                toast.error("Error al sincronizar duraciones")
+              } finally {
+                setIsSyncingDuration(false)
+              }
+            }}
+          >
+            {isSyncingDuration ? "Sincronizando..." : "Sincronizar duraciones"}
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
