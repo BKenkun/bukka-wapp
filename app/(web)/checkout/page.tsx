@@ -7,6 +7,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
 import { ShippingCalculator, FreeShippingProgress } from "@/components/checkout/shipping-calculator"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface CartItem {
   id: string
@@ -83,6 +84,7 @@ export default function CheckoutPage() {
   })
 
   const [paymentMethod, setPaymentMethod] = useState<string>("card")
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null)
 
   // Promo code state
@@ -668,17 +670,65 @@ export default function CheckoutPage() {
                   </label>
                 </div>
 
-                <p className="text-sm mt-4" style={{ color: "var(--form-label-color)" }}>
-                  By clicking &quot;Confirm Order&quot;, you accept our{" "}
-                  <Link href="/p/terms-of-service" className="hover:underline" style={{ color: "var(--accent-color)" }}>
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/p/privacy-policy" className="hover:underline" style={{ color: "var(--accent-color)" }}>
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
+                <div className="flex items-start gap-3 mt-4">
+                  <Checkbox
+                    id="terms-accepted"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                    required
+                    aria-describedby="terms-accepted-description"
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="terms-accepted"
+                    id="terms-accepted-description"
+                    className="text-sm cursor-pointer leading-relaxed"
+                    style={{ color: "var(--form-label-color)" }}
+                  >
+                    I have read and accept the{" "}
+                    <Link
+                      href="/p/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      Terms of Service
+                    </Link>
+                    ,{" "}
+                    <Link
+                      href="/p/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      Privacy Policy
+                    </Link>
+                    ,{" "}
+                    <Link
+                      href="/p/legal-notice"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      Legal Notice
+                    </Link>
+                    , and{" "}
+                    <Link
+                      href="/p/cookie-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      Cookie Policy
+                    </Link>
+                    . I understand that placing this order creates a binding
+                    obligation to pay.
+                  </label>
+                </div>
 
                 <div className="flex gap-4 mt-6">
                   <button
@@ -689,10 +739,10 @@ export default function CheckoutPage() {
                   </button>
                   <button
                     onClick={handlePlaceOrder}
-                    disabled={submitting}
+                    disabled={submitting || !termsAccepted}
                     className="btn-primary flex-1"
                   >
-                    {submitting ? "Procesando..." : "Confirmar Pedido"}
+                    {submitting ? "Procesando..." : "Place Order & Pay"}
                   </button>
                 </div>
               </div>
