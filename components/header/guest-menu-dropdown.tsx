@@ -162,28 +162,7 @@ export function GuestMenuDropdown({
     },
   ]
 
-  const defaultListItems: GuestMenuItem[] = [
-    {
-      id: "faq",
-      label: "Preguntas frecuentes",
-      url: "/faq",
-      icon: "IconQuestionMark",
-      customIcon: null,
-      highlight: false,
-      highlightColor: null,
-      openInNewTab: false,
-    },
-    {
-      id: "contact",
-      label: "Contact Support",
-      url: "/contact",
-      icon: "IconHelp",
-      customIcon: null,
-      highlight: false,
-      highlightColor: null,
-      openInNewTab: false,
-    },
-  ]
+  const defaultListItems: GuestMenuItem[] = []
 
   const featuredItems = menuData?.featuredItems.length ? menuData.featuredItems : defaultFeaturedItems
   const listItems = menuData?.listItems.length ? menuData.listItems : defaultListItems
@@ -232,10 +211,10 @@ export function GuestMenuDropdown({
                     <div
                       className="w-12 h-12 flex items-center justify-center transition-colors"
                       style={{
-                        backgroundColor: item.highlightColor || "#3f3f46",
+                        backgroundColor: item.highlightColor || "var(--global-bg)",
                       }}
                     >
-                      <span style={{ color: "var(--text-primary)" }}>{renderIcon(item, "size-5")}</span>
+                      <span style={{ color: "var(--brand-color)" }}>{renderIcon(item, "size-5")}</span>
                     </div>
                     <span className="text-xs text-center whitespace-nowrap hover:opacity-80 transition-colors" style={{ color: "var(--text-primary)" }}>
                       {item.label}
