@@ -212,6 +212,7 @@ export function GuestMenuDropdown({
                       className="w-12 h-12 flex items-center justify-center transition-colors"
                       style={{
                         backgroundColor: item.highlightColor || "var(--global-bg)",
+                        border: "1px solid var(--brand-color-hover)",
                       }}
                     >
                       <span style={{ color: "var(--brand-color)" }}>{renderIcon(item, "size-5")}</span>
