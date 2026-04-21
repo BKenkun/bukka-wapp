@@ -19,7 +19,12 @@ interface CountdownTimerProps {
   videoUrl?: string
   height?: number
   contentPosition?: ContentPosition
+  overlayEnabled?: boolean
   overlayOpacity?: number
+  blurEnabled?: boolean
+  blurIntensity?: number
+  titleFontFamily?: string
+  titleFontSize?: number
 }
 
 export function CountdownTimer({
@@ -30,7 +35,12 @@ export function CountdownTimer({
   videoUrl,
   height = 500,
   contentPosition = "center",
+  overlayEnabled = true,
   overlayOpacity = 0.6,
+  blurEnabled = false,
+  blurIntensity = 4,
+  titleFontFamily,
+  titleFontSize,
 }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
@@ -55,6 +65,8 @@ export function CountdownTimer({
 
   const formatNumber = (num: number) => num.toString().padStart(2, "0")
 
+  const blurStyle = blurEnabled ? { filter: `blur(${blurIntensity}px)`, transform: "scale(1.1)" } : undefined
+
   const positionMap: Record<ContentPosition, { items: string; justify: string; text: string }> = {
     "top-left":      { items: "items-start", justify: "justify-start", text: "text-left" },
     "top-center":    { items: "items-start", justify: "justify-center", text: "text-center" },
@@ -73,11 +85,26 @@ export function CountdownTimer({
       {/* Background Video or Image */}
       <div className="absolute inset-0">
         {videoUrl ? (
-          <video src={videoUrl} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+          <video
+            src={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+            style={blurStyle}
+          />
         ) : backgroundImage ? (
-          <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
+          <img
+            src={backgroundImage}
+            alt="Background"
+            className="w-full h-full object-cover"
+            style={blurStyle}
+          />
         ) : null}
-        <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }} />
+        {overlayEnabled && (
+          <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }} />
+        )}
       </div>
 
       {/* Content Container */}
@@ -85,7 +112,11 @@ export function CountdownTimer({
         {/* Title */}
         <h2
           className={`font-bold leading-[48px] ${pos.text} mb-10`}
-          style={{ color: "var(--cd-title-color)", fontSize: "var(--cd-title-size)", fontFamily: "var(--global-font)" }}
+          style={{
+            color: "var(--cd-title-color)",
+            fontSize: titleFontSize ? `${titleFontSize}px` : "var(--cd-title-size)",
+            fontFamily: titleFontFamily || "var(--global-font)",
+          }}
         >
           {title}
         </h2>

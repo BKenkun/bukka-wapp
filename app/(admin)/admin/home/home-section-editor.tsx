@@ -930,6 +930,78 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 </p>
               </div>
 
+              {/* Overlay controls */}
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="countdownOverlayEnabled">Overlay oscuro</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Oscurecer el fondo para mejorar la legibilidad
+                    </p>
+                  </div>
+                  <Switch
+                    id="countdownOverlayEnabled"
+                    checked={(config.overlayEnabled as boolean) ?? true}
+                    onCheckedChange={(checked) => updateConfig("overlayEnabled", checked)}
+                  />
+                </div>
+                {(config.overlayEnabled ?? true) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="countdownOverlayOpacity">Intensidad del overlay ({((config.overlayOpacity as number) ?? 0.6).toFixed(1)})</Label>
+                    <input
+                      id="countdownOverlayOpacity"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={(config.overlayOpacity as number) ?? 0.6}
+                      onChange={(e) => updateConfig("overlayOpacity", parseFloat(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0 (sin overlay)</span>
+                      <span>1 (negro total)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Blur controls */}
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="countdownBlurEnabled">Desenfoque</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Difuminar el fondo para destacar el contenido
+                    </p>
+                  </div>
+                  <Switch
+                    id="countdownBlurEnabled"
+                    checked={(config.blurEnabled as boolean) ?? false}
+                    onCheckedChange={(checked) => updateConfig("blurEnabled", checked)}
+                  />
+                </div>
+                {!!config.blurEnabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="countdownBlurIntensity">Intensidad ({(config.blurIntensity as number) ?? 4}px)</Label>
+                    <input
+                      id="countdownBlurIntensity"
+                      type="range"
+                      min="1"
+                      max="20"
+                      step="1"
+                      value={(config.blurIntensity as number) ?? 4}
+                      onChange={(e) => updateConfig("blurIntensity", parseInt(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1px (sutil)</span>
+                      <span>20px (muy difuso)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Height */}
               <div className="space-y-2 pt-4 border-t">
                 <Label>Altura del countdown ({(config.height as number) || 500}px)</Label>
@@ -977,21 +1049,39 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 </div>
               </div>
 
-              {/* Overlay opacity */}
-              <div className="space-y-2 pt-4 border-t">
-                <Label>Intensidad del overlay ({((config.overlayOpacity as number) ?? 0.6).toFixed(1)})</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={(config.overlayOpacity as number) ?? 0.6}
-                  onChange={(e) => updateConfig("overlayOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-primary"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>0 (sin overlay)</span>
-                  <span>1 (negro total)</span>
+              {/* Title typography */}
+              <div className="space-y-3 pt-4 border-t">
+                <Label className="text-sm font-medium">Tipografía del título</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="countdownTitleFontFamily" className="text-xs text-muted-foreground">Fuente</Label>
+                    <Select
+                      value={(config.titleFontFamily as string) || "Montserrat"}
+                      onValueChange={(value) => updateConfig("titleFontFamily", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Montserrat">Montserrat</SelectItem>
+                        <SelectItem value="Inter">Inter</SelectItem>
+                        <SelectItem value="Playfair Display">Playfair Display</SelectItem>
+                        <SelectItem value="Oswald">Oswald</SelectItem>
+                        <SelectItem value="Bebas Neue">Bebas Neue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="countdownTitleFontSize" className="text-xs text-muted-foreground">Tamaño (px)</Label>
+                    <Input
+                      id="countdownTitleFontSize"
+                      type="number"
+                      min={16}
+                      max={72}
+                      value={(config.titleFontSize as number) || 40}
+                      onChange={(e) => updateConfig("titleFontSize", parseInt(e.target.value) || 40)}
+                    />
+                  </div>
                 </div>
               </div>
             </>

@@ -78,6 +78,14 @@ interface CountdownConfig {
   subtitle?: string
   backgroundImage?: string
   videoUrl?: string
+  height?: number
+  contentPosition?: "top-left" | "top-center" | "top-right" | "center-left" | "center" | "center-right" | "bottom-left" | "bottom-center" | "bottom-right"
+  overlayEnabled?: boolean
+  overlayOpacity?: number
+  blurEnabled?: boolean
+  blurIntensity?: number
+  titleFontFamily?: string
+  titleFontSize?: number
 }
 
 interface Performer {
@@ -530,9 +538,14 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
           subtitle={countdownConfig.subtitle}
           backgroundImage={countdownConfig.backgroundImage}
           videoUrl={countdownConfig.videoUrl}
-          height={(countdownConfig as Record<string, unknown>).height as number | undefined}
-          contentPosition={(countdownConfig as Record<string, unknown>).contentPosition as "center" | undefined}
-          overlayOpacity={(countdownConfig as Record<string, unknown>).overlayOpacity as number | undefined}
+          height={countdownConfig.height}
+          contentPosition={countdownConfig.contentPosition}
+          overlayEnabled={countdownConfig.overlayEnabled}
+          overlayOpacity={countdownConfig.overlayOpacity}
+          blurEnabled={countdownConfig.blurEnabled}
+          blurIntensity={countdownConfig.blurIntensity}
+          titleFontFamily={countdownConfig.titleFontFamily}
+          titleFontSize={countdownConfig.titleFontSize}
         />
       )
     }
