@@ -869,6 +869,32 @@ enum OrderStatus {
   ARCHIVED
 }
 
+enum AdminNotificationType {
+  NEW_ORDER
+  ORDER_PAID
+  PAYMENT_FAILED
+  NEW_USER
+  NEW_CONTACT_MESSAGE
+  NEW_CASTING
+  NEW_SUBSCRIPTION
+  SUBSCRIPTION_CANCELLED
+  NEW_FORUM_POST
+  SYSTEM
+}
+
+model AdminNotification {
+  id         String                @id @default(cuid())
+  type       AdminNotificationType
+  title      String
+  message    String?
+  relatedUrl String?
+  read       Boolean               @default(false)
+  createdAt  DateTime              @default(now())
+
+  @@index([read, createdAt])
+  @@index([createdAt])
+}
+
 enum PageStatus {
   DRAFT
   PUBLISHED

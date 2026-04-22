@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { castingApiSchema } from "@/lib/validations/casting"
 import { sendTemplateEmail, CastingReceivedTemplate } from "@/lib/email"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 // GET - Obtener todas las solicitudes de casting (admin only)
 export async function GET(request: NextRequest) {
@@ -159,6 +160,13 @@ export async function POST(request: NextRequest) {
         submittedAt: submission.createdAt,
       }),
       metadata: { submissionId: submission.id },
+    })
+
+    await createAdminNotification({
+      type: "NEW_CASTING",
+      title: "Nueva solicitud de casting",
+      message: `${submission.name} (${submission.email})`,
+      relatedUrl: `/admin/casting/${submission.id}`,
     })
 
     return NextResponse.json(submission, { status: 201 })

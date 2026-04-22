@@ -1,20 +1,12 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { IconSearch, IconBell } from "@tabler/icons-react"
+import { IconSearch } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+import { AdminNotificationsBell } from "@/components/admin-notifications-bell"
 
 const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
@@ -76,36 +68,7 @@ export function AdminHeader() {
           </div>
 
           {/* Notifications */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative text-foreground">
-                <IconBell className="size-5 text-foreground" />
-                <Badge className="absolute -top-1 -right-1 size-5 p-0 flex items-center justify-center text-[10px]">
-                  3
-                </Badge>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start gap-1">
-                <span className="font-medium">Nuevo pedido #1234</span>
-                <span className="text-sm text-muted-foreground">Hace 5 minutos</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-1">
-                <span className="font-medium">Nueva suscripción Gold</span>
-                <span className="text-sm text-muted-foreground">Hace 15 minutos</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-1">
-                <span className="font-medium">Solicitud de casting recibida</span>
-                <span className="text-sm text-muted-foreground">Hace 1 hora</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-center justify-center text-primary">
-                Ver todas
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AdminNotificationsBell />
 
           {/* View Site */}
           <Button variant="outline" size="sm" asChild className="hidden sm:flex text-foreground">

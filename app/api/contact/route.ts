@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { sendEmail } from "@/lib/email/send-email"
 import { ContactNotificationEmail } from "@/lib/email/templates/contact/notification"
 import { render } from "@react-email/components"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 const SETTINGS_KEY = "contact_settings"
 
@@ -70,6 +71,13 @@ export async function POST(request: NextRequest) {
         message,
         ipAddress,
       },
+    })
+
+    await createAdminNotification({
+      type: "NEW_CONTACT_MESSAGE",
+      title: "Nuevo mensaje de contacto",
+      message: `${name}: ${subject}`,
+      relatedUrl: `/admin/contact/${contactMessage.id}`,
     })
 
     // Load contact settings

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 // GET - List forum posts
 export async function GET(request: NextRequest) {
@@ -127,6 +128,13 @@ export async function POST(request: NextRequest) {
         user: { select: { id: true, name: true, image: true } },
         ForumCategory: { select: { id: true, slug: true, name: true } },
       },
+    })
+
+    await createAdminNotification({
+      type: "NEW_FORUM_POST",
+      title: "Nuevo tema en el foro",
+      message: `${post.user.name || "Usuario"}: ${post.title}`,
+      relatedUrl: `/admin/forum`,
     })
 
     return NextResponse.json(post, { status: 201 })

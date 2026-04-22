@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { sendTemplateEmail, OrderConfirmationTemplate } from "@/lib/email"
 import { clearCartSessionCookie, getCartSessionId } from "@/lib/cart-session"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 // GET - Listar órdenes del usuario
 export async function GET(request: NextRequest) {
@@ -355,6 +356,13 @@ export async function POST(request: NextRequest) {
       })
 
       return newOrder
+    })
+
+    await createAdminNotification({
+      type: "NEW_ORDER",
+      title: `Nuevo pedido #${order.orderNumber}`,
+      message: `${shippingAddress.firstName} ${shippingAddress.lastName} · ${Number(order.total).toFixed(2)} €`,
+      relatedUrl: `/admin/orders/${order.id}`,
     })
 
     // Send order confirmation email (to user email or guest email from shipping form)

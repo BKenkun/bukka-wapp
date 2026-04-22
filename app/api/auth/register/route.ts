@@ -3,6 +3,7 @@ import { hash } from "bcryptjs"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { sendTemplateEmail, VerifyEmailTemplate } from "@/lib/email"
+import { createAdminNotification } from "@/lib/admin-notifications"
 import { z } from "zod"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
@@ -47,6 +48,13 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
       },
+    })
+
+    await createAdminNotification({
+      type: "NEW_USER",
+      title: "Nuevo usuario registrado",
+      message: `${user.name || "Usuario"} (${user.email})`,
+      relatedUrl: `/admin/users/${user.id}`,
     })
 
     // Generate email verification token

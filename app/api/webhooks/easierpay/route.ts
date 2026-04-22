@@ -8,6 +8,7 @@ import {
   SubscriptionRenewedTemplate,
   SubscriptionCancelledTemplate,
 } from "@/lib/email"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 // EasierPay webhook actions
 type EasierPayAction = "BAJA" | "RENOVACION" | "VENTA" | "DEVOLUCION" | "REEMBOLSO"
@@ -118,6 +119,12 @@ async function handleOrderWebhook(
         })
 
         console.log(`[EasierPay Webhook] Order ${order.orderNumber} marked as PAID`)
+        await createAdminNotification({
+          type: "ORDER_PAID",
+          title: `Pago recibido · Pedido #${order.orderNumber}`,
+          message: `${Number(order.total).toFixed(2)} € · ${userName}`,
+          relatedUrl: `/admin/orders/${order.id}`,
+        })
       } else {
         await prisma.order.update({
           where: { id: orderId },
@@ -140,6 +147,12 @@ async function handleOrderWebhook(
         })
 
         console.log(`[EasierPay Webhook] Order ${order.orderNumber} payment FAILED`)
+        await createAdminNotification({
+          type: "PAYMENT_FAILED",
+          title: `Pago fallido · Pedido #${order.orderNumber}`,
+          message: `${Number(order.total).toFixed(2)} € · ${userName}`,
+          relatedUrl: `/admin/orders/${order.id}`,
+        })
       }
       break
     }
@@ -258,6 +271,15 @@ async function handleSubscriptionWebhook(
         console.log(
           `[EasierPay Webhook] Subscription activated: user=${userId} plan=${plan.name}`
         )
+        await createAdminNotification({
+          type: "NEW_SUBSCRIPTION",
+          title: `Nueva suscripción ${plan.name}`,
+          message: userEmail || `User ${userId}`,
+          relatedUrl: `/admin/users/${userId}`,
+        })
+        console.log(
+          `[EasierPay Webhook] Subscription activated (notif sent)`
+        )
       } else {
         console.log(
           `[EasierPay Webhook] Subscription payment failed: user=${userId} plan=${plan.name}`
@@ -333,6 +355,15 @@ async function handleSubscriptionWebhook(
 
       console.log(
         `[EasierPay Webhook] Subscription cancelled: user=${userId} (active until ${user.subscriptionEnd?.toISOString()})`
+      )
+      await createAdminNotification({
+        type: "SUBSCRIPTION_CANCELLED",
+        title: "Suscripción cancelada",
+        message: userEmail || `User ${userId}`,
+        relatedUrl: `/admin/users/${userId}`,
+      })
+      console.log(
+        `[EasierPay Webhook] Subscription cancelled (notif sent)`
       )
       break
     }
