@@ -34,9 +34,14 @@ export const EXTENSIONS: Record<string, string> = {
 }
 
 // Folder configuration
+// Política: subir a máxima calidad. Imágenes hasta 50 MB en el lado del admin;
+// el navegador hace el crop automático en cada contexto con object-cover +
+// aspect-ratio (home, tarjetas, tabla admin). Si se necesita compresión real
+// se añade Sharp más adelante como paso post-upload.
+const IMAGE_MAX = 50 * 1024 * 1024 // 50 MB
 export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: string[]; requireAdmin: boolean }> = {
   thumbnails: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
@@ -51,82 +56,82 @@ export const FOLDER_CONFIG: Record<string, { maxSize: number; allowedTypes: stri
     requireAdmin: true,
   },
   gallery: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   products: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   performers: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   banners: {
-    maxSize: 8 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
     requireAdmin: true,
   },
   blog: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
     requireAdmin: true,
   },
   categories: {
-    maxSize: 2 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   favicon: {
-    maxSize: 512 * 1024,
+    maxSize: 1 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"],
     requireAdmin: true,
   },
   avatars: {
-    maxSize: 2 * 1024 * 1024,
+    maxSize: 20 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: false,
   },
   casting: {
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 20 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
     requireAdmin: false,
   },
   "casting-video": {
-    maxSize: 100 * 1024 * 1024,
+    maxSize: 200 * 1024 * 1024,
     allowedTypes: ["video/mp4", "video/webm", "video/quicktime"],
     requireAdmin: false,
   },
   hero: {
-    maxSize: 100 * 1024 * 1024,
+    maxSize: 200 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
     requireAdmin: true,
   },
   settings: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   cta: {
-    maxSize: 100 * 1024 * 1024,
+    maxSize: 200 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
     requireAdmin: true,
   },
   countdown: {
-    maxSize: 100 * 1024 * 1024,
+    maxSize: 200 * 1024 * 1024,
     allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
     requireAdmin: true,
   },
   shop: {
-    maxSize: 8 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
   footer: {
-    maxSize: 4 * 1024 * 1024,
+    maxSize: IMAGE_MAX,
     allowedTypes: ["image/jpeg", "image/png", "image/webp"],
     requireAdmin: true,
   },
