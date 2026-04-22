@@ -106,7 +106,7 @@ export default function CarritoPage() {
     }
   }
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
