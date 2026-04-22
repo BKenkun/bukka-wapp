@@ -563,6 +563,10 @@ async function VideoDetailPage({ slug }: { slug: string }) {
     userPlan = user?.SubscriptionPlan || null
   }
 
+  // Cargar settings del overlay de bloqueo (textos y estilo configurables desde admin)
+  const videoAccessSettings = await getVideoAccessSettings()
+  const lockConfig = videoAccessSettings.lockScreen
+
   // Determinar si el video está bloqueado para este usuario
   let isLocked = false
   let lockReason = ""
@@ -572,14 +576,14 @@ async function VideoDetailPage({ slug }: { slug: string }) {
     const userLevel = userPlan?.level ?? 0
     if (userLevel < video.minTierPlan.level) {
       isLocked = true
-      lockReason = "Este contenido requiere una suscripción superior"
+      lockReason = lockConfig.messageLockedByTier
       requiredTier = video.minTierPlan.name
     }
   }
 
   if (video.isDiamondExclusive && !userPlan?.canAccessExclusive) {
     isLocked = true
-    lockReason = "Contenido exclusivo para suscriptores Diamond"
+    lockReason = lockConfig.messageLockedByExclusive
     requiredTier = "Diamond"
   }
 
@@ -587,14 +591,14 @@ async function VideoDetailPage({ slug }: { slug: string }) {
     const now = new Date()
     if (now < video.limitedAccessUntil && !userPlan?.canAccessLimitedEdition) {
       isLocked = true
-      lockReason = "Acceso anticipado para suscriptores Platinum+"
+      lockReason = lockConfig.messageLockedByEarlyAccess
       requiredTier = "Platinum"
     }
   }
 
   if (!session && video.minTierPlan) {
     isLocked = true
-    lockReason = "Inicia sesión para ver este contenido"
+    lockReason = lockConfig.messageLockedByNoSession
     requiredTier = video.minTierPlan.name
   }
 
@@ -657,9 +661,6 @@ async function VideoDetailPage({ slug }: { slug: string }) {
   }))
 
   const hasMuxVideo = !!video.muxPlaybackId
-
-  const videoAccessSettings = await getVideoAccessSettings()
-  const lockConfig = videoAccessSettings.lockScreen
 
   // Determine dynamic grid spans based on performer count (matches dev_test2 exactly)
   const performerCount = actresses.length

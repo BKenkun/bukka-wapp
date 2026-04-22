@@ -24,6 +24,11 @@ export interface VideoAccessLockConfig {
   // Tier badge styling
   tierBadgeTextColor: string
   tierBadgeAccentColor: string
+  // Lock reason messages (texto principal del aviso según el motivo del bloqueo)
+  messageLockedByTier: string
+  messageLockedByExclusive: string
+  messageLockedByEarlyAccess: string
+  messageLockedByNoSession: string
 }
 
 export interface VideoAccessSettings {
@@ -57,6 +62,11 @@ export const defaultVideoAccessSettings: VideoAccessSettings = {
     // Tier badge defaults: toma los colores del tema global (admin → Settings → Diseño)
     tierBadgeTextColor: "var(--accent-color)",
     tierBadgeAccentColor: "var(--brand-color)",
+    // Lock messages — se muestran como descripción del overlay según el motivo
+    messageLockedByTier: "Este contenido requiere una suscripción superior",
+    messageLockedByExclusive: "Contenido exclusivo para suscriptores Diamond",
+    messageLockedByEarlyAccess: "Acceso anticipado para suscriptores Platinum+",
+    messageLockedByNoSession: "Inicia sesión para ver este contenido",
   },
 }
 

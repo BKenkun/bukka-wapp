@@ -43,6 +43,11 @@ interface LockScreenData {
   // Tier badge styling
   tierBadgeTextColor: string
   tierBadgeAccentColor: string
+  // Lock reason messages
+  messageLockedByTier: string
+  messageLockedByExclusive: string
+  messageLockedByEarlyAccess: string
+  messageLockedByNoSession: string
 }
 
 const DEFAULT_DATA: LockScreenData = {
@@ -65,6 +70,10 @@ const DEFAULT_DATA: LockScreenData = {
   buttonPaddingY: "py-3",
   tierBadgeTextColor: "var(--accent-color)",
   tierBadgeAccentColor: "var(--brand-color)",
+  messageLockedByTier: "Este contenido requiere una suscripción superior",
+  messageLockedByExclusive: "Contenido exclusivo para suscriptores Diamond",
+  messageLockedByEarlyAccess: "Acceso anticipado para suscriptores Platinum+",
+  messageLockedByNoSession: "Inicia sesión para ver este contenido",
 }
 
 const FONT_SIZE_OPTIONS = [
@@ -237,6 +246,74 @@ export function VideoAccessSettings() {
                 placeholder="/suscripciones"
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mensajes del aviso */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mensajes del aviso según el motivo</CardTitle>
+          <CardDescription>
+            Texto que se muestra debajo del título según por qué está bloqueado el video.
+            Sustituye al campo &quot;Descripción&quot; genérico cuando aplica.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="messageLockedByNoSession">Sin sesión iniciada</Label>
+            <Textarea
+              id="messageLockedByNoSession"
+              value={data.messageLockedByNoSession}
+              onChange={(e) => updateField("messageLockedByNoSession", e.target.value)}
+              placeholder="Inicia sesión para ver este contenido"
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              Usuario no registrado intentando acceder a un video con tier mínimo.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="messageLockedByTier">Suscripción insuficiente</Label>
+            <Textarea
+              id="messageLockedByTier"
+              value={data.messageLockedByTier}
+              onChange={(e) => updateField("messageLockedByTier", e.target.value)}
+              placeholder="Este contenido requiere una suscripción superior"
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              Usuario registrado pero con nivel de suscripción por debajo del mínimo del video.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="messageLockedByExclusive">Contenido exclusivo Diamond</Label>
+            <Textarea
+              id="messageLockedByExclusive"
+              value={data.messageLockedByExclusive}
+              onChange={(e) => updateField("messageLockedByExclusive", e.target.value)}
+              placeholder="Contenido exclusivo para suscriptores Diamond"
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              Video marcado como Diamond exclusive y el plan del usuario no tiene acceso.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="messageLockedByEarlyAccess">Acceso anticipado Edición Limitada</Label>
+            <Textarea
+              id="messageLockedByEarlyAccess"
+              value={data.messageLockedByEarlyAccess}
+              onChange={(e) => updateField("messageLockedByEarlyAccess", e.target.value)}
+              placeholder="Acceso anticipado para suscriptores Platinum+"
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              Video con limitedAccessUntil aún vigente y el plan no tiene canAccessLimitedEdition.
+            </p>
           </div>
         </CardContent>
       </Card>
