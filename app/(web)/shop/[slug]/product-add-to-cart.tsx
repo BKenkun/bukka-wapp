@@ -1,8 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { VariantSelector } from "@/components/shop/variant-selector"
 
@@ -55,8 +53,6 @@ export function ProductAddToCart({
   attributes = [],
   onPriceChange,
 }: ProductAddToCartProps) {
-  const { data: session } = useSession()
-  const router = useRouter()
   const [loading, setLoading] = React.useState(false)
   const [quantity, setQuantity] = React.useState(1)
   const [selectedVariant, setSelectedVariant] = React.useState<VariantInfo | null>(null)
@@ -88,11 +84,6 @@ export function ProductAddToCart({
   }
 
   const handleAddToCart = async () => {
-    if (!session?.user) {
-      router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
-      return
-    }
-
     if (isVariable && !selectedVariant) {
       toast.error("Selecciona una variante")
       return

@@ -86,8 +86,11 @@ async function handleOrderWebhook(
     return
   }
 
-  const userName = order.user.name || "Cliente"
-  const userEmail = order.user.email
+  const userName = order.user?.name || order.guestName || "Cliente"
+  const userEmail = order.user?.email || order.guestEmail
+  if (!userEmail) {
+    console.warn(`[EasierPay Webhook] Order ${order.orderNumber} has no email; skipping notifications`)
+  }
 
   switch (action) {
     case "VENTA": {
@@ -100,7 +103,7 @@ async function handleOrderWebhook(
           },
         })
 
-        await sendTemplateEmail({
+        if (userEmail) await sendTemplateEmail({
           to: userEmail,
           template: "orders/payment-received",
           subjectVariables: { orderNumber: order.orderNumber },
@@ -124,7 +127,7 @@ async function handleOrderWebhook(
           },
         })
 
-        await sendTemplateEmail({
+        if (userEmail) await sendTemplateEmail({
           to: userEmail,
           template: "orders/payment-failed",
           subjectVariables: { orderNumber: order.orderNumber },

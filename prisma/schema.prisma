@@ -80,9 +80,10 @@ model BlogPost {
 
 model Cart {
   id        String     @id @default(cuid())
-  userId    String     @unique
+  userId    String?    @unique
+  sessionId String?    @unique
   updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
 }
 
@@ -332,7 +333,9 @@ model MegamenuConfig {
 model Order {
   id                  String           @id @default(cuid())
   orderNumber         String           @unique
-  userId              String
+  userId              String?
+  guestEmail          String?
+  guestName           String?
   subtotal            Decimal          @db.Decimal(10, 2)
   discount            Decimal          @default(0) @db.Decimal(10, 2)
   tax                 Decimal          @default(0) @db.Decimal(10, 2)
@@ -352,10 +355,11 @@ model Order {
   riskLevel           ProductRiskLevel @default(LOW_RISK)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
-  user                User             @relation(fields: [userId], references: [id])
+  user                User?            @relation(fields: [userId], references: [id])
   OrderItem           OrderItem[]
 
   @@index([userId])
+  @@index([guestEmail])
 }
 
 model OrderItem {

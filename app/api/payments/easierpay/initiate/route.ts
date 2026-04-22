@@ -7,10 +7,6 @@ import { headers } from "next/headers"
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const { orderId } = await request.json()
 
     if (!orderId) {
@@ -37,9 +33,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify the order belongs to this user
-    if (order.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    // If the order belongs to a registered user, require that user to be logged in.
+    // Guest orders (userId === null) can be paid by anyone with the orderId (it is a CUID).
+    if (order.userId) {
+      if (!session?.user?.id || order.userId !== session.user.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      }
     }
 
     // Only allow payment for pending orders
@@ -70,9 +69,9 @@ export async function POST(request: NextRequest) {
         description: `Order ${order.orderNumber}`,
       },
       user: {
-        id: stringToNumericId(session.user.id),
-        name: order.user.name || session.user.email || "Customer",
-        email: order.user.email,
+        id: stringToNumericId(order.userId || order.id),
+        name: order.user?.name || order.guestName || session?.user?.email || "Customer",
+        email: order.user?.email || order.guestEmail || "",
         ip,
       },
       success_url: `${config.baseUrl}/checkout/resultado?order=${order.orderNumber}&status=success`,

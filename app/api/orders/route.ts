@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { sendTemplateEmail, OrderConfirmationTemplate } from "@/lib/email"
+import { clearCartSessionCookie, getCartSessionId } from "@/lib/cart-session"
 
 // GET - Listar órdenes del usuario
 export async function GET(request: NextRequest) {
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
 const shippingAddressSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
+  email: z.string().email(),
   address: z.string().min(1),
   address2: z.string().optional(),
   city: z.string().min(1),
@@ -116,12 +118,15 @@ const createOrderSchema = z.object({
   paymentGateway: z.string().optional(),
 })
 
-// POST - Crear orden desde el carrito
+// POST - Crear orden desde el carrito (usuario o invitado)
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const userId = session?.user?.id ?? null
+    const cartSessionId = userId ? null : await getCartSessionId()
+
+    if (!userId && !cartSessionId) {
+      return NextResponse.json({ error: "Cart session unavailable" }, { status: 400 })
     }
 
     const body = await request.json()
@@ -136,9 +141,9 @@ export async function POST(request: NextRequest) {
 
     const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount, paymentGateway } = validatedData.data
 
-    // Get cart with items
+    // Get cart with items (by userId for logged-in, by sessionId for guests)
     const cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
+      where: userId ? { userId } : { sessionId: cartSessionId! },
       include: {
         items: {
           include: {
@@ -225,11 +230,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get user's subscription plan for discount
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { SubscriptionPlan: true },
-    })
+    // Get user's subscription plan for discount (only logged-in users get tier discounts)
+    const user = userId
+      ? await prisma.user.findUnique({
+          where: { id: userId },
+          include: { SubscriptionPlan: true },
+        })
+      : null
 
     const discountPercent = user?.SubscriptionPlan?.shopDiscount || 0
 
@@ -273,7 +280,9 @@ export async function POST(request: NextRequest) {
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
-          userId: session.user.id,
+          userId,
+          guestEmail: userId ? null : shippingAddress.email,
+          guestName: userId ? null : `${shippingAddress.firstName} ${shippingAddress.lastName}`,
           subtotal,
           discount,
           tax,
@@ -348,22 +357,17 @@ export async function POST(request: NextRequest) {
       return newOrder
     })
 
-    // Send order confirmation email
-    const shippingAddr = shippingAddress as {
-      firstName: string
-      lastName: string
-      address: string
-      city: string
-      postalCode: string
-      country: string
-    }
+    // Send order confirmation email (to user email or guest email from shipping form)
+    const shippingAddr = shippingAddress
+    const recipientEmail = user?.email || shippingAddr.email
+    const recipientName = user?.name || shippingAddr.firstName
 
     await sendTemplateEmail({
-      to: user!.email,
+      to: recipientEmail,
       template: "orders/confirmation",
       subjectVariables: { orderNumber: order.orderNumber },
       react: OrderConfirmationTemplate({
-        customerName: user!.name || shippingAddr.firstName,
+        customerName: recipientName,
         orderNumber: order.orderNumber,
         items: order.OrderItem.map((item) => ({
           name: item.product.name,
@@ -385,6 +389,11 @@ export async function POST(request: NextRequest) {
       }),
       metadata: { orderId: order.id, orderNumber: order.orderNumber },
     })
+
+    // Clear guest cart cookie after successful order
+    if (!userId) {
+      await clearCartSessionCookie()
+    }
 
     return NextResponse.json({
       order: {

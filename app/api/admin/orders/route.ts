@@ -25,6 +25,8 @@ export async function GET(request: Request) {
           { orderNumber: { contains: search, mode: "insensitive" as const } },
           { user: { email: { contains: search, mode: "insensitive" as const } } },
           { user: { name: { contains: search, mode: "insensitive" as const } } },
+          { guestEmail: { contains: search, mode: "insensitive" as const } },
+          { guestName: { contains: search, mode: "insensitive" as const } },
         ],
       }),
     }

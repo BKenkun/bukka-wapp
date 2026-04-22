@@ -111,9 +111,18 @@ export async function PATCH(
       },
     })
 
-    // Send emails based on status changes
-    const userEmail = order.user.email
-    const userName = order.user.name || "Cliente"
+    // Send emails based on status changes (supports both registered users and guests)
+    const userEmail = order.user?.email || order.guestEmail
+    const userName = order.user?.name || order.guestName || "Cliente"
+    if (!userEmail) {
+      // No email available — skip notifications but still return the updated order
+      const transformedOrder = {
+        ...order,
+        items: order.OrderItem,
+        OrderItem: undefined,
+      }
+      return NextResponse.json({ order: transformedOrder })
+    }
 
     // Order status changed
     if (data.status && currentOrder?.status !== data.status) {

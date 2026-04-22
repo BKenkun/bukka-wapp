@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -34,22 +32,12 @@ interface CartData {
 }
 
 export default function CarritoPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
   const [cart, setCart] = useState<CartData | null>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/carrito")
-    }
-  }, [status, router])
-
-  useEffect(() => {
     const fetchCart = async () => {
-      if (!session?.user) return
-
       try {
         const res = await fetch("/api/cart")
         if (res.ok) {
@@ -63,10 +51,8 @@ export default function CarritoPage() {
       }
     }
 
-    if (session?.user) {
-      fetchCart()
-    }
-  }, [session])
+    fetchCart()
+  }, [])
 
   const refetchCart = async () => {
     try {

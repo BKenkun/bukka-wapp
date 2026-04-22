@@ -2,18 +2,63 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import {
+  ensureCartSessionId,
+  getCartSessionId,
+} from "@/lib/cart-session"
 
-// GET - Obtener carrito del usuario
+type CartOwner =
+  | { userId: string; sessionId: null }
+  | { userId: null; sessionId: string }
+
+async function resolveCartOwner(create: boolean): Promise<CartOwner | null> {
+  const session = await auth()
+  if (session?.user?.id) {
+    return { userId: session.user.id, sessionId: null }
+  }
+  const sessionId = create ? await ensureCartSessionId() : await getCartSessionId()
+  if (!sessionId) return null
+  return { userId: null, sessionId }
+}
+
+async function findCart(owner: CartOwner) {
+  if (owner.userId !== null) {
+    return prisma.cart.findUnique({ where: { userId: owner.userId } })
+  }
+  return prisma.cart.findUnique({ where: { sessionId: owner.sessionId } })
+}
+
+async function findOrCreateCart(owner: CartOwner) {
+  const existing = await findCart(owner)
+  if (existing) return existing
+  return prisma.cart.create({
+    data:
+      owner.userId !== null
+        ? { userId: owner.userId }
+        : { sessionId: owner.sessionId },
+  })
+}
+
+// GET - Obtener carrito del usuario o invitado
 export async function GET() {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
+      return NextResponse.json({
+        cart: {
+          id: null,
+          items: [],
+          itemCount: 0,
+          subtotal: 0,
+          discount: 0,
+          discountPercent: 0,
+          total: 0,
+        },
+      })
     }
 
-    // Get or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
+    const cart = await prisma.cart.findUnique({
+      where: owner.userId ? { userId: owner.userId } : { sessionId: owner.sessionId! },
       include: {
         items: {
           include: {
@@ -59,14 +104,9 @@ export async function GET() {
     })
 
     if (!cart) {
-      // Create cart with same include structure as findUnique
-      const newCart = await prisma.cart.create({
-        data: { userId: session.user.id },
-      })
-      // Return empty cart immediately since it has no items
       return NextResponse.json({
         cart: {
-          id: newCart.id,
+          id: null,
           items: [],
           itemCount: 0,
           subtotal: 0,
@@ -77,30 +117,30 @@ export async function GET() {
       })
     }
 
-    // Transform cart items
     const items = cart.items.map((item) => {
       const hasVariant = item.variant !== null
       const variant = item.variant
-
-      // Build variant label like "Talla: M, Color: Rojo"
       const variantLabel = variant
         ? variant.attributeValues
             .map((av) => `${av.attributeValue.attribute.name}: ${av.attributeValue.value}`)
             .join(", ")
         : null
 
-      // Use variant price/stock if available
       const price = hasVariant ? Number(variant!.price) : Number(item.product.price)
       const compareAtPrice = hasVariant
-        ? variant!.compareAtPrice ? Number(variant!.compareAtPrice) : null
-        : item.product.compareAtPrice ? Number(item.product.compareAtPrice) : null
+        ? variant!.compareAtPrice
+          ? Number(variant!.compareAtPrice)
+          : null
+        : item.product.compareAtPrice
+          ? Number(item.product.compareAtPrice)
+          : null
       const stock = hasVariant ? variant!.stock : item.product.stock
       const imageUrl = hasVariant && variant!.imageUrl
         ? variant!.imageUrl
         : item.product.images[0] || null
 
-      // Check availability
-      const isAvailable = item.product.status === "ACTIVE" &&
+      const isAvailable =
+        item.product.status === "ACTIVE" &&
         (!item.product.trackInventory || stock > 0) &&
         (!hasVariant || variant!.isActive)
 
@@ -123,20 +163,19 @@ export async function GET() {
       }
     })
 
-    // Calculate totals
     const subtotal = items.reduce(
       (sum, item) => sum + item.product.price * item.quantity,
       0
     )
 
-    // Get user's subscription plan for discount
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { SubscriptionPlan: true },
-    })
-
-    // Get subscription plan discount
-    const discountPercent = user?.SubscriptionPlan?.shopDiscount || 0
+    let discountPercent = 0
+    if (owner.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: owner.userId },
+        include: { SubscriptionPlan: true },
+      })
+      discountPercent = user?.SubscriptionPlan?.shopDiscount || 0
+    }
     const discount = (subtotal * discountPercent) / 100
     const total = subtotal - discount
 
@@ -153,10 +192,7 @@ export async function GET() {
     })
   } catch (error) {
     console.error("Error fetching cart:", error)
-    return NextResponse.json(
-      { error: "Error fetching cart" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error fetching cart" }, { status: 500 })
   }
 }
 
@@ -166,17 +202,16 @@ const addToCartSchema = z.object({
   variantId: z.string().nullable().optional(),
 })
 
-// POST - Añadir item al carrito
+// POST - Añadir item al carrito (permitido como invitado)
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const owner = await resolveCartOwner(true)
+    if (!owner) {
+      return NextResponse.json({ error: "Cart session unavailable" }, { status: 400 })
     }
 
     const body = await request.json()
     const validatedData = addToCartSchema.safeParse(body)
-
     if (!validatedData.success) {
       return NextResponse.json(
         { error: "Invalid data", details: validatedData.error.errors },
@@ -186,7 +221,6 @@ export async function POST(request: NextRequest) {
 
     const { productId, quantity, variantId } = validatedData.data
 
-    // Verify product exists and is available
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: {
@@ -203,13 +237,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (product.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Product not available" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Product not available" }, { status: 400 })
     }
 
-    // For VARIABLE products, require a variant
     if (product.productType === "VARIABLE" && !variantId) {
       return NextResponse.json(
         { error: "Variant required for this product" },
@@ -217,7 +247,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If variantId provided, verify it exists and belongs to this product
     let variant = null
     if (variantId) {
       variant = await prisma.productVariant.findUnique({
@@ -226,41 +255,21 @@ export async function POST(request: NextRequest) {
       })
 
       if (!variant || variant.productId !== productId) {
-        return NextResponse.json(
-          { error: "Variant not found" },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: "Variant not found" }, { status: 404 })
       }
 
       if (!variant.isActive) {
-        return NextResponse.json(
-          { error: "Variant not available" },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: "Variant not available" }, { status: 400 })
       }
     }
 
-    // Check stock - use variant stock for variable products, product stock for simple
     const stockToCheck = variant ? variant.stock : product.stock
     if (product.trackInventory && stockToCheck < quantity) {
-      return NextResponse.json(
-        { error: "Not enough stock" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Not enough stock" }, { status: 400 })
     }
 
-    // Get or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
-    })
+    const cart = await findOrCreateCart(owner)
 
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId: session.user.id },
-      })
-    }
-
-    // Check if item already in cart (same product + variant combination)
     const actualVariantId = variantId ?? null
     const existingItem = await prisma.cartItem.findFirst({
       where: {
@@ -271,22 +280,15 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingItem) {
-      // Update quantity
       const newQuantity = existingItem.quantity + quantity
-
       if (product.trackInventory && stockToCheck < newQuantity) {
-        return NextResponse.json(
-          { error: "Not enough stock" },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: "Not enough stock" }, { status: 400 })
       }
-
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: newQuantity },
       })
     } else {
-      // Add new item
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
@@ -300,10 +302,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Added to cart" }, { status: 201 })
   } catch (error) {
     console.error("Error adding to cart:", error)
-    return NextResponse.json(
-      { error: "Error adding to cart" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error adding to cart" }, { status: 500 })
   }
 }
 
@@ -315,14 +314,13 @@ const updateCartSchema = z.object({
 // PATCH - Actualizar cantidad de item
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
+      return NextResponse.json({ error: "Cart not found" }, { status: 404 })
     }
 
     const body = await request.json()
     const validatedData = updateCartSchema.safeParse(body)
-
     if (!validatedData.success) {
       return NextResponse.json(
         { error: "Invalid data", details: validatedData.error.errors },
@@ -332,33 +330,34 @@ export async function PATCH(request: NextRequest) {
 
     const { itemId, quantity } = validatedData.data
 
-    // Verify item belongs to user's cart
     const item = await prisma.cartItem.findUnique({
       where: { id: itemId },
       include: {
-        cart: { select: { userId: true } },
+        cart: { select: { userId: true, sessionId: true } },
         product: { select: { stock: true, trackInventory: true } },
         variant: { select: { stock: true } },
       },
     })
 
-    if (!item || item.cart.userId !== session.user.id) {
+    if (!item) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 })
+    }
+
+    const belongs =
+      (owner.userId && item.cart.userId === owner.userId) ||
+      (owner.sessionId && item.cart.sessionId === owner.sessionId)
+    if (!belongs) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 })
     }
 
     if (quantity === 0) {
-      // Remove item
       await prisma.cartItem.delete({ where: { id: itemId } })
       return NextResponse.json({ message: "Item removed" })
     }
 
-    // Check stock - use variant stock if available
     const stockToCheck = item.variant ? item.variant.stock : item.product.stock
     if (item.product.trackInventory && stockToCheck < quantity) {
-      return NextResponse.json(
-        { error: "Not enough stock" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Not enough stock" }, { status: 400 })
     }
 
     await prisma.cartItem.update({
@@ -369,38 +368,38 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: "Cart updated" })
   } catch (error) {
     console.error("Error updating cart:", error)
-    return NextResponse.json(
-      { error: "Error updating cart" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error updating cart" }, { status: 500 })
   }
 }
 
 // DELETE - Eliminar item del carrito
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
+      return NextResponse.json({ error: "Cart not found" }, { status: 404 })
     }
 
     const { searchParams } = new URL(request.url)
     const itemId = searchParams.get("itemId")
 
     if (!itemId) {
-      return NextResponse.json(
-        { error: "itemId is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "itemId is required" }, { status: 400 })
     }
 
-    // Verify item belongs to user's cart
     const item = await prisma.cartItem.findUnique({
       where: { id: itemId },
-      include: { cart: { select: { userId: true } } },
+      include: { cart: { select: { userId: true, sessionId: true } } },
     })
 
-    if (!item || item.cart.userId !== session.user.id) {
+    if (!item) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 })
+    }
+
+    const belongs =
+      (owner.userId && item.cart.userId === owner.userId) ||
+      (owner.sessionId && item.cart.sessionId === owner.sessionId)
+    if (!belongs) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 })
     }
 
@@ -409,9 +408,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: "Item removed" })
   } catch (error) {
     console.error("Error removing item:", error)
-    return NextResponse.json(
-      { error: "Error removing item" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error removing item" }, { status: 500 })
   }
 }

@@ -59,7 +59,9 @@ interface Order {
       name: string
       slug: string
     } | null
-  }
+  } | null
+  guestEmail: string | null
+  guestName: string | null
   items: OrderItem[]
 }
 
@@ -319,21 +321,29 @@ export default function OrderDetailPage() {
               <CardTitle>Cliente</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <p className="font-medium">{order.user.name || "Sin nombre"}</p>
-                <p className="text-sm text-muted-foreground">{order.user.email}</p>
-                {order.user.subscriptionPlan && (
-                  <Badge variant="outline">
-                    {order.user.subscriptionPlan.name}
-                  </Badge>
-                )}
-                <Link
-                  href={`/admin/users/${order.user.id}`}
-                  className="block text-sm text-primary hover:underline mt-2"
-                >
-                  Ver perfil del cliente
-                </Link>
-              </div>
+              {order.user ? (
+                <div className="space-y-2">
+                  <p className="font-medium">{order.user.name || "Sin nombre"}</p>
+                  <p className="text-sm text-muted-foreground">{order.user.email}</p>
+                  {order.user.subscriptionPlan && (
+                    <Badge variant="outline">
+                      {order.user.subscriptionPlan.name}
+                    </Badge>
+                  )}
+                  <Link
+                    href={`/admin/users/${order.user.id}`}
+                    className="block text-sm text-primary hover:underline mt-2"
+                  >
+                    Ver perfil del cliente
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="font-medium">{order.guestName || "Sin nombre"}</p>
+                  <p className="text-sm text-muted-foreground">{order.guestEmail}</p>
+                  <Badge variant="outline">Invitado</Badge>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { authConfig } from "./auth.config"
+import { mergeGuestCartIntoUser } from "@/lib/cart-session"
 
 interface SubscriptionPlanData {
   id: string
@@ -87,6 +88,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  events: {
+    async signIn({ user }) {
+      if (user?.id) {
+        await mergeGuestCartIntoUser(user.id)
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, trigger }) {

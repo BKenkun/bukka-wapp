@@ -47,7 +47,9 @@ interface Order {
     id: string
     name: string | null
     email: string
-  }
+  } | null
+  guestEmail: string | null
+  guestName: string | null
   items: OrderItem[]
 }
 
@@ -207,8 +209,17 @@ export default function AdminOrdersPage() {
                   <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.user.name || "Sin nombre"}</p>
-                      <p className="text-sm text-muted-foreground">{order.user.email}</p>
+                      <p className="font-medium">
+                        {order.user?.name || order.guestName || "Sin nombre"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.user?.email || order.guestEmail}
+                      </p>
+                      {!order.user && (
+                        <Badge variant="outline" className="mt-1 text-[10px] h-5">
+                          Invitado
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>{order.items.length} items</TableCell>

@@ -100,15 +100,9 @@ export default function CheckoutPage() {
   } | null>(null)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/checkout")
-    }
-  }, [status, router])
+    if (status === "loading") return
 
-  useEffect(() => {
     const fetchCart = async () => {
-      if (!session?.user) return
-
       try {
         const res = await fetch("/api/cart")
         if (res.ok) {
@@ -118,11 +112,11 @@ export default function CheckoutPage() {
             return
           }
           setCart(data.cart)
-          // Pre-fill email if available
-          if (session.user.email) {
+          // Pre-fill email when a registered user is logged in
+          if (session?.user?.email) {
             setShippingAddress((prev) => ({
               ...prev,
-              email: session.user.email || "",
+              email: prev.email || session.user?.email || "",
             }))
           }
         }
@@ -133,10 +127,8 @@ export default function CheckoutPage() {
       }
     }
 
-    if (session?.user) {
-      fetchCart()
-    }
-  }, [session, router])
+    fetchCart()
+  }, [status, session, router])
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
