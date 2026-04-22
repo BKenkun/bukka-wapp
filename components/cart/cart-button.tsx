@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -32,7 +31,6 @@ interface CartData {
 }
 
 export function CartButton() {
-  const { data: session } = useSession()
   const [cart, setCart] = useState<CartData | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -41,8 +39,6 @@ export function CartButton() {
   const isEmpty = !cart || cart.items.length === 0
 
   const fetchCart = async () => {
-    if (!session?.user) return
-
     try {
       const res = await fetch("/api/cart")
       if (res.ok) {
@@ -56,7 +52,7 @@ export function CartButton() {
 
   useEffect(() => {
     fetchCart()
-  }, [session])
+  }, [])
 
   useEffect(() => {
     const handleCartUpdate = () => {
@@ -65,7 +61,7 @@ export function CartButton() {
 
     window.addEventListener("cart-updated", handleCartUpdate)
     return () => window.removeEventListener("cart-updated", handleCartUpdate)
-  }, [session])
+  }, [])
 
   const handleRemoveItem = async (itemId: string) => {
     setLoading(true)
@@ -109,29 +105,6 @@ export function CartButton() {
     if (!isEmpty) {
       setIsOpen(!isOpen)
     }
-  }
-
-  if (!session?.user) {
-    return (
-      <Link href="/?login=true" className="relative p-2">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          style={{ color: "var(--header-nav-text)" }}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="9" cy="21" r="1" />
-          <circle cx="20" cy="21" r="1" />
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-        </svg>
-      </Link>
-    )
   }
 
   return (
