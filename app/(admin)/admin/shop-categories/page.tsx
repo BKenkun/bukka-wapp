@@ -29,7 +29,6 @@ import {
 import { toast } from "sonner"
 import { IconPlus, IconEdit, IconTrash, IconLoader2, IconX, IconPhoto } from "@tabler/icons-react"
 import { LocalUploadDropzone } from "@/components/local-upload-button"
-import Image from "next/image"
 
 interface ShopCategory {
   id: string
@@ -212,11 +211,14 @@ export default function ShopCategoriesPage() {
                 {formData.imageUrl ? (
                   <div className="relative mt-2">
                     <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-muted">
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={formData.imageUrl}
                         alt="Imagen de categoría"
-                        fill
-                        className="object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                        }}
                       />
                     </div>
                     <Button
@@ -333,11 +335,14 @@ export default function ShopCategoriesPage() {
                   <TableCell>
                     {cat.imageUrl ? (
                       <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={cat.imageUrl}
                           alt={cat.name}
-                          fill
-                          className="object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none"
+                          }}
                         />
                       </div>
                     ) : (
