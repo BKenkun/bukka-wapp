@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Providers } from "./providers"
 import { getSeoMetadata } from "@/lib/get-site-settings"
+import { ClarityScript } from "@/components/clarity-script"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
           {children}
         </Providers>
         <Analytics />
+        <ClarityScript />
       </body>
     </html>
   )
