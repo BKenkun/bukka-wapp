@@ -54,9 +54,9 @@ export const defaultVideoAccessSettings: VideoAccessSettings = {
     buttonBorderRadius: "rounded-none",
     buttonPaddingX: "px-6",
     buttonPaddingY: "py-3",
-    // Tier badge defaults: matches the description color (white 80%) and brand accent
-    tierBadgeTextColor: "rgba(255,255,255,0.8)",
-    tierBadgeAccentColor: "#FA4860",
+    // Tier badge defaults: toma los colores del tema global (admin → Settings → Diseño)
+    tierBadgeTextColor: "var(--accent-color)",
+    tierBadgeAccentColor: "var(--brand-color)",
   },
 }
 

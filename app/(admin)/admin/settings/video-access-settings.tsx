@@ -63,8 +63,8 @@ const DEFAULT_DATA: LockScreenData = {
   buttonBorderRadius: "rounded-none",
   buttonPaddingX: "px-6",
   buttonPaddingY: "py-3",
-  tierBadgeTextColor: "rgba(255,255,255,0.8)",
-  tierBadgeAccentColor: "#FA4860",
+  tierBadgeTextColor: "var(--accent-color)",
+  tierBadgeAccentColor: "var(--brand-color)",
 }
 
 const FONT_SIZE_OPTIONS = [
@@ -348,7 +348,8 @@ export function VideoAccessSettings() {
         <CardHeader>
           <CardTitle>Diseño del Tier Badge</CardTitle>
           <CardDescription>
-            Personaliza el color del texto y del plan en "Requiere suscripción X o superior"
+            Personaliza el color del texto y del plan en "Requiere suscripción X o superior".
+            Por defecto usa los colores del tema (Settings → Diseño): Acento para el texto y Marca para el nombre del plan.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -359,18 +360,19 @@ export function VideoAccessSettings() {
                 <Input
                   id="tierBadgeTextColor"
                   type="color"
-                  value={data.tierBadgeTextColor.startsWith("#") ? data.tierBadgeTextColor : "#FFFFFF"}
+                  value={data.tierBadgeTextColor.startsWith("#") ? data.tierBadgeTextColor : "#00B1DE"}
                   onChange={(e) => updateField("tierBadgeTextColor", e.target.value)}
                   className="w-20 p-1 h-10"
+                  title="Selecciona un HEX o escribe var(--accent-color) en el campo"
                 />
                 <Input
                   value={data.tierBadgeTextColor}
                   onChange={(e) => updateField("tierBadgeTextColor", e.target.value)}
-                  placeholder="#FFFFFF o rgba(255,255,255,0.8)"
+                  placeholder="var(--accent-color), #FFFFFF o rgba(...)"
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Acepta HEX (#FFFFFF) o rgba() con transparencia
+                Usa <code>var(--accent-color)</code> para que siga el Color Acento del tema, o un HEX/rgba concreto.
               </p>
             </div>
 
@@ -383,13 +385,17 @@ export function VideoAccessSettings() {
                   value={data.tierBadgeAccentColor.startsWith("#") ? data.tierBadgeAccentColor : "#FA4860"}
                   onChange={(e) => updateField("tierBadgeAccentColor", e.target.value)}
                   className="w-20 p-1 h-10"
+                  title="Selecciona un HEX o escribe var(--brand-color) en el campo"
                 />
                 <Input
                   value={data.tierBadgeAccentColor}
                   onChange={(e) => updateField("tierBadgeAccentColor", e.target.value)}
-                  placeholder="#FA4860"
+                  placeholder="var(--brand-color) o #FA4860"
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Usa <code>var(--brand-color)</code> para que siga el Color de Marca del tema.
+              </p>
             </div>
           </div>
         </CardContent>

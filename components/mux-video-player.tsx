@@ -84,8 +84,8 @@ export function MuxVideoPlayer({
     buttonPaddingX: lockConfig?.buttonPaddingX ?? "px-6",
     buttonPaddingY: lockConfig?.buttonPaddingY ?? "py-3",
     // Tier badge
-    tierBadgeTextColor: lockConfig?.tierBadgeTextColor ?? "rgba(255,255,255,0.8)",
-    tierBadgeAccentColor: lockConfig?.tierBadgeAccentColor ?? "#FA4860",
+    tierBadgeTextColor: lockConfig?.tierBadgeTextColor ?? "var(--accent-color)",
+    tierBadgeAccentColor: lockConfig?.tierBadgeAccentColor ?? "var(--brand-color)",
   }
   const [playbackToken, setPlaybackToken] = useState<string>()
   const [thumbnailToken, setThumbnailToken] = useState<string>()
