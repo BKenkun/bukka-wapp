@@ -21,6 +21,9 @@ export interface VideoAccessLockConfig {
   buttonBorderRadius: string
   buttonPaddingX: string
   buttonPaddingY: string
+  // Tier badge styling
+  tierBadgeTextColor: string
+  tierBadgeAccentColor: string
 }
 
 export interface VideoAccessSettings {
@@ -51,6 +54,9 @@ export const defaultVideoAccessSettings: VideoAccessSettings = {
     buttonBorderRadius: "rounded-none",
     buttonPaddingX: "px-6",
     buttonPaddingY: "py-3",
+    // Tier badge defaults: matches the description color (white 80%) and brand accent
+    tierBadgeTextColor: "rgba(255,255,255,0.8)",
+    tierBadgeAccentColor: "#FA4860",
   },
 }
 

@@ -83,6 +83,9 @@ export function MuxVideoPlayer({
     buttonBorderRadius: lockConfig?.buttonBorderRadius ?? "rounded-none",
     buttonPaddingX: lockConfig?.buttonPaddingX ?? "px-6",
     buttonPaddingY: lockConfig?.buttonPaddingY ?? "py-3",
+    // Tier badge
+    tierBadgeTextColor: lockConfig?.tierBadgeTextColor ?? "rgba(255,255,255,0.8)",
+    tierBadgeAccentColor: lockConfig?.tierBadgeAccentColor ?? "#FA4860",
   }
   const [playbackToken, setPlaybackToken] = useState<string>()
   const [thumbnailToken, setThumbnailToken] = useState<string>()
@@ -178,9 +181,9 @@ export function MuxVideoPlayer({
               {config.description}
             </p>
             {config.showTierBadge && requiredTier && (
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              <p className="text-sm" style={{ color: config.tierBadgeTextColor }}>
                 Requiere suscripción{" "}
-                <span className="font-semibold" style={{ color: "var(--brand-color)" }}>{requiredTier}</span> o
+                <span className="font-semibold" style={{ color: config.tierBadgeAccentColor }}>{requiredTier}</span> o
                 superior
               </p>
             )}

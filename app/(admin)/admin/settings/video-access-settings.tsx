@@ -40,6 +40,9 @@ interface LockScreenData {
   buttonBorderRadius: string
   buttonPaddingX: string
   buttonPaddingY: string
+  // Tier badge styling
+  tierBadgeTextColor: string
+  tierBadgeAccentColor: string
 }
 
 const DEFAULT_DATA: LockScreenData = {
@@ -60,6 +63,8 @@ const DEFAULT_DATA: LockScreenData = {
   buttonBorderRadius: "rounded-none",
   buttonPaddingX: "px-6",
   buttonPaddingY: "py-3",
+  tierBadgeTextColor: "rgba(255,255,255,0.8)",
+  tierBadgeAccentColor: "#FA4860",
 }
 
 const FONT_SIZE_OPTIONS = [
@@ -338,6 +343,58 @@ export function VideoAccessSettings() {
         </CardContent>
       </Card>
 
+      {/* Diseño del Tier Badge */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Diseño del Tier Badge</CardTitle>
+          <CardDescription>
+            Personaliza el color del texto y del plan en "Requiere suscripción X o superior"
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tierBadgeTextColor">Color del texto</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="tierBadgeTextColor"
+                  type="color"
+                  value={data.tierBadgeTextColor.startsWith("#") ? data.tierBadgeTextColor : "#FFFFFF"}
+                  onChange={(e) => updateField("tierBadgeTextColor", e.target.value)}
+                  className="w-20 p-1 h-10"
+                />
+                <Input
+                  value={data.tierBadgeTextColor}
+                  onChange={(e) => updateField("tierBadgeTextColor", e.target.value)}
+                  placeholder="#FFFFFF o rgba(255,255,255,0.8)"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Acepta HEX (#FFFFFF) o rgba() con transparencia
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tierBadgeAccentColor">Color del nombre del plan</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="tierBadgeAccentColor"
+                  type="color"
+                  value={data.tierBadgeAccentColor.startsWith("#") ? data.tierBadgeAccentColor : "#FA4860"}
+                  onChange={(e) => updateField("tierBadgeAccentColor", e.target.value)}
+                  className="w-20 p-1 h-10"
+                />
+                <Input
+                  value={data.tierBadgeAccentColor}
+                  onChange={(e) => updateField("tierBadgeAccentColor", e.target.value)}
+                  placeholder="#FA4860"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Diseño del Botón */}
       <Card>
         <CardHeader>
@@ -567,9 +624,9 @@ export function VideoAccessSettings() {
                   {data.description}
                 </p>
                 {data.showTierBadge && (
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-sm" style={{ color: data.tierBadgeTextColor }}>
                     Requiere suscripción{" "}
-                    <span className="text-[#FA4860] font-semibold">Diamond</span> o
+                    <span className="font-semibold" style={{ color: data.tierBadgeAccentColor }}>Diamond</span> o
                     superior
                   </p>
                 )}
