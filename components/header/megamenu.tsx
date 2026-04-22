@@ -45,24 +45,12 @@ export function Megamenu({ data }: MegamenuProps) {
       ? "Products"
       : "Performers"
 
-  // CASE 1: Only featured (no videos, no links) - show in scrollable row
+  // CASE 1: Only featured (no videos, no links) - slider de 3 con flechas si hay 4+
   if (hasFeatured && !hasVideos && !hasLinks) {
     return (
       <div className="w-full px-8 py-6">
         <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
-        <FeaturedGrid columns={Math.min(featuredItems.length, 5)}>
-          {featuredItems.map((item) =>
-            item.type === "performer" ? (
-              <div key={item.data.id} >
-                <MegamenuPerformerCard performer={item.data} />
-              </div>
-            ) : (
-              <div key={item.data.id} >
-                <MegamenuProductCard product={item.data} />
-              </div>
-            )
-          )}
-        </FeaturedGrid>
+        <FeaturedSlider items={featuredItems} />
       </div>
     )
   }
@@ -120,19 +108,7 @@ export function Megamenu({ data }: MegamenuProps) {
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
-            <FeaturedGrid columns={Math.min(featuredItems.length, 5)}>
-              {featuredItems.map((item) =>
-                item.type === "performer" ? (
-                  <div key={item.data.id} >
-                    <MegamenuPerformerCard performer={item.data} />
-                  </div>
-                ) : (
-                  <div key={item.data.id} >
-                    <MegamenuProductCard product={item.data} />
-                  </div>
-                )
-              )}
-            </FeaturedGrid>
+            <FeaturedSlider items={featuredItems} />
           </div>
         </div>
       </div>
@@ -150,15 +126,7 @@ export function Megamenu({ data }: MegamenuProps) {
           </div>
           <div className="w-[320px] flex-shrink-0">
             <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
-            <FeaturedGrid columns={Math.min(featuredItems.length, 3)}>
-              {featuredItems.map((item) =>
-                item.type === "performer" ? (
-                  <MegamenuPerformerCard key={item.data.id} performer={item.data} />
-                ) : (
-                  <MegamenuProductCard key={item.data.id} product={item.data} />
-                )
-              )}
-            </FeaturedGrid>
+            <FeaturedSlider items={featuredItems} />
           </div>
         </div>
       </div>
@@ -201,15 +169,7 @@ export function Megamenu({ data }: MegamenuProps) {
         </div>
         <div className="w-[240px] flex-shrink-0">
           <h3 className="font-bold text-sm mb-4" style={{ color: "var(--text-primary)" }}>{featuredTitle}</h3>
-          <FeaturedGrid columns={Math.min(featuredItems.length, 3)}>
-            {featuredItems.map((item) =>
-              item.type === "performer" ? (
-                <MegamenuPerformerCard key={item.data.id} performer={item.data} />
-              ) : (
-                <MegamenuProductCard key={item.data.id} product={item.data} />
-              )
-            )}
-          </FeaturedGrid>
+          <FeaturedSlider items={featuredItems} />
         </div>
       </div>
     </div>
@@ -258,15 +218,54 @@ function VideoSlider({ videos }: { videos: MegamenuData["videos"] }) {
   )
 }
 
-// Grid for featured items
-function FeaturedGrid({ children, columns }: { children: React.ReactNode; columns?: number }) {
-  const cols = columns || 3
+// Featured slider: muestra 3 a la vez, flechas cuando hay 4+ (misma UX que VideoSlider)
+function FeaturedSlider({ items }: { items: FeaturedItem[] }) {
+  const [offset, setOffset] = useState(0)
+  const visible = 3
+  const canScroll = items.length > visible
+  const maxOffset = Math.max(0, items.length - visible)
+  const cols = Math.min(items.length, visible)
+
   return (
-    <div
-      className="grid gap-3"
-      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-    >
-      {children}
+    <div className="relative">
+      {canScroll && offset > 0 && (
+        <button
+          onClick={() => setOffset((o) => Math.max(0, o - 1))}
+          className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center transition-colors cursor-pointer"
+          style={{ backgroundColor: "var(--brand-color)" }}
+          aria-label="Anterior"
+        >
+          <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
+
+      <div
+        className="grid gap-3"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      >
+        {items.slice(offset, offset + visible).map((item) =>
+          item.type === "performer" ? (
+            <MegamenuPerformerCard key={item.data.id} performer={item.data} />
+          ) : (
+            <MegamenuProductCard key={item.data.id} product={item.data} />
+          )
+        )}
+      </div>
+
+      {canScroll && offset < maxOffset && (
+        <button
+          onClick={() => setOffset((o) => Math.min(maxOffset, o + 1))}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center transition-colors cursor-pointer"
+          style={{ backgroundColor: "var(--brand-color)" }}
+          aria-label="Siguiente"
+        >
+          <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
