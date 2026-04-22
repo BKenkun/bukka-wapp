@@ -7,6 +7,7 @@ import {
   SubscriptionActivatedTemplate,
   SubscriptionRenewedTemplate,
   SubscriptionCancelledTemplate,
+  SubscriptionPaymentFailedTemplate,
 } from "@/lib/email"
 import { createAdminNotification } from "@/lib/admin-notifications"
 
@@ -284,6 +285,24 @@ async function handleSubscriptionWebhook(
         console.log(
           `[EasierPay Webhook] Subscription payment failed: user=${userId} plan=${plan.name}`
         )
+        await sendTemplateEmail({
+          to: userEmail,
+          template: "subscriptions/payment-failed",
+          subjectVariables: { planName: plan.name },
+          react: SubscriptionPaymentFailedTemplate({
+            customerName: userName,
+            planName: plan.name,
+            amount: monthlyPrice,
+            reason: "No se pudo procesar el pago de tu suscripción",
+          }),
+          metadata: { userId, planId: plan.id },
+        })
+        await createAdminNotification({
+          type: "PAYMENT_FAILED",
+          title: `Pago de suscripción fallido · ${plan.name}`,
+          message: userEmail,
+          relatedUrl: `/admin/users/${userId}`,
+        })
       }
       break
     }
@@ -335,6 +354,27 @@ async function handleSubscriptionWebhook(
         console.warn(
           `[EasierPay Webhook] Subscription renewal failed: user=${userId} (EasierPay will retry)`
         )
+        // EasierPay reintenta la renovación de forma automática. Avisamos al
+        // user + admin para que sepan que habrá un reintento y puedan
+        // actualizar el método de pago si hace falta.
+        await sendTemplateEmail({
+          to: userEmail,
+          template: "subscriptions/payment-failed",
+          subjectVariables: { planName: plan.name },
+          react: SubscriptionPaymentFailedTemplate({
+            customerName: userName,
+            planName: plan.name,
+            amount: monthlyPrice,
+            reason: "No pudimos cobrar la renovación mensual",
+          }),
+          metadata: { userId, planId: plan.id },
+        })
+        await createAdminNotification({
+          type: "PAYMENT_FAILED",
+          title: `Renovación fallida · ${plan.name}`,
+          message: `${userEmail} — EasierPay reintentará`,
+          relatedUrl: `/admin/users/${userId}`,
+        })
       }
       break
     }

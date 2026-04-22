@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import {
+  sendTemplateEmail,
+  SubscriptionUpgradeTemplate,
+  SubscriptionDowngradeTemplate,
+} from "@/lib/email"
+import { createAdminNotification } from "@/lib/admin-notifications"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -45,8 +51,27 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       isVerified,
     } = body
 
-    // If subscription plan changed, create history record
-    if (subscriptionPlanId !== undefined && subscriptionPlanId !== existingUser.subscriptionPlanId) {
+    // Si el plan cambia, crear history + preparar email upgrade/downgrade
+    let previousPlan: { id: string; name: string; level: number; monthlyPrice: unknown } | null = null
+    let newPlanData: { id: string; name: string; level: number; monthlyPrice: unknown; features: unknown } | null = null
+    const planChanged =
+      subscriptionPlanId !== undefined &&
+      subscriptionPlanId !== existingUser.subscriptionPlanId
+
+    if (planChanged) {
+      if (existingUser.subscriptionPlanId) {
+        previousPlan = await prisma.subscriptionPlan.findUnique({
+          where: { id: existingUser.subscriptionPlanId },
+          select: { id: true, name: true, level: true, monthlyPrice: true },
+        })
+      }
+      if (subscriptionPlanId) {
+        newPlanData = await prisma.subscriptionPlan.findUnique({
+          where: { id: subscriptionPlanId },
+          select: { id: true, name: true, level: true, monthlyPrice: true, features: true },
+        })
+      }
+
       await prisma.subscriptionHistory.create({
         data: {
           userId: id,
@@ -77,6 +102,62 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         SubscriptionPlan: true,
       },
     })
+
+    // Emails + notif admin al upgrade/downgrade (solo si ambos planes están definidos)
+    if (planChanged && previousPlan && newPlanData && previousPlan.id !== newPlanData.id) {
+      const isUpgrade = newPlanData.level > previousPlan.level
+      const customerName = user.name || "Cliente"
+      const effectiveDate = new Date()
+
+      try {
+        if (isUpgrade) {
+          const features = Array.isArray(newPlanData.features)
+            ? (newPlanData.features as { text: string; included: boolean }[])
+                .filter((f) => f.included)
+                .map((f) => f.text)
+            : []
+          await sendTemplateEmail({
+            to: user.email,
+            template: "subscriptions/upgrade",
+            subjectVariables: { planName: newPlanData.name },
+            react: SubscriptionUpgradeTemplate({
+              customerName,
+              previousPlan: previousPlan.name,
+              newPlan: newPlanData.name,
+              newFeatures: features,
+              effectiveDate,
+              newAmount: Number(newPlanData.monthlyPrice),
+            }),
+            metadata: { userId: id, planId: newPlanData.id },
+          })
+        } else {
+          await sendTemplateEmail({
+            to: user.email,
+            template: "subscriptions/downgrade",
+            subjectVariables: { planName: newPlanData.name },
+            react: SubscriptionDowngradeTemplate({
+              customerName,
+              previousPlan: previousPlan.name,
+              newPlan: newPlanData.name,
+              effectiveDate,
+              newAmount: Number(newPlanData.monthlyPrice),
+            }),
+            metadata: { userId: id, planId: newPlanData.id },
+          })
+        }
+      } catch (err) {
+        console.error("Error sending upgrade/downgrade email:", err)
+      }
+
+      await createAdminNotification({
+        type: "NEW_SUBSCRIPTION",
+        title: isUpgrade
+          ? `Upgrade manual: ${previousPlan.name} → ${newPlanData.name}`
+          : `Downgrade manual: ${previousPlan.name} → ${newPlanData.name}`,
+        message: user.email,
+        relatedUrl: `/admin/users/${id}`,
+      })
+    }
 
     return NextResponse.json(user)
   } catch (error) {
