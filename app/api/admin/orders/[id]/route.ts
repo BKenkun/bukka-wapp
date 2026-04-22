@@ -13,7 +13,7 @@ import {
 } from "@/lib/email"
 
 const updateOrderSchema = z.object({
-  status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]).optional(),
+  status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "ARCHIVED"]).optional(),
   paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "REFUNDED"]).optional(),
   trackingNumber: z.string().optional().nullable(),
 })
@@ -71,6 +71,30 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching order:", error)
     return NextResponse.json({ error: "Error al obtener pedido" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const existing = await prisma.order.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
+    }
+
+    await prisma.order.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error("Error deleting order:", error)
+    return NextResponse.json({ error: "Error al eliminar pedido" }, { status: 500 })
   }
 }
 

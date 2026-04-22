@@ -17,8 +17,14 @@ export async function GET(request: Request) {
     const search = searchParams.get("search")
     const skip = (page - 1) * pageSize
 
+    // Por defecto se ocultan los pedidos ARCHIVED. Si el admin filtra
+    // explícitamente por status=ARCHIVED, se muestran solo archivados.
+    const statusFilter = status
+      ? { status: status as "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "ARCHIVED" }
+      : { status: { not: "ARCHIVED" as const } }
+
     const where = {
-      ...(status && { status: status as "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" }),
+      ...statusFilter,
       ...(paymentStatus && { paymentStatus: paymentStatus as "PENDING" | "PAID" | "FAILED" | "REFUNDED" }),
       ...(search && {
         OR: [

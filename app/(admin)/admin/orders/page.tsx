@@ -19,9 +19,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { IconLoader2, IconEye, IconSearch } from "@tabler/icons-react"
+import {
+  IconLoader2,
+  IconEye,
+  IconSearch,
+  IconDotsVertical,
+  IconArchive,
+  IconArchiveOff,
+  IconTrash,
+  IconEdit,
+} from "@tabler/icons-react"
 
 interface OrderItem {
   id: string
@@ -34,11 +67,14 @@ interface OrderItem {
   }
 }
 
+type OrderStatus = "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "ARCHIVED"
+type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+
 interface Order {
   id: string
   orderNumber: string
-  status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
-  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+  status: OrderStatus
+  paymentStatus: PaymentStatus
   subtotal: number
   discount: number
   total: number
@@ -59,6 +95,7 @@ const statusColors: Record<string, string> = {
   SHIPPED: "bg-purple-500",
   DELIVERED: "bg-green-500",
   CANCELLED: "bg-red-500",
+  ARCHIVED: "bg-gray-500",
 }
 
 const statusLabels: Record<string, string> = {
@@ -67,6 +104,7 @@ const statusLabels: Record<string, string> = {
   SHIPPED: "Enviado",
   DELIVERED: "Entregado",
   CANCELLED: "Cancelado",
+  ARCHIVED: "Archivado",
 }
 
 const paymentStatusColors: Record<string, string> = {
@@ -92,6 +130,9 @@ export default function AdminOrdersPage() {
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
   const [totalCount, setTotalCount] = React.useState(0)
+  const [statusDialog, setStatusDialog] = React.useState<{ order: Order; newStatus: OrderStatus } | null>(null)
+  const [deleteDialog, setDeleteDialog] = React.useState<Order | null>(null)
+  const [rowActionLoading, setRowActionLoading] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     fetchOrders()
@@ -125,6 +166,43 @@ export default function AdminOrdersPage() {
     fetchOrders()
   }
 
+  async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
+    setRowActionLoading(orderId)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error("Error al actualizar")
+      toast.success(
+        newStatus === "ARCHIVED"
+          ? "Pedido archivado"
+          : `Estado cambiado a ${statusLabels[newStatus] ?? newStatus}`
+      )
+      fetchOrders()
+    } catch {
+      toast.error("Error al actualizar pedido")
+    } finally {
+      setRowActionLoading(null)
+    }
+  }
+
+  async function deleteOrder(orderId: string) {
+    setRowActionLoading(orderId)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Error al eliminar")
+      toast.success("Pedido eliminado")
+      fetchOrders()
+    } catch {
+      toast.error("Error al eliminar pedido")
+    } finally {
+      setRowActionLoading(null)
+      setDeleteDialog(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 px-4 lg:px-6">
       <div className="flex items-center justify-between">
@@ -149,16 +227,17 @@ export default function AdminOrdersPage() {
         </form>
 
         <Select value={statusFilter || "__all__"} onValueChange={(v) => { setStatusFilter(v === "__all__" ? "" : v); setPage(1); }}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-48">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos</SelectItem>
+            <SelectItem value="__all__">Activos (sin archivados)</SelectItem>
             <SelectItem value="PENDING">Pendiente</SelectItem>
             <SelectItem value="PROCESSING">Procesando</SelectItem>
             <SelectItem value="SHIPPED">Enviado</SelectItem>
             <SelectItem value="DELIVERED">Entregado</SelectItem>
             <SelectItem value="CANCELLED">Cancelado</SelectItem>
+            <SelectItem value="ARCHIVED">Archivados</SelectItem>
           </SelectContent>
         </Select>
 
@@ -238,11 +317,51 @@ export default function AdminOrdersPage() {
                     {new Date(order.createdAt).toLocaleDateString("es-ES")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/orders/${order.id}`}>
-                        <IconEye className="size-4" />
-                      </Link>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={rowActionLoading === order.id}>
+                          {rowActionLoading === order.id ? (
+                            <IconLoader2 className="size-4 animate-spin" />
+                          ) : (
+                            <IconDotsVertical className="size-4" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/orders/${order.id}`}>
+                            <IconEye className="mr-2 size-4" />
+                            Ver pedido
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusDialog({ order, newStatus: order.status })}
+                        >
+                          <IconEdit className="mr-2 size-4" />
+                          Cambiar estado
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {order.status === "ARCHIVED" ? (
+                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, "PENDING")}>
+                            <IconArchiveOff className="mr-2 size-4" />
+                            Desarchivar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, "ARCHIVED")}>
+                            <IconArchive className="mr-2 size-4" />
+                            Archivar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteDialog(order)}
+                        >
+                          <IconTrash className="mr-2 size-4" />
+                          Eliminar pedido
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -250,6 +369,83 @@ export default function AdminOrdersPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Cambiar estado modal */}
+      <Dialog open={!!statusDialog} onOpenChange={(open) => { if (!open) setStatusDialog(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Cambiar estado del pedido
+              {statusDialog && <span className="ml-2 text-muted-foreground font-normal">#{statusDialog.order.orderNumber}</span>}
+            </DialogTitle>
+          </DialogHeader>
+          {statusDialog && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nuevo estado</label>
+                <Select
+                  value={statusDialog.newStatus}
+                  onValueChange={(v) => setStatusDialog({ ...statusDialog, newStatus: v as OrderStatus })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pendiente</SelectItem>
+                    <SelectItem value="PROCESSING">Procesando</SelectItem>
+                    <SelectItem value="SHIPPED">Enviado</SelectItem>
+                    <SelectItem value="DELIVERED">Entregado</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                    <SelectItem value="ARCHIVED">Archivado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Al cambiar a Procesando/Enviado/Entregado/Cancelado se envía el email correspondiente al cliente.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialog(null)}>Cancelar</Button>
+            <Button
+              disabled={!statusDialog || rowActionLoading === statusDialog?.order.id || statusDialog.newStatus === statusDialog.order.status}
+              onClick={async () => {
+                if (!statusDialog) return
+                await updateOrderStatus(statusDialog.order.id, statusDialog.newStatus)
+                setStatusDialog(null)
+              }}
+            >
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Eliminar pedido - confirm */}
+      <AlertDialog open={!!deleteDialog} onOpenChange={(open) => { if (!open) setDeleteDialog(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar este pedido?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteDialog && (
+                <>
+                  Se eliminará permanentemente el pedido <strong>#{deleteDialog.orderNumber}</strong> y todos sus items.
+                  Esta acción no se puede deshacer. Si no quieres borrarlo del todo, usa &quot;Archivar&quot;.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteDialog && deleteOrder(deleteDialog.id)}
+            >
+              Eliminar definitivamente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Pagination */}
       {totalPages > 1 && (
