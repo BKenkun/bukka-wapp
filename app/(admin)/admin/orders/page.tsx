@@ -372,7 +372,7 @@ export default function AdminOrdersPage() {
 
       {/* Cambiar estado modal */}
       <Dialog open={!!statusDialog} onOpenChange={(open) => { if (!open) setStatusDialog(null) }}>
-        <DialogContent>
+        <DialogContent className="text-foreground">
           <DialogHeader>
             <DialogTitle>
               Cambiar estado del pedido
@@ -423,7 +423,7 @@ export default function AdminOrdersPage() {
 
       {/* Eliminar pedido - confirm */}
       <AlertDialog open={!!deleteDialog} onOpenChange={(open) => { if (!open) setDeleteDialog(null) }}>
-        <AlertDialogContent>
+        <AlertDialogContent className="text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar este pedido?</AlertDialogTitle>
             <AlertDialogDescription>
