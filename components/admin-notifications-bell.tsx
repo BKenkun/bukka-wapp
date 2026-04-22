@@ -15,6 +15,7 @@ import {
   IconCrownOff,
   IconMessageCircle,
   IconInfoCircle,
+  IconBox,
   IconCheck,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
@@ -36,7 +37,10 @@ type AdminNotificationType =
   | "NEW_CASTING"
   | "NEW_SUBSCRIPTION"
   | "SUBSCRIPTION_CANCELLED"
+  | "SUBSCRIPTION_RENEWAL_REMINDER"
+  | "SUBSCRIPTION_EXPIRED"
   | "NEW_FORUM_POST"
+  | "LOW_STOCK"
   | "SYSTEM"
 
 interface AdminNotification {
@@ -58,7 +62,10 @@ const iconByType: Record<AdminNotificationType, React.ComponentType<{ className?
   NEW_CASTING: IconStar,
   NEW_SUBSCRIPTION: IconCrown,
   SUBSCRIPTION_CANCELLED: IconCrownOff,
+  SUBSCRIPTION_RENEWAL_REMINDER: IconCrown,
+  SUBSCRIPTION_EXPIRED: IconCrownOff,
   NEW_FORUM_POST: IconMessageCircle,
+  LOW_STOCK: IconBox,
   SYSTEM: IconInfoCircle,
 }
 
@@ -176,7 +183,8 @@ export function AdminNotificationsBell() {
               No hay notificaciones
             </div>
           ) : (
-            notifications.map((n) => {
+            <>
+            {notifications.map((n) => {
               const Icon = iconByType[n.type] ?? IconInfoCircle
               const content = (
                 <div
@@ -213,9 +221,19 @@ export function AdminNotificationsBell() {
               ) : (
                 <div key={n.id}>{content}</div>
               )
-            })
+            })}
+            </>
           )}
         </div>
+
+        <DropdownMenuSeparator />
+        <Link
+          href="/admin/notifications"
+          onClick={() => setOpen(false)}
+          className="block px-3 py-2 text-center text-sm text-primary hover:bg-muted transition-colors"
+        >
+          Ver todas las notificaciones
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   )

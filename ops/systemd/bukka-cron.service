@@ -1,0 +1,15 @@
+[Unit]
+Description=Bukkakery daily cron job (subscription reminders + expired)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/bukka/production.env
+# Falla el servicio si curl devuelve código != 2xx
+ExecStart=/usr/bin/curl -fsS --max-time 60 -X POST \
+  -H "X-Cron-Secret: ${CRON_SECRET}" \
+  https://bukkakery.com/api/cron/daily
+# Salida en journalctl
+StandardOutput=journal
+StandardError=journal

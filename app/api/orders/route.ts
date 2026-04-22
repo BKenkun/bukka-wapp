@@ -365,6 +365,27 @@ export async function POST(request: NextRequest) {
       relatedUrl: `/admin/orders/${order.id}`,
     })
 
+    // Alerta de stock bajo: notificar cuando un producto/variante cruza
+    // el umbral (antes > 5, ahora ≤ 5) o se queda a 0.
+    for (const item of cart.items) {
+      if (!item.product.trackInventory) continue
+      const stockBefore = item.variant ? item.variant.stock : item.product.stock
+      const stockAfter = stockBefore - item.quantity
+      const crossedThreshold = stockBefore > 5 && stockAfter <= 5
+      const outOfStock = stockAfter <= 0
+      if (!crossedThreshold && !outOfStock) continue
+      await createAdminNotification({
+        type: "LOW_STOCK",
+        title: outOfStock
+          ? `Sin stock: ${item.product.name}`
+          : `Stock bajo: ${item.product.name}`,
+        message: outOfStock
+          ? "Producto agotado tras este pedido"
+          : `Quedan ${Math.max(0, stockAfter)} unidades`,
+        relatedUrl: `/admin/products/${item.product.id}`,
+      })
+    }
+
     // Send order confirmation email (to user email or guest email from shipping form)
     const shippingAddr = shippingAddress
     const recipientEmail = user?.email || shippingAddr.email

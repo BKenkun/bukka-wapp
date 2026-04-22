@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Bukkakery daily cron at 08:00 UTC
+
+[Timer]
+# Diario a las 08:00 UTC (~10:00 ES en verano, 09:00 en invierno)
+OnCalendar=*-*-* 08:00:00 UTC
+# Si el sistema estaba apagado a las 08:00, se ejecuta al arrancar
+Persistent=true
+Unit=bukka-cron.service
+
+[Install]
+WantedBy=timers.target
