@@ -59,9 +59,10 @@ export const defaultVideoAccessSettings: VideoAccessSettings = {
     buttonBorderRadius: "rounded-none",
     buttonPaddingX: "px-6",
     buttonPaddingY: "py-3",
-    // Tier badge defaults: toma los colores del tema global (admin → Settings → Diseño)
-    tierBadgeTextColor: "var(--accent-color)",
-    tierBadgeAccentColor: "var(--brand-color)",
+    // Tier badge: por defecto lee los colores del tema (Settings → Diseño → Videos → Acceso Denegado).
+    // Si el admin quiere un override específico de este overlay puede poner un HEX/rgba aquí.
+    tierBadgeTextColor: "var(--access-denied-text-color)",
+    tierBadgeAccentColor: "var(--access-denied-accent-color)",
     // Lock messages — se muestran como descripción del overlay según el motivo
     messageLockedByTier: "Este contenido requiere una suscripción superior",
     messageLockedByExclusive: "Contenido exclusivo para suscriptores Diamond",

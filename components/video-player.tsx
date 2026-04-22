@@ -46,9 +46,9 @@ export function VideoPlayer({
     buttonBorderRadius: lockConfig?.buttonBorderRadius ?? "rounded-none",
     buttonPaddingX: lockConfig?.buttonPaddingX ?? "px-6",
     buttonPaddingY: lockConfig?.buttonPaddingY ?? "py-3",
-    // Tier badge
-    tierBadgeTextColor: lockConfig?.tierBadgeTextColor ?? "var(--accent-color)",
-    tierBadgeAccentColor: lockConfig?.tierBadgeAccentColor ?? "var(--brand-color)",
+    // Tier badge — por defecto toma los colores definidos en Settings → Diseño → Videos
+    tierBadgeTextColor: lockConfig?.tierBadgeTextColor ?? "var(--access-denied-text-color)",
+    tierBadgeAccentColor: lockConfig?.tierBadgeAccentColor ?? "var(--access-denied-accent-color)",
   }
 
   return (

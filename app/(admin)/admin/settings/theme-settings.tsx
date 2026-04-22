@@ -85,6 +85,8 @@ const defaultTheme = {
     metaColor: "#999999",
     metaFontSize: "14",
     hoverAccentColor: "#FA4860",
+    accessDeniedTextColor: "rgba(255,255,255,0.8)",
+    accessDeniedAccentColor: "#FA4860",
   },
   performerCards: {
     nameColor: "#E0E0E0",
@@ -779,6 +781,31 @@ export function ThemeSettings() {
                 <ColorField label="Meta (vistas, fecha, duracion)" value={theme.videoCards.metaColor} onChange={(v) => updateSection("videoCards", "metaColor", v)} />
                 <NumberField label="Tamano de la Meta" value={theme.videoCards.metaFontSize} onChange={(v) => updateSection("videoCards", "metaFontSize", v)} min={10} max={20} />
                 <ColorField label="Color Hover en Nombres de Actrices" value={theme.videoCards.hoverAccentColor} onChange={(v) => updateSection("videoCards", "hoverAccentColor", v)} />
+              </div>
+
+              <Separator className="my-6" />
+
+              <div>
+                <h4 className="font-semibold">Acceso Denegado</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Colores del texto &quot;Requiere suscripción X o superior&quot; en el overlay de vídeos bloqueados.
+                  El resto del aviso (título, mensajes según el motivo, botón) se edita en
+                  <strong> Settings → Video Access</strong>.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ColorField
+                    label="Color del texto"
+                    tooltip="Color del párrafo 'Requiere suscripción ... o superior'. Acepta HEX. Si quieres transparencia, edítalo en Video Access con un rgba(...)."
+                    value={theme.videoCards.accessDeniedTextColor}
+                    onChange={(v) => updateSection("videoCards", "accessDeniedTextColor", v)}
+                  />
+                  <ColorField
+                    label="Color del nombre del plan"
+                    tooltip="Color de la palabra del plan (p. ej. 'Free') dentro del aviso."
+                    value={theme.videoCards.accessDeniedAccentColor}
+                    onChange={(v) => updateSection("videoCards", "accessDeniedAccentColor", v)}
+                  />
+                </div>
               </div>
             </TabsContent>
 

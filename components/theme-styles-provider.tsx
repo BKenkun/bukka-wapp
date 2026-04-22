@@ -64,6 +64,8 @@ interface ThemeSettings {
     metaColor: string
     metaFontSize: string
     hoverAccentColor: string
+    accessDeniedTextColor: string
+    accessDeniedAccentColor: string
   }
   performerCards: {
     nameColor: string
@@ -204,6 +206,8 @@ const defaultTheme: ThemeSettings = {
     metaColor: "#999999",
     metaFontSize: "14",
     hoverAccentColor: "#FA4860",
+    accessDeniedTextColor: "rgba(255,255,255,0.8)",
+    accessDeniedAccentColor: "#FA4860",
   },
   performerCards: {
     nameColor: "#E0E0E0",
@@ -396,6 +400,8 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --vc-meta-color: ${vc.metaColor};
         --vc-meta-font-size: ${vc.metaFontSize}px;
         --vc-hover-accent: ${vc.hoverAccentColor};
+        --access-denied-text-color: ${vc.accessDeniedTextColor || "rgba(255,255,255,0.8)"};
+        --access-denied-accent-color: ${vc.accessDeniedAccentColor || "#FA4860"};
 
         /* Performer Cards */
         --pc-name-color: ${pc.nameColor};

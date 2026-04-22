@@ -9,6 +9,7 @@ interface MegamenuVideoCardProps {
 }
 
 function formatDuration(seconds: number): string {
+  if (!seconds || seconds <= 0) return "—"
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
@@ -32,12 +33,10 @@ export function MegamenuVideoCard({ video }: MegamenuVideoCardProps) {
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Duration badge */}
-        {video.duration > 0 && (
-          <span className="absolute bottom-2 right-2 bg-black/90 text-white text-xs font-medium px-1.5 py-0.5">
-            {formatDuration(video.duration)}
-          </span>
-        )}
+        {/* Duration badge (always visible; falls back to "—" if duration is missing) */}
+        <span className="absolute bottom-2 right-2 bg-black/90 text-white text-xs font-medium px-1.5 py-0.5">
+          {formatDuration(video.duration)}
+        </span>
 
         {/* Hover overlay with play button */}
         <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${isHovering ? 'opacity-100' : 'opacity-0'}`}>
