@@ -254,7 +254,7 @@ export default function CheckoutPage() {
         return
       }
 
-      // For transfer payments, show inline confirmation
+      // Fallback (shouldn't hit unless new payment method is added)
       setConfirmedOrder({
         orderNumber: data.order.orderNumber,
         total: data.order.total,
@@ -317,20 +317,6 @@ export default function CheckoutPage() {
             <p className="mb-4 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
               Hemos enviado un email de confirmación con los detalles de tu pedido a tu correo electrónico.
             </p>
-
-            {paymentMethod === "transfer" && (
-              <div className="p-4 mb-8 max-w-md mx-auto" style={{ backgroundColor: "color-mix(in srgb, var(--warning-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--warning-color) 30%, transparent)" }}>
-                <p className="font-medium mb-2" style={{ color: "var(--warning-color)" }}>Pago por Transferencia Bancaria</p>
-                <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Realiza la transferencia a la siguiente cuenta:
-                </p>
-                <p className="font-mono text-sm mb-1" style={{ color: "var(--text-primary)" }}>IBAN: ES12 1234 5678 9012 3456 7890</p>
-                <p className="font-mono text-sm mb-2" style={{ color: "var(--text-primary)" }}>Concepto: {confirmedOrder?.orderNumber}</p>
-                <p className="text-xs" style={{ color: "var(--cart-summary-label)" }}>
-                  Tu pedido se procesará una vez recibido el pago.
-                </p>
-              </div>
-            )}
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -627,39 +613,6 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  <label
-                    className="block border p-4 cursor-pointer"
-                    style={paymentMethod === "paypal" ? { borderColor: "var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" } : { borderColor: "var(--border-color)" }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="paypal"
-                        checked={paymentMethod === "paypal"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        style={{ accentColor: "var(--brand-color)" }}
-                      />
-                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>PayPal</span>
-                    </div>
-                  </label>
-
-                  <label
-                    className="block border p-4 cursor-pointer"
-                    style={paymentMethod === "transfer" ? { borderColor: "var(--brand-color)", backgroundColor: "color-mix(in srgb, var(--brand-color) 10%, transparent)" } : { borderColor: "var(--border-color)" }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="transfer"
-                        checked={paymentMethod === "transfer"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        style={{ accentColor: "var(--brand-color)" }}
-                      />
-                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>Transferencia Bancaria</span>
-                    </div>
-                  </label>
                 </div>
 
                 <div className="flex items-start gap-3 mt-4">

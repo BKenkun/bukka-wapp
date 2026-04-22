@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 interface AddToCartButtonProps {
@@ -20,18 +18,11 @@ export function AddToCartButton({
   className = "",
   quantity = 1,
 }: AddToCartButtonProps) {
-  const { data: session } = useSession()
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const isOutOfStock = trackInventory && stock === 0
 
   const handleAddToCart = async () => {
-    if (!session?.user) {
-      router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
-      return
-    }
-
     setLoading(true)
 
     try {

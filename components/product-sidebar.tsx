@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ShoppingCart, Loader2 } from "lucide-react"
 
@@ -21,7 +20,6 @@ interface ProductSidebarProps {
 }
 
 export function ProductSidebar({ products }: ProductSidebarProps) {
-  const router = useRouter()
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
@@ -36,11 +34,6 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, quantity: 1 }),
       })
-
-      if (res.status === 401) {
-        router.push("/login?callbackUrl=" + encodeURIComponent(window.location.pathname))
-        return
-      }
 
       if (res.ok) {
         toast.success("Producto añadido al carrito")

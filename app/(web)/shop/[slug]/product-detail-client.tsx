@@ -3,8 +3,6 @@
 import * as React from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X, Plus, Minus, Package, Shield, Lock, RotateCcw, Truck, ShieldCheck, Heart, Star, Award, CheckCircle, Clock, Gift, CreditCard, Eye, EyeOff, Headphones, ThumbsUp, Zap, Share2 } from "lucide-react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { VariantSelector } from "@/components/shop/variant-selector"
 import { StarRating } from "@/components/shop/star-rating"
@@ -68,8 +66,6 @@ export function ProductDetailClient({
   trustBadges = [],
   trustBadgesStyles,
 }: ProductDetailClientProps) {
-  const { data: session } = useSession()
-  const router = useRouter()
 
   // Image state
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0)
@@ -167,11 +163,6 @@ export function ProductDetailClient({
 
   // Add to cart
   const handleAddToCart = async () => {
-    if (!session?.user) {
-      router.push("/?login=true")
-      return
-    }
-
     if (isVariable && !selectedVariant) {
       toast.error("Selecciona una variante")
       return
