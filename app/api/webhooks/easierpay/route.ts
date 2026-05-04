@@ -31,6 +31,8 @@ interface EasierPayWebhookPayload {
     orderNumber?: string
     planId?: string
     userId?: string
+    referralCodeId?: string
+    referralDiscountPercent?: number
   } | null
 }
 
@@ -104,6 +106,17 @@ async function handleOrderWebhook(
             transactionId: String(id_transaccion),
           },
         })
+
+        if (order.referralCodeId) {
+          await attributeReferral({
+            referralCodeId: order.referralCodeId,
+            type: "SHOP_PURCHASE",
+            userId: order.userId,
+            orderId: order.id,
+            amount: Number(order.total),
+            discountAmount: Number(order.discount),
+          })
+        }
 
         if (userEmail) await sendTemplateEmail({
           to: userEmail,
@@ -233,19 +246,38 @@ async function handleSubscriptionWebhook(
           },
         })
 
+        // Compute charged amount taking into account first-payment referral discount
+        const refDiscountPct = Number(custom.referralDiscountPercent || 0)
+        const chargedAmount = refDiscountPct > 0
+          ? Math.max(0, Math.round((monthlyPrice * (1 - refDiscountPct / 100)) * 100) / 100)
+          : monthlyPrice
+        const refDiscountAmount = Math.max(0, Math.round((monthlyPrice - chargedAmount) * 100) / 100)
+
         // Create history record
-        await prisma.subscriptionHistory.create({
+        const history = await prisma.subscriptionHistory.create({
           data: {
             userId,
             planId: plan.id,
             startDate: now,
             endDate: subscriptionEnd,
-            amount: monthlyPrice,
+            amount: chargedAmount,
             currency: "EUR",
             paymentGateway: "easierpay",
             transactionId: String(id_transaccion),
+            referralCodeId: custom.referralCodeId || null,
           },
         })
+
+        if (custom.referralCodeId) {
+          await attributeReferral({
+            referralCodeId: custom.referralCodeId,
+            type: "SUBSCRIPTION",
+            userId,
+            subscriptionHistoryId: history.id,
+            amount: chargedAmount,
+            discountAmount: refDiscountAmount,
+          })
+        }
 
         // Get plan features for email
         const features = Array.isArray(plan.features)
@@ -436,6 +468,60 @@ async function handleSubscriptionWebhook(
       console.log(
         `[EasierPay Webhook] Unhandled subscription action: ${action}`
       )
+  }
+}
+
+// ─── Referral attribution ────────────────────────────────────────────
+
+interface AttributeReferralInput {
+  referralCodeId: string
+  type: "SHOP_PURCHASE" | "SUBSCRIPTION"
+  userId: string | null
+  orderId?: string
+  subscriptionHistoryId?: string
+  amount: number
+  discountAmount: number
+}
+
+async function attributeReferral(input: AttributeReferralInput) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Idempotencia: si ya hay conversión para esta orden/historial, no la repetimos
+      if (input.orderId) {
+        const existing = await tx.referralConversion.findUnique({
+          where: { orderId: input.orderId },
+        })
+        if (existing) return
+      }
+      if (input.subscriptionHistoryId) {
+        const existing = await tx.referralConversion.findUnique({
+          where: { subscriptionHistoryId: input.subscriptionHistoryId },
+        })
+        if (existing) return
+      }
+
+      await tx.referralConversion.create({
+        data: {
+          referralCodeId: input.referralCodeId,
+          type: input.type,
+          userId: input.userId,
+          orderId: input.orderId,
+          subscriptionHistoryId: input.subscriptionHistoryId,
+          amount: input.amount,
+          discountAmount: input.discountAmount,
+        },
+      })
+
+      await tx.referralCode.update({
+        where: { id: input.referralCodeId },
+        data: {
+          usedCount: { increment: 1 },
+          totalRevenue: { increment: input.amount },
+        },
+      })
+    })
+  } catch (err) {
+    console.error("[Referral] attribution error", err)
   }
 }
 

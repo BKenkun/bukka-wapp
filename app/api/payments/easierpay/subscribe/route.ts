@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { getEasierPayConfig, initTransaction, generateTransactionId, stringToNumericId } from "@/lib/easierpay"
 import { headers } from "next/headers"
+import { validateReferralCode } from "@/lib/referral-codes"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { planId } = await request.json()
+    const { planId, referralCode } = await request.json()
 
     if (!planId) {
       return NextResponse.json(
@@ -54,6 +55,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validar código de referido (si se envía) y aplicar descuento al primer pago
+    let referralCodeId: string | null = null
+    let referralDiscountPercent = 0
+    let chargeAmount = monthlyPrice
+    if (typeof referralCode === "string" && referralCode.trim()) {
+      const refResult = await validateReferralCode(referralCode, "subscription", monthlyPrice)
+      if (refResult.ok && refResult.referral) {
+        referralCodeId = refResult.referral.id
+        referralDiscountPercent = refResult.referral.discountPercent
+        if (referralDiscountPercent > 0) {
+          chargeAmount = Math.max(
+            0,
+            Math.round((monthlyPrice * (1 - referralDiscountPercent / 100)) * 100) / 100,
+          )
+        }
+      }
+    }
+
     // Load user data
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -79,7 +98,7 @@ export async function POST(request: NextRequest) {
       id: generateTransactionId(),
       product: {
         id: plan.slug,
-        amount: monthlyPrice,
+        amount: chargeAmount,
         rebill_amount: monthlyPrice,
         description: `${plan.name} Subscription - Monthly`,
       },
@@ -96,6 +115,8 @@ export async function POST(request: NextRequest) {
         type: "subscription",
         planId: plan.id,
         userId: user.id,
+        referralCodeId: referralCodeId ?? undefined,
+        referralDiscountPercent: referralDiscountPercent || undefined,
       },
     })
 

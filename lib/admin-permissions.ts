@@ -26,6 +26,7 @@ export type Permission =
   | "casting"
   | "subscriptions"
   | "promo_codes"
+  | "referrals"
   | "settings"
 
 const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
@@ -46,6 +47,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     "dashboard",
     "subscriptions",
     "promo_codes",
+    "referrals",
     "orders", // solo lectura
   ],
   COMMUNITY_MODERATOR: ["dashboard", "users", "forum", "reports", "casting"],
@@ -83,6 +85,7 @@ export function getPermissionsForRole(role: AdminRole): Permission[] {
       "casting",
       "subscriptions",
       "promo_codes",
+      "referrals",
       "settings",
     ]
   }
@@ -110,6 +113,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/admin/casting": "casting",
   "/admin/subscriptions": "subscriptions",
   "/admin/promo-codes": "promo_codes",
+  "/admin/referidos": "referrals",
   "/admin/settings": "settings",
 }
 

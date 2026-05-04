@@ -8,6 +8,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { ShippingCalculator, FreeShippingProgress } from "@/components/checkout/shipping-calculator"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ReferralCodeInput, type AppliedReferral } from "@/components/referral-code-input"
 
 interface CartItem {
   id: string
@@ -92,6 +93,9 @@ export default function CheckoutPage() {
   const [appliedPromoCode, setAppliedPromoCode] = useState<AppliedPromoCode | null>(null)
   const [promoCodeLoading, setPromoCodeLoading] = useState(false)
   const [promoCodeError, setPromoCodeError] = useState<string | null>(null)
+
+  // Referral code state
+  const [appliedReferral, setAppliedReferral] = useState<AppliedReferral | null>(null)
 
   // Order confirmation state
   const [confirmedOrder, setConfirmedOrder] = useState<{
@@ -195,10 +199,14 @@ export default function CheckoutPage() {
     setPromoCodeError(null)
   }
 
-  // Calculate totals with shipping and promo code
+  // Calculate totals with shipping, promo code y referido
   const shippingCost = selectedShippingRate?.price ?? 0
   const promoDiscount = appliedPromoCode?.discountAmount ?? 0
-  const grandTotal = Math.max(0, (cart?.total ?? 0) - promoDiscount + shippingCost)
+  const referralDiscount = appliedReferral?.discountAmount ?? 0
+  const grandTotal = Math.max(
+    0,
+    (cart?.total ?? 0) - promoDiscount - referralDiscount + shippingCost,
+  )
 
   const handlePlaceOrder = async () => {
     setSubmitting(true)
@@ -216,6 +224,7 @@ export default function CheckoutPage() {
           shippingCost: selectedShippingRate?.price ?? 0,
           promoCode: appliedPromoCode?.code || null,
           promoDiscount: promoDiscount,
+          referralCode: appliedReferral?.code || null,
           notes: "",
         }),
       })
@@ -751,6 +760,13 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {appliedReferral && appliedReferral.discountPercent > 0 && (
+                  <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
+                    <span>Cupón creadora {appliedReferral.performer.name} ({appliedReferral.discountPercent}%)</span>
+                    <span>-{appliedReferral.discountAmount.toFixed(2)} €</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
                   <span>Envio</span>
                   {selectedShippingRate ? (
@@ -819,6 +835,18 @@ export default function CheckoutPage() {
                 {promoCodeError && (
                   <p className="text-xs mt-2" style={{ color: "var(--error-color)" }}>{promoCodeError}</p>
                 )}
+              </div>
+
+              {/* Referral Code Section */}
+              <div className="pt-4 mt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+                <ReferralCodeInput
+                  context="shop"
+                  amount={Math.max(0, (cart?.total ?? 0) - promoDiscount)}
+                  applied={appliedReferral}
+                  onApply={setAppliedReferral}
+                  onRemove={() => setAppliedReferral(null)}
+                  title="¿Tienes un código de creadora?"
+                />
               </div>
 
               <Link

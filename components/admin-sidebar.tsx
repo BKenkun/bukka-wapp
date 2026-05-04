@@ -28,6 +28,7 @@ import {
   IconPalette,
   IconTruck,
   IconFlag,
+  IconShare,
 } from "@tabler/icons-react"
 import { signOut } from "next-auth/react"
 
@@ -209,6 +210,12 @@ const navBusiness: NavItem[] = [
     url: "/admin/subscriptions",
     icon: IconReceipt,
     permission: "subscriptions",
+  },
+  {
+    title: "Referidos",
+    url: "/admin/referidos",
+    icon: IconShare,
+    permission: "referrals",
   },
   {
     title: "Casting",

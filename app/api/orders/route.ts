@@ -5,6 +5,7 @@ import { z } from "zod"
 import { sendTemplateEmail, OrderConfirmationTemplate } from "@/lib/email"
 import { clearCartSessionCookie, getCartSessionId } from "@/lib/cart-session"
 import { createAdminNotification } from "@/lib/admin-notifications"
+import { validateReferralCode } from "@/lib/referral-codes"
 
 // GET - Listar órdenes del usuario
 export async function GET(request: NextRequest) {
@@ -116,6 +117,7 @@ const createOrderSchema = z.object({
   shippingCost: z.number().min(0).default(0),
   promoCode: z.string().nullable().optional(),
   promoDiscount: z.number().min(0).default(0),
+  referralCode: z.string().nullable().optional(),
   paymentGateway: z.string().optional(),
 })
 
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount, paymentGateway } = validatedData.data
+    const { shippingAddress, billingAddress, sameAsBilling, shippingMethod, shippingCost, promoCode, promoDiscount, referralCode, paymentGateway } = validatedData.data
 
     // Get cart with items (by userId for logged-in, by sessionId for guests)
     const cart = await prisma.cart.findUnique({
@@ -247,7 +249,20 @@ export async function POST(request: NextRequest) {
       return sum + itemPrice * item.quantity
     }, 0)
     const tierDiscount = (subtotal * discountPercent) / 100
-    const discount = tierDiscount + (promoDiscount || 0) // Combine tier and promo discounts
+
+    // Resolve referral code (if any) and compute its discount on subtotal-tier
+    let referralCodeId: string | null = null
+    let referralDiscountAmount = 0
+    if (referralCode) {
+      const baseForReferral = Math.max(0, subtotal - tierDiscount)
+      const refResult = await validateReferralCode(referralCode, "shop", baseForReferral)
+      if (refResult.ok && refResult.referral) {
+        referralCodeId = refResult.referral.id
+        referralDiscountAmount = refResult.discountAmount ?? 0
+      }
+    }
+
+    const discount = tierDiscount + (promoDiscount || 0) + referralDiscountAmount
     const tax = 0 // Could calculate based on shipping address
     const shipping = shippingCost // Use shipping cost from request
     const total = Math.max(0, subtotal - discount + tax + shipping)
@@ -295,6 +310,7 @@ export async function POST(request: NextRequest) {
           billingAddress: (sameAsBilling ? shippingAddress : billingAddress) as object,
           shippingMethod: shippingMethod || null,
           paymentGateway: paymentGateway || null,
+          referralCodeId,
           OrderItem: {
             create: cart.items.map((item) => {
               // Build variant snapshot for variable products

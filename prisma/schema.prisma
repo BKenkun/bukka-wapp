@@ -7,34 +7,54 @@ datasource db {
   provider = "postgresql"
 }
 
-model Affiliate {
-  id                  String  @id @default(cuid())
-  userId              String                @unique
-  code                String                @unique
-  commissionRate      Decimal               @db.Decimal(5, 2)
-  totalClicks         Int                   @default(0)
-  totalSignups        Int                   @default(0)
-  totalEarnings       Decimal               @default(0) @db.Decimal(10, 2)
-  createdAt           DateTime              @default(now())
-  user                User                  @relation(fields: [userId], references: [id])
-  AffiliateConversion AffiliateConversion[]
+model ReferralCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  performerId     String
+  discountPercent Decimal   @default(0) @db.Decimal(5, 2)
+  label           String?
+  isActive        Boolean   @default(true)
+  maxUses         Int?
+  usedCount       Int       @default(0)
+  totalClicks     Int       @default(0)
+  totalRevenue    Decimal   @default(0) @db.Decimal(12, 2)
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  performer     Performer             @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  conversions   ReferralConversion[]
+  orders        Order[]
+  subscriptions SubscriptionHistory[]
+
+  @@index([performerId])
+  @@index([isActive])
 }
 
-model AffiliateConversion {
-  id          String  @id @default(cuid())
-  affiliateId String
-  userId      String
-  type        ConversionType
-  amount      Decimal        @db.Decimal(10, 2)
-  commission  Decimal        @db.Decimal(10, 2)
-  createdAt   DateTime       @default(now())
-  affiliate   Affiliate      @relation(fields: [affiliateId], references: [id])
+model ReferralConversion {
+  id                    String                 @id @default(cuid())
+  referralCodeId        String
+  type                  ReferralConversionType
+  userId                String?
+  orderId               String?                @unique
+  subscriptionHistoryId String?                @unique
+  amount                Decimal                @db.Decimal(10, 2)
+  discountAmount        Decimal                @default(0) @db.Decimal(10, 2)
+  createdAt             DateTime               @default(now())
 
-  @@index([affiliateId])
+  referralCode        ReferralCode         @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order               Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  subscriptionHistory SubscriptionHistory? @relation(fields: [subscriptionHistoryId], references: [id], onDelete: SetNull)
+
+  @@index([referralCodeId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Badge {
-  id          String  @id @default(cuid())
+  id          String      @id @default(cuid())
   slug        String      @unique
   name        String
   description String?
@@ -47,7 +67,7 @@ model Badge {
 }
 
 model BlogCategory {
-  id          String  @id @default(cuid())
+  id          String     @id @default(cuid())
   slug        String     @unique
   name        String
   description String?
@@ -56,7 +76,7 @@ model BlogCategory {
 }
 
 model BlogPost {
-  id            String  @id @default(cuid())
+  id            String        @id @default(cuid())
   slug          String        @unique
   title         String
   excerpt       String?
@@ -70,7 +90,7 @@ model BlogPost {
   viewCount     Int           @default(0)
   likeCount     Int           @default(0)
   createdAt     DateTime      @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt     DateTime      @updatedAt
   user          User          @relation(fields: [authorId], references: [id])
   BlogCategory  BlogCategory? @relation(fields: [categoryId], references: [id])
 
@@ -103,27 +123,27 @@ model CartItem {
 }
 
 model CastingSubmission {
-  id             String  @id @default(cuid())
-  name           String
-  email          String
-  phone          String?
-  birthDate      DateTime
-  city           String?
-  country        String?
-  gender         String?
-  height         Int?
-  weight         String?
-  bust           String?
-  waist          String?
-  hips           String?
-  hairColor      String?
-  eyeColor       String?
-  skinTone       String?
-  tattoos        String?
-  experience     String?
-  additionalInfo String?
-  instagram      String?
-  twitter        String?
+  id                 String        @id @default(cuid())
+  name               String
+  email              String
+  phone              String?
+  birthDate          DateTime
+  city               String?
+  country            String?
+  gender             String?
+  height             Int?
+  weight             String?
+  bust               String?
+  waist              String?
+  hips               String?
+  hairColor          String?
+  eyeColor           String?
+  skinTone           String?
+  tattoos            String?
+  experience         String?
+  additionalInfo     String?
+  instagram          String?
+  twitter            String?
   dniPhotoUrl        String?
   dniBackUrl         String?
   generalPhotos      String[]
@@ -131,20 +151,20 @@ model CastingSubmission {
   identityVerified   Boolean       @default(false)
   identitySimilarity Float?
   status             CastingStatus @default(PENDING)
-  notes          String?
-  createdAt      DateTime      @default(now())
-  updatedAt DateTime @updatedAt
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 }
 
 model Comment {
-  id            String  @id @default(cuid())
+  id            String    @id @default(cuid())
   content       String
   authorId      String
   videoId       String
   parentId      String?
   likeCount     Int       @default(0)
   createdAt     DateTime  @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt     DateTime  @updatedAt
   user          User      @relation(fields: [authorId], references: [id])
   Comment       Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
   other_Comment Comment[] @relation("CommentToComment")
@@ -155,7 +175,7 @@ model Comment {
 }
 
 model DirectMessage {
-  id                                  String  @id @default(cuid())
+  id                                  String   @id @default(cuid())
   content                             String
   senderId                            String
   receiverId                          String
@@ -169,7 +189,7 @@ model DirectMessage {
 }
 
 model Favorite {
-  id          String  @id @default(cuid())
+  id          String     @id @default(cuid())
   userId      String
   videoId     String?
   performerId String?
@@ -186,7 +206,7 @@ model Favorite {
 }
 
 model ForumCategory {
-  id               String  @id @default(cuid())
+  id               String            @id @default(cuid())
   slug             String            @unique
   name             String
   description      String?
@@ -256,14 +276,14 @@ model ForumLike {
 }
 
 model HomeSection {
-  id        String  @id @default(cuid())
+  id        String          @id @default(cuid())
   type      HomeSectionType
   title     String?
   enabled   Boolean         @default(true)
   order     Int             @default(0)
   config    Json?
   createdAt DateTime        @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime        @updatedAt
 }
 
 model ShopSection {
@@ -281,7 +301,7 @@ model Menu {
   id          String     @id @default(cuid())
   name        String
   slug        String     @unique
-  title       String?    // Título visible en el frontend (ej: "SERVICIOS", "CONTACTO")
+  title       String? // Título visible en el frontend (ej: "SERVICIOS", "CONTACTO")
   description String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -302,7 +322,7 @@ model MenuItem {
   isVisible      Boolean         @default(true)
   highlight      Boolean         @default(false)
   highlightColor String?
-  minTierLevel   Int?            // Nivel mínimo de suscripción requerido (null = visible para todos)
+  minTierLevel   Int? // Nivel mínimo de suscripción requerido (null = visible para todos)
   hasMegamenu    Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -331,35 +351,39 @@ model MegamenuConfig {
 }
 
 model Order {
-  id                  String           @id @default(cuid())
-  orderNumber         String           @unique
+  id                  String              @id @default(cuid())
+  orderNumber         String              @unique
   userId              String?
   guestEmail          String?
   guestName           String?
-  subtotal            Decimal          @db.Decimal(10, 2)
-  discount            Decimal          @default(0) @db.Decimal(10, 2)
-  tax                 Decimal          @default(0) @db.Decimal(10, 2)
-  shipping            Decimal          @default(0) @db.Decimal(10, 2)
-  total               Decimal          @db.Decimal(10, 2)
-  tierDiscountPercent Int              @default(0)
+  subtotal            Decimal             @db.Decimal(10, 2)
+  discount            Decimal             @default(0) @db.Decimal(10, 2)
+  tax                 Decimal             @default(0) @db.Decimal(10, 2)
+  shipping            Decimal             @default(0) @db.Decimal(10, 2)
+  total               Decimal             @db.Decimal(10, 2)
+  tierDiscountPercent Int                 @default(0)
   shippingMethod      String?
   shippingZoneId      String?
   estimatedDelivery   DateTime?
-  status              OrderStatus      @default(PENDING)
-  paymentStatus       PaymentStatus    @default(PENDING)
+  status              OrderStatus         @default(PENDING)
+  paymentStatus       PaymentStatus       @default(PENDING)
   shippingAddress     Json?
   billingAddress      Json?
   trackingNumber      String?
   paymentGateway      String?
   transactionId       String?
-  riskLevel           ProductRiskLevel @default(LOW_RISK)
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  user                User?            @relation(fields: [userId], references: [id])
+  riskLevel           ProductRiskLevel    @default(LOW_RISK)
+  referralCodeId      String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  user                User?               @relation(fields: [userId], references: [id])
+  referralCode        ReferralCode?       @relation(fields: [referralCodeId], references: [id], onDelete: SetNull)
+  referralConversion  ReferralConversion?
   OrderItem           OrderItem[]
 
   @@index([userId])
   @@index([guestEmail])
+  @@index([referralCodeId])
 }
 
 model OrderItem {
@@ -379,7 +403,7 @@ model OrderItem {
 }
 
 model Page {
-  id              String  @id @default(cuid())
+  id              String     @id @default(cuid())
   slug            String     @unique
   title           String
   content         String
@@ -392,35 +416,36 @@ model Page {
   status          PageStatus @default(DRAFT)
   publishedAt     DateTime?
   createdAt       DateTime   @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt       DateTime   @updatedAt
 }
 
 model Performer {
-  id               String             @id @default(cuid())
-  slug             String             @unique
-  name             String
-  bio              String?
-  profileImage     String?
-  coverImage       String?
-  galleryImages    String[]
-  location         String?            // e.g. "Los Angeles, California" or "Madrid, España"
-  videoCount       Int                @default(0)
-  verified         Boolean            @default(false)
-  comingSoon       Boolean            @default(false)
-  comingSoonDate   DateTime?
-  userId           String?            @unique
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  favorites        Favorite[]
-  User             User?              @relation(fields: [userId], references: [id])
-  PerformerPhoto   PerformerPhoto[]
-  products         ProductPerformer[]
-  VideoPerformer   VideoPerformer[]
-  PerformerNotify  PerformerNotify[]
+  id              String             @id @default(cuid())
+  slug            String             @unique
+  name            String
+  bio             String?
+  profileImage    String?
+  coverImage      String?
+  galleryImages   String[]
+  location        String? // e.g. "Los Angeles, California" or "Madrid, España"
+  videoCount      Int                @default(0)
+  verified        Boolean            @default(false)
+  comingSoon      Boolean            @default(false)
+  comingSoonDate  DateTime?
+  userId          String?            @unique
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  favorites       Favorite[]
+  User            User?              @relation(fields: [userId], references: [id])
+  PerformerPhoto  PerformerPhoto[]
+  products        ProductPerformer[]
+  VideoPerformer  VideoPerformer[]
+  PerformerNotify PerformerNotify[]
+  ReferralCode    ReferralCode[]
 }
 
 model PerformerPhoto {
-  id          String  @id @default(cuid())
+  id          String    @id @default(cuid())
   performerId String
   imageUrl    String
   caption     String?
@@ -494,7 +519,7 @@ model ProductToCategory {
 }
 
 model PromoCode {
-  id             String  @id @default(cuid())
+  id             String            @id @default(cuid())
   code           String            @unique
   discountType   DiscountType
   discountValue  Decimal           @db.Decimal(10, 2)
@@ -509,7 +534,7 @@ model PromoCode {
 }
 
 model Session {
-  id           String  @id @default(cuid())
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -519,7 +544,7 @@ model Session {
 }
 
 model ShopCategory {
-  id                 String  @id @default(cuid())
+  id                 String              @id @default(cuid())
   slug               String              @unique
   name               String
   description        String?
@@ -527,14 +552,14 @@ model ShopCategory {
   order              Int                 @default(0)
   parentId           String?
   createdAt          DateTime            @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt          DateTime            @updatedAt
   ProductToCategory  ProductToCategory[]
   ShopCategory       ShopCategory?       @relation("ShopCategoryToShopCategory", fields: [parentId], references: [id])
   other_ShopCategory ShopCategory[]      @relation("ShopCategoryToShopCategory")
 }
 
 model SiteSettings {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   key       String   @unique
   value     Json
   createdAt DateTime @default(now())
@@ -542,26 +567,30 @@ model SiteSettings {
 }
 
 model SubscriptionHistory {
-  id               String  @id @default(cuid())
-  userId           String
-  planId           String
-  startDate        DateTime
-  endDate          DateTime?
-  amount           Decimal          @db.Decimal(10, 2)
-  currency         String           @default("EUR")
-  paymentGateway   String
-  transactionId    String?
-  invoiceUrl       String?
-  createdAt        DateTime         @default(now())
-  SubscriptionPlan SubscriptionPlan @relation(fields: [planId], references: [id])
-  user             User             @relation(fields: [userId], references: [id])
+  id                 String              @id @default(cuid())
+  userId             String
+  planId             String
+  startDate          DateTime
+  endDate            DateTime?
+  amount             Decimal             @db.Decimal(10, 2)
+  currency           String              @default("EUR")
+  paymentGateway     String
+  transactionId      String?
+  invoiceUrl         String?
+  referralCodeId     String?
+  createdAt          DateTime            @default(now())
+  SubscriptionPlan   SubscriptionPlan    @relation(fields: [planId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
+  referralCode       ReferralCode?       @relation(fields: [referralCodeId], references: [id], onDelete: SetNull)
+  referralConversion ReferralConversion?
 
   @@index([planId])
   @@index([userId])
+  @@index([referralCodeId])
 }
 
 model SubscriptionPlan {
-  id                      String  @id @default(cuid())
+  id                      String                @id @default(cuid())
   slug                    String                @unique
   name                    String
   description             String?
@@ -583,7 +612,7 @@ model SubscriptionPlan {
   isActive                Boolean               @default(true)
   isFree                  Boolean               @default(false)
   createdAt               DateTime              @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt               DateTime              @updatedAt
   ForumCategory           ForumCategory[]
   SubscriptionHistory     SubscriptionHistory[]
   User                    User[]
@@ -591,7 +620,7 @@ model SubscriptionPlan {
 }
 
 model Tag {
-  id         String  @id @default(cuid())
+  id         String       @id @default(cuid())
   slug       String       @unique
   name       String
   ProductTag ProductTag[]
@@ -599,11 +628,11 @@ model Tag {
 }
 
 model User {
-  id                                           String  @id @default(cuid())
-  email                                        String                @unique
+  id                                           String                   @id @default(cuid())
+  email                                        String                   @unique
   password                                     String
   name                                         String?
-  username                                     String?               @unique
+  username                                     String?                  @unique
   image                                        String?
   emailVerified                                DateTime?
   subscriptionPlanId                           String?
@@ -616,28 +645,28 @@ model User {
   forumSignature                               String?
   relationshipStatus                           RelationshipStatus?
   relationshipRole                             RelationshipRole?
-  isAdmin                                      Boolean               @default(false)
+  isAdmin                                      Boolean                  @default(false)
   adminRole                                    AdminRole?
-  isPerformer                                  Boolean               @default(false)
-  isVerified                                   Boolean               @default(false)
-  isModerator                                  Boolean               @default(false)
-  ageVerified                                  Boolean               @default(false)
+  isPerformer                                  Boolean                  @default(false)
+  isVerified                                   Boolean                  @default(false)
+  isModerator                                  Boolean                  @default(false)
+  ageVerified                                  Boolean                  @default(false)
   ageVerifiedAt                                DateTime?
-  notifyEmail                                  Boolean               @default(true)
-  notifyNewContent                             Boolean               @default(true)
-  notifySubscription                           Boolean               @default(false)
-  notifyMarketing                              Boolean               @default(false)
-  joinedAt                                     DateTime              @default(now())
-  isFounder                                    Boolean               @default(false)
-  createdAt                                    DateTime              @default(now())
-  updatedAt DateTime @updatedAt
-  Affiliate                                    Affiliate?
+  notifyEmail                                  Boolean                  @default(true)
+  notifyNewContent                             Boolean                  @default(true)
+  notifySubscription                           Boolean                  @default(false)
+  notifyMarketing                              Boolean                  @default(false)
+  joinedAt                                     DateTime                 @default(now())
+  isFounder                                    Boolean                  @default(false)
+  createdAt                                    DateTime                 @default(now())
+  updatedAt                                    DateTime                 @updatedAt
+  ReferralConversion                           ReferralConversion[]
   BlogPost                                     BlogPost[]
   Cart                                         Cart?
   Comment                                      Comment[]
-  DirectMessage_DirectMessage_receiverIdToUser DirectMessage[]       @relation("DirectMessage_receiverIdToUser")
-  DirectMessage_DirectMessage_senderIdToUser   DirectMessage[]       @relation("DirectMessage_senderIdToUser")
-  favorites                                     Favorite[]
+  DirectMessage_DirectMessage_receiverIdToUser DirectMessage[]          @relation("DirectMessage_receiverIdToUser")
+  DirectMessage_DirectMessage_senderIdToUser   DirectMessage[]          @relation("DirectMessage_senderIdToUser")
+  favorites                                    Favorite[]
   ForumPost                                    ForumPost[]
   ForumReply                                   ForumReply[]
   ForumLike                                    ForumLike[]
@@ -645,7 +674,7 @@ model User {
   Performer                                    Performer?
   Session                                      Session[]
   SubscriptionHistory                          SubscriptionHistory[]
-  SubscriptionPlan                             SubscriptionPlan?     @relation(fields: [subscriptionPlanId], references: [id])
+  SubscriptionPlan                             SubscriptionPlan?        @relation(fields: [subscriptionPlanId], references: [id])
   UserBadge                                    UserBadge[]
   WatchHistory                                 WatchHistory[]
   EmailVerificationToken                       EmailVerificationToken[]
@@ -665,7 +694,7 @@ model UserBadge {
 }
 
 model Video {
-  id                 String  @id @default(cuid())
+  id                 String              @id @default(cuid())
   slug               String              @unique
   title              String
   description        String?
@@ -687,7 +716,7 @@ model Video {
   metaDescription    String?
   status             VideoStatus         @default(DRAFT)
   createdAt          DateTime            @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt          DateTime            @updatedAt
   previewEndTime     Float               @default(5)
   previewFps         Int                 @default(15)
   previewStartTime   Float               @default(0)
@@ -705,7 +734,7 @@ model Video {
 }
 
 model VideoCategory {
-  id                  String  @id @default(cuid())
+  id                  String            @id @default(cuid())
   slug                String            @unique
   name                String
   description         String?
@@ -713,14 +742,14 @@ model VideoCategory {
   order               Int               @default(0)
   parentId            String?
   createdAt           DateTime          @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt           DateTime          @updatedAt
   VideoCategory       VideoCategory?    @relation("VideoCategoryToVideoCategory", fields: [parentId], references: [id])
   other_VideoCategory VideoCategory[]   @relation("VideoCategoryToVideoCategory")
   VideoToCategory     VideoToCategory[]
 }
 
 model VideoGalleryImage {
-  id      String  @id @default(cuid())
+  id      String @id @default(cuid())
   videoId String
   url     String
   order   Int    @default(0)
@@ -757,7 +786,7 @@ model VideoProduct {
 }
 
 model VideoSubtitle {
-  id       String  @id @default(cuid())
+  id       String @id @default(cuid())
   videoId  String
   language String
   label    String
@@ -777,16 +806,16 @@ model VideoTag {
 }
 
 model VideoToCategory {
-  videoId       String
-  categoryId    String
-  category      VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  video         Video         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  videoId    String
+  categoryId String
+  category   VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  video      Video         @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@id([videoId, categoryId])
 }
 
 model WatchHistory {
-  id             String  @id @default(cuid())
+  id             String   @id @default(cuid())
   userId         String
   videoId        String
   watchedSeconds Int      @default(0)
@@ -825,7 +854,7 @@ enum CastingStatus {
   REJECTED
 }
 
-enum ConversionType {
+enum ReferralConversionType {
   SUBSCRIPTION
   SHOP_PURCHASE
 }
@@ -1009,17 +1038,17 @@ enum ReportStatus {
 }
 
 model ContentReport {
-  id            String         @id @default(cuid())
-  reporterId    String
-  itemType      ReportItemType
-  itemId        String
-  reason        ReportReason
-  message       String?
-  status        ReportStatus   @default(PENDING)
-  adminNotes    String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  reporter      User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  id         String         @id @default(cuid())
+  reporterId String
+  itemType   ReportItemType
+  itemId     String
+  reason     ReportReason
+  message    String?
+  status     ReportStatus   @default(PENDING)
+  adminNotes String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  reporter   User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@index([reporterId])
   @@index([itemType, itemId])
@@ -1031,29 +1060,29 @@ model ContentReport {
 // ============================================
 
 model Attribute {
-  id        String           @id @default(cuid())
-  slug      String           @unique
+  id        String             @id @default(cuid())
+  slug      String             @unique
   name      String
-  type      AttributeType    @default(SELECT)
-  order     Int              @default(0)
-  isActive  Boolean          @default(true)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  type      AttributeType      @default(SELECT)
+  order     Int                @default(0)
+  isActive  Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
   values    AttributeValue[]
   products  ProductAttribute[]
 }
 
 model AttributeValue {
-  id          String                   @id @default(cuid())
+  id          String                  @id @default(cuid())
   attributeId String
   slug        String
   value       String
   colorHex    String?
   imageUrl    String?
-  order       Int                      @default(0)
-  isActive    Boolean                  @default(true)
-  createdAt   DateTime                 @default(now())
-  attribute   Attribute                @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  order       Int                     @default(0)
+  isActive    Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  attribute   Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
   variants    VariantAttributeValue[]
 
   @@unique([attributeId, slug])
@@ -1073,21 +1102,21 @@ model ProductAttribute {
 }
 
 model ProductVariant {
-  id             String                   @id @default(cuid())
-  productId      String
-  sku            String?                  @unique
-  price          Decimal                  @db.Decimal(10, 2)
-  compareAtPrice Decimal?                 @db.Decimal(10, 2)
-  stock          Int                      @default(0)
-  imageUrl       String?
-  weight         Decimal?                 @db.Decimal(10, 3)
-  isActive       Boolean                  @default(true)
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
-  product        Product                  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id              String                  @id @default(cuid())
+  productId       String
+  sku             String?                 @unique
+  price           Decimal                 @db.Decimal(10, 2)
+  compareAtPrice  Decimal?                @db.Decimal(10, 2)
+  stock           Int                     @default(0)
+  imageUrl        String?
+  weight          Decimal?                @db.Decimal(10, 3)
+  isActive        Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  product         Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
   attributeValues VariantAttributeValue[]
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
 
   @@index([productId])
 }
@@ -1142,14 +1171,14 @@ model ShippingRate {
 }
 
 model ShippingSettings {
-  id                     String   @id @default(cuid())
-  freeShippingEnabled    Boolean  @default(false)
-  freeShippingThreshold  Decimal? @db.Decimal(10, 2)
-  defaultWeight          Decimal  @default(0.5) @db.Decimal(10, 3)
-  enableWeightCalculation Boolean @default(false)
-  fallbackZoneId         String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  freeShippingEnabled     Boolean  @default(false)
+  freeShippingThreshold   Decimal? @db.Decimal(10, 2)
+  defaultWeight           Decimal  @default(0.5) @db.Decimal(10, 3)
+  enableWeightCalculation Boolean  @default(false)
+  fallbackZoneId          String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 // ============================================
@@ -1183,7 +1212,7 @@ model EmailLog {
   to        String
   subject   String
   template  String
-  status    String   // sent, failed, bounced
+  status    String // sent, failed, bounced
   resendId  String?
   error     String?
   metadata  Json?
@@ -1208,16 +1237,16 @@ model SearchTrend {
 // ============================================
 
 model ContactMessage {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   email     String
   subject   String
   message   String
-  status    String   @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
+  status    String    @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
   repliedAt DateTime?
   ipAddress String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
