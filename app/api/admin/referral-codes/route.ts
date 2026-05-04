@@ -5,16 +5,22 @@ import { hasPermission, type AdminRole } from "@/lib/admin-permissions"
 import { normalizeCode } from "@/lib/referral-codes"
 import { z } from "zod"
 
-const createSchema = z.object({
-  code: z.string().min(2, "El código debe tener al menos 2 caracteres"),
-  performerId: z.string().min(1, "Selecciona una modelo"),
-  discountPercent: z.number().min(0).max(100),
-  label: z.string().max(80).nullable().optional(),
-  isActive: z.boolean().optional().default(true),
-  maxUses: z.number().int().positive().nullable().optional(),
-  startDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
-})
+const createSchema = z
+  .object({
+    code: z.string().min(2, "El código debe tener al menos 2 caracteres"),
+    performerId: z.string().min(1).nullable().optional(),
+    partnerName: z.string().min(1).max(120).nullable().optional(),
+    discountPercent: z.number().min(0).max(100),
+    label: z.string().max(80).nullable().optional(),
+    isActive: z.boolean().optional().default(true),
+    maxUses: z.number().int().positive().nullable().optional(),
+    startDate: z.string().nullable().optional(),
+    endDate: z.string().nullable().optional(),
+  })
+  .refine((d) => Boolean(d.performerId) || Boolean(d.partnerName?.trim()), {
+    message: "Debes seleccionar una modelo o introducir un nombre de tercero",
+    path: ["performerId"],
+  })
 
 function requireAdmin(role: AdminRole | null | undefined) {
   return hasPermission(role, "referrals")
@@ -40,6 +46,9 @@ export async function GET() {
       id: c.id,
       code: c.code,
       performer: c.performer,
+      partnerName: c.partnerName,
+      ownerType: c.performer ? "performer" : "partner",
+      ownerName: c.performer?.name ?? c.partnerName ?? "—",
       discountPercent: Number(c.discountPercent),
       label: c.label,
       isActive: c.isActive,
@@ -85,22 +94,28 @@ export async function POST(request: Request) {
     )
   }
 
-  const [existing, performer] = await Promise.all([
-    prisma.referralCode.findUnique({ where: { code } }),
-    prisma.performer.findUnique({ where: { id: parsed.data.performerId } }),
-  ])
-
+  const existing = await prisma.referralCode.findUnique({ where: { code } })
   if (existing) {
     return NextResponse.json({ error: "Ese código ya existe" }, { status: 400 })
   }
-  if (!performer) {
-    return NextResponse.json({ error: "Modelo no encontrada" }, { status: 400 })
+
+  let performerId: string | null = null
+  if (parsed.data.performerId) {
+    const performer = await prisma.performer.findUnique({
+      where: { id: parsed.data.performerId },
+    })
+    if (!performer) {
+      return NextResponse.json({ error: "Modelo no encontrada" }, { status: 400 })
+    }
+    performerId = performer.id
   }
+  const partnerName = performerId ? null : parsed.data.partnerName?.trim() || null
 
   const created = await prisma.referralCode.create({
     data: {
       code,
-      performerId: parsed.data.performerId,
+      performerId,
+      partnerName,
       discountPercent: parsed.data.discountPercent,
       label: parsed.data.label || null,
       isActive: parsed.data.isActive,
@@ -118,6 +133,9 @@ export async function POST(request: Request) {
       id: created.id,
       code: created.code,
       performer: created.performer,
+      partnerName: created.partnerName,
+      ownerType: created.performer ? "performer" : "partner",
+      ownerName: created.performer?.name ?? created.partnerName ?? "—",
       discountPercent: Number(created.discountPercent),
       label: created.label,
       isActive: created.isActive,

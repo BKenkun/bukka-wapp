@@ -10,7 +10,8 @@ datasource db {
 model ReferralCode {
   id              String    @id @default(cuid())
   code            String    @unique
-  performerId     String
+  performerId     String?
+  partnerName     String?
   discountPercent Decimal   @default(0) @db.Decimal(5, 2)
   label           String?
   isActive        Boolean   @default(true)
@@ -23,7 +24,7 @@ model ReferralCode {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  performer     Performer             @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  performer     Performer?            @relation(fields: [performerId], references: [id], onDelete: Cascade)
   conversions   ReferralConversion[]
   orders        Order[]
   subscriptions SubscriptionHistory[]

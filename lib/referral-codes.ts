@@ -2,6 +2,19 @@ import { prisma } from "@/lib/prisma"
 
 export type ReferralContext = "shop" | "subscription"
 
+export type ReferralOwner =
+  | {
+      type: "performer"
+      id: string
+      slug: string
+      name: string
+      profileImage: string | null
+    }
+  | {
+      type: "partner"
+      name: string
+    }
+
 export interface ReferralValidationResult {
   ok: boolean
   error?: string
@@ -10,12 +23,7 @@ export interface ReferralValidationResult {
     code: string
     discountPercent: number
     label: string | null
-    performer: {
-      id: string
-      slug: string
-      name: string
-      profileImage: string | null
-    }
+    owner: ReferralOwner
   }
   discountAmount?: number
 }
@@ -65,6 +73,19 @@ export async function validateReferralCode(
       ? Math.round(((safeAmount * discountPercent) / 100) * 100) / 100
       : 0
 
+  const owner: ReferralOwner = referral.performer
+    ? {
+        type: "performer",
+        id: referral.performer.id,
+        slug: referral.performer.slug,
+        name: referral.performer.name,
+        profileImage: referral.performer.profileImage,
+      }
+    : {
+        type: "partner",
+        name: referral.partnerName || "Partner",
+      }
+
   return {
     ok: true,
     referral: {
@@ -72,12 +93,7 @@ export async function validateReferralCode(
       code: referral.code,
       discountPercent,
       label: referral.label,
-      performer: {
-        id: referral.performer.id,
-        slug: referral.performer.slug,
-        name: referral.performer.name,
-        profileImage: referral.performer.profileImage,
-      },
+      owner,
     },
     discountAmount,
     // El context se acepta para futuras restricciones (ej. códigos

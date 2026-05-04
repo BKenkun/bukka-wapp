@@ -762,7 +762,12 @@ export default function CheckoutPage() {
 
                 {appliedReferral && appliedReferral.discountPercent > 0 && (
                   <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
-                    <span>Cupón creadora {appliedReferral.performer.name} ({appliedReferral.discountPercent}%)</span>
+                    <span>
+                      {appliedReferral.owner.type === "performer"
+                        ? `Cupón creadora ${appliedReferral.owner.name}`
+                        : `Cupón ${appliedReferral.owner.name}`}{" "}
+                      ({appliedReferral.discountPercent}%)
+                    </span>
                     <span>-{appliedReferral.discountAmount.toFixed(2)} €</span>
                   </div>
                 )}

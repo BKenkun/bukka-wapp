@@ -38,7 +38,10 @@ interface ReferralCode {
     name: string
     slug: string
     profileImage: string | null
-  }
+  } | null
+  partnerName: string | null
+  ownerType: "performer" | "partner"
+  ownerName: string
   discountPercent: number
   label: string | null
   isActive: boolean
@@ -101,6 +104,7 @@ export default function ReferralDetailPage() {
   const [saving, setSaving] = React.useState(false)
   const [form, setForm] = React.useState({
     discountPercent: "0",
+    partnerName: "",
     label: "",
     isActive: true,
     maxUses: "",
@@ -124,6 +128,7 @@ export default function ReferralDetailPage() {
         setCode(c.code)
         setForm({
           discountPercent: String(c.code.discountPercent ?? 0),
+          partnerName: c.code.partnerName ?? "",
           label: c.code.label ?? "",
           isActive: c.code.isActive,
           maxUses: c.code.maxUses ? String(c.code.maxUses) : "",
@@ -147,6 +152,10 @@ export default function ReferralDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           discountPercent: Number(form.discountPercent) || 0,
+          partnerName:
+            code?.ownerType === "partner"
+              ? form.partnerName.trim() || null
+              : undefined,
           label: form.label.trim() || null,
           isActive: form.isActive,
           maxUses: form.maxUses ? parseInt(form.maxUses, 10) : null,
@@ -201,17 +210,21 @@ export default function ReferralDetailPage() {
             <IconArrowLeft className="size-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground font-mono">
+            <h1 className="text-2xl font-bold text-foreground">
               {code.code}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Modelo:{" "}
-              <Link
-                href={`/admin/actrices`}
-                className="hover:underline text-foreground"
-              >
-                {code.performer.name}
-              </Link>
+              {code.ownerType === "performer" ? "Modelo: " : "Tercero: "}
+              {code.ownerType === "performer" ? (
+                <Link
+                  href={`/admin/actrices`}
+                  className="hover:underline text-foreground"
+                >
+                  {code.ownerName}
+                </Link>
+              ) : (
+                <span className="text-foreground">{code.ownerName}</span>
+              )}
             </p>
           </div>
         </div>
@@ -263,6 +276,19 @@ export default function ReferralDetailPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {code.ownerType === "partner" && (
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium">Nombre del tercero</label>
+                <Input
+                  value={form.partnerName}
+                  onChange={(e) =>
+                    setForm({ ...form, partnerName: e.target.value })
+                  }
+                  placeholder="Nombre del representante / agencia"
+                  maxLength={120}
+                />
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium">Descuento (%)</label>
               <Input

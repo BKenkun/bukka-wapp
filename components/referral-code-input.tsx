@@ -3,17 +3,25 @@
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
+export type ReferralOwner =
+  | {
+      type: "performer"
+      id: string
+      slug: string
+      name: string
+      profileImage: string | null
+    }
+  | {
+      type: "partner"
+      name: string
+    }
+
 export interface AppliedReferral {
   code: string
   discountPercent: number
   discountAmount: number
   label: string | null
-  performer: {
-    id: string
-    slug: string
-    name: string
-    profileImage: string | null
-  }
+  owner: ReferralOwner
 }
 
 interface ReferralCodeInputProps {
@@ -73,13 +81,18 @@ export function ReferralCodeInput({
         discountPercent: Number(data.discountPercent),
         discountAmount: Number(data.discountAmount),
         label: data.label,
-        performer: data.performer,
+        owner: data.owner,
       })
       if (!silent) {
+        const ownerName: string = data.owner?.name || "referido"
         if (Number(data.discountPercent) > 0) {
-          toast.success(`Cupón creadora ${data.performer.name} aplicado`)
+          toast.success(
+            data.owner?.type === "performer"
+              ? `Cupón creadora ${ownerName} aplicado`
+              : `Cupón ${ownerName} aplicado`,
+          )
         } else {
-          toast.success(`Cupón de ${data.performer.name} aplicado`)
+          toast.success(`Cupón de ${ownerName} aplicado`)
         }
       }
     } catch {
@@ -112,6 +125,14 @@ export function ReferralCodeInput({
 
   if (applied) {
     const isDiscount = applied.discountPercent > 0
+    const ownerName = applied.owner.name
+    const ownerImage =
+      applied.owner.type === "performer" ? applied.owner.profileImage : null
+    const defaultLabel = isDiscount
+      ? applied.owner.type === "performer"
+        ? `Cupón creadora ${ownerName} · ${applied.discountPercent}%`
+        : `Cupón ${ownerName} · ${applied.discountPercent}%`
+      : `Cupón referido ${ownerName}`
     return (
       <div className={className}>
         <p
@@ -134,11 +155,11 @@ export function ReferralCodeInput({
           }}
         >
           <div className="flex items-center gap-3">
-            {applied.performer.profileImage ? (
+            {ownerImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={applied.performer.profileImage}
-                alt={applied.performer.name}
+                src={ownerImage}
+                alt={ownerName}
                 className="w-9 h-9 rounded-full object-cover"
               />
             ) : (
@@ -149,7 +170,7 @@ export function ReferralCodeInput({
                   color: "var(--text-primary)",
                 }}
               >
-                {applied.performer.name.charAt(0).toUpperCase()}
+                {ownerName.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
@@ -161,11 +182,7 @@ export function ReferralCodeInput({
                     : "var(--text-primary)",
                 }}
               >
-                {applied.label
-                  ? applied.label
-                  : isDiscount
-                    ? `Cupón creadora ${applied.performer.name} · ${applied.discountPercent}%`
-                    : `Cupón referido ${applied.performer.name}`}
+                {applied.label || defaultLabel}
               </p>
               {isDiscount ? (
                 <p
@@ -176,7 +193,7 @@ export function ReferralCodeInput({
                 </p>
               ) : (
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Atribuido a {applied.performer.name}
+                  Atribuido a {ownerName}
                 </p>
               )}
             </div>

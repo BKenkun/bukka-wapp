@@ -40,6 +40,6 @@ export async function POST(req: NextRequest) {
     discountPercent: result.referral.discountPercent,
     discountAmount: result.discountAmount ?? 0,
     label: result.referral.label,
-    performer: result.referral.performer,
+    owner: result.referral.owner,
   })
 }

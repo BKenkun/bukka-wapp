@@ -5,6 +5,7 @@ import { hasPermission, type AdminRole } from "@/lib/admin-permissions"
 import { z } from "zod"
 
 const updateSchema = z.object({
+  partnerName: z.string().min(1).max(120).nullable().optional(),
   discountPercent: z.number().min(0).max(100).optional(),
   label: z.string().max(80).nullable().optional(),
   isActive: z.boolean().optional(),
@@ -39,6 +40,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       id: code.id,
       code: code.code,
       performer: code.performer,
+      partnerName: code.partnerName,
+      ownerType: code.performer ? "performer" : "partner",
+      ownerName: code.performer?.name ?? code.partnerName ?? "—",
       discountPercent: Number(code.discountPercent),
       label: code.label,
       isActive: code.isActive,
@@ -81,11 +85,27 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
   if (parsed.data.label !== undefined) data.label = parsed.data.label
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive
   if (parsed.data.maxUses !== undefined) data.maxUses = parsed.data.maxUses
+  if (parsed.data.partnerName !== undefined) data.partnerName = parsed.data.partnerName
   if (parsed.data.startDate !== undefined) {
     data.startDate = parsed.data.startDate ? new Date(parsed.data.startDate) : null
   }
   if (parsed.data.endDate !== undefined) {
     data.endDate = parsed.data.endDate ? new Date(parsed.data.endDate) : null
+  }
+
+  // Si el código no es de modelo (no tiene performerId) y se intenta limpiar
+  // partnerName, evitamos quedarnos sin dueño.
+  if (parsed.data.partnerName !== undefined && (parsed.data.partnerName === null || parsed.data.partnerName === "")) {
+    const current = await prisma.referralCode.findUnique({
+      where: { id },
+      select: { performerId: true },
+    })
+    if (current && !current.performerId) {
+      return NextResponse.json(
+        { error: "El código necesita un dueño (modelo o tercero)" },
+        { status: 400 },
+      )
+    }
   }
 
   try {

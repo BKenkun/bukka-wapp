@@ -40,7 +40,10 @@ interface PerformerOption {
 interface ReferralCode {
   id: string
   code: string
-  performer: PerformerOption
+  performer: PerformerOption | null
+  partnerName: string | null
+  ownerType: "performer" | "partner"
+  ownerName: string
   discountPercent: number
   label: string | null
   isActive: boolean
@@ -54,9 +57,13 @@ interface ReferralCode {
   counts: { conversions: number; orders: number; subscriptions: number }
 }
 
+type OwnerKind = "performer" | "partner"
+
 const initialForm = {
   code: "",
+  ownerKind: "performer" as OwnerKind,
   performerId: "",
+  partnerName: "",
   discountPercent: "10",
   label: "",
   isActive: true,
@@ -96,7 +103,7 @@ export default function ReferidosAdminPage() {
 
   React.useEffect(() => {
     const t = setTimeout(async () => {
-      if (!isDialogOpen) return
+      if (!isDialogOpen || form.ownerKind !== "performer") return
       setSearchingPerformers(true)
       try {
         const res = await fetch(
@@ -111,7 +118,7 @@ export default function ReferidosAdminPage() {
       }
     }, 200)
     return () => clearTimeout(t)
-  }, [performerQuery, isDialogOpen])
+  }, [performerQuery, isDialogOpen, form.ownerKind])
 
   function openCreateDialog() {
     setForm(initialForm)
@@ -125,12 +132,12 @@ export default function ReferidosAdminPage() {
     setForm((prev) => ({
       ...prev,
       performerId: p.id,
-      code: prev.code || suggestCode(p),
+      code: prev.code || suggestCode(p.slug || p.name),
     }))
   }
 
-  function suggestCode(p: PerformerOption) {
-    const base = (p.slug || p.name || "")
+  function suggestCode(name: string) {
+    const base = (name || "")
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, "")
       .slice(0, 12)
@@ -139,8 +146,12 @@ export default function ReferidosAdminPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.performerId) {
+    if (form.ownerKind === "performer" && !form.performerId) {
       toast.error("Selecciona una modelo")
+      return
+    }
+    if (form.ownerKind === "partner" && !form.partnerName.trim()) {
+      toast.error("Introduce el nombre del tercero")
       return
     }
     setIsSaving(true)
@@ -150,7 +161,8 @@ export default function ReferidosAdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: form.code,
-          performerId: form.performerId,
+          performerId: form.ownerKind === "performer" ? form.performerId : null,
+          partnerName: form.ownerKind === "partner" ? form.partnerName.trim() : null,
           discountPercent: Number(form.discountPercent) || 0,
           label: form.label.trim() || null,
           isActive: form.isActive,
@@ -229,80 +241,146 @@ export default function ReferidosAdminPage() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Modelo *</label>
-                <Input
-                  value={performerQuery}
-                  onChange={(e) => {
-                    setPerformerQuery(e.target.value)
-                    setSelectedPerformer(null)
-                    setForm((prev) => ({ ...prev, performerId: "" }))
-                  }}
-                  placeholder="Buscar modelo por nombre..."
-                />
-                {selectedPerformer ? (
-                  <div className="mt-2 flex items-center gap-2 p-2 rounded border bg-muted/40">
-                    {selectedPerformer.profileImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={selectedPerformer.profileImage}
-                        alt={selectedPerformer.name}
-                        className="size-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="size-6 rounded-full bg-muted" />
-                    )}
-                    <span className="text-sm font-medium">
-                      {selectedPerformer.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedPerformer(null)
-                        setForm((prev) => ({ ...prev, performerId: "" }))
-                      }}
-                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Cambiar
-                    </button>
-                  </div>
-                ) : (
-                  <div className="mt-2 max-h-40 overflow-y-auto rounded border">
-                    {searchingPerformers ? (
-                      <div className="p-3 text-xs text-muted-foreground">
-                        Buscando...
-                      </div>
-                    ) : performerResults.length === 0 ? (
-                      <div className="p-3 text-xs text-muted-foreground">
-                        Sin resultados
-                      </div>
-                    ) : (
-                      performerResults.map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => pickPerformer(p)}
-                          className="w-full flex items-center gap-2 p-2 text-left hover:bg-muted text-sm"
-                        >
-                          {p.profileImage ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={p.profileImage}
-                              alt={p.name}
-                              className="size-6 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="size-6 rounded-full bg-muted" />
-                          )}
-                          <span>{p.name}</span>
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            {p.slug}
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
+                <label className="text-sm font-medium">Tipo de dueño *</label>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm((prev) => ({
+                        ...prev,
+                        ownerKind: "performer",
+                        partnerName: "",
+                      }))
+                    }}
+                    className={`flex-1 px-3 py-2 text-sm rounded border transition-colors ${
+                      form.ownerKind === "performer"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted"
+                    }`}
+                  >
+                    Modelo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm((prev) => ({
+                        ...prev,
+                        ownerKind: "partner",
+                        performerId: "",
+                      }))
+                      setSelectedPerformer(null)
+                    }}
+                    className={`flex-1 px-3 py-2 text-sm rounded border transition-colors ${
+                      form.ownerKind === "partner"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted"
+                    }`}
+                  >
+                    Tercero (representante, agencia...)
+                  </button>
+                </div>
               </div>
+
+              {form.ownerKind === "performer" ? (
+                <div>
+                  <label className="text-sm font-medium">Modelo *</label>
+                  <Input
+                    value={performerQuery}
+                    onChange={(e) => {
+                      setPerformerQuery(e.target.value)
+                      setSelectedPerformer(null)
+                      setForm((prev) => ({ ...prev, performerId: "" }))
+                    }}
+                    placeholder="Buscar modelo por nombre..."
+                  />
+                  {selectedPerformer ? (
+                    <div className="mt-2 flex items-center gap-2 p-2 rounded border bg-muted/40">
+                      {selectedPerformer.profileImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={selectedPerformer.profileImage}
+                          alt={selectedPerformer.name}
+                          className="size-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="size-6 rounded-full bg-muted" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {selectedPerformer.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPerformer(null)
+                          setForm((prev) => ({ ...prev, performerId: "" }))
+                        }}
+                        className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-2 max-h-40 overflow-y-auto rounded border">
+                      {searchingPerformers ? (
+                        <div className="p-3 text-xs text-muted-foreground">
+                          Buscando...
+                        </div>
+                      ) : performerResults.length === 0 ? (
+                        <div className="p-3 text-xs text-muted-foreground">
+                          Sin resultados
+                        </div>
+                      ) : (
+                        performerResults.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => pickPerformer(p)}
+                            className="w-full flex items-center gap-2 p-2 text-left hover:bg-muted text-sm"
+                          >
+                            {p.profileImage ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={p.profileImage}
+                                alt={p.name}
+                                className="size-6 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="size-6 rounded-full bg-muted" />
+                            )}
+                            <span>{p.name}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {p.slug}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="text-sm font-medium">
+                    Nombre del tercero *
+                  </label>
+                  <Input
+                    value={form.partnerName}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setForm((prev) => ({
+                        ...prev,
+                        partnerName: v,
+                        code: prev.code || suggestCode(v),
+                      }))
+                    }}
+                    placeholder="Ej: Juan Pérez (representante)"
+                    maxLength={120}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Texto libre. Se usará para identificar al dueño en
+                    métricas y en el badge del cupón.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -408,7 +486,7 @@ export default function ReferidosAdminPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Código</TableHead>
-              <TableHead>Modelo</TableHead>
+              <TableHead>Asignado a</TableHead>
               <TableHead>Descuento</TableHead>
               <TableHead>Conversiones</TableHead>
               <TableHead>Clicks</TableHead>
@@ -443,17 +521,24 @@ export default function ReferidosAdminPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {c.performer.profileImage ? (
+                      {c.performer?.profileImage ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={c.performer.profileImage}
-                          alt={c.performer.name}
+                          alt={c.ownerName}
                           className="size-7 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="size-7 rounded-full bg-muted" />
+                        <div className="size-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold">
+                          {c.ownerName.charAt(0).toUpperCase()}
+                        </div>
                       )}
-                      <span className="text-sm">{c.performer.name}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{c.ownerName}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                          {c.ownerType === "performer" ? "Modelo" : "Tercero"}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
