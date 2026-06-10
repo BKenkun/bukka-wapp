@@ -1,6 +1,7 @@
 import { TopBar } from "@/components/top-bar"
 import { MainHeader } from "@/components/main-header"
 import { Footer } from "@/components/footer"
+import { ReferralBanner } from "@/components/referral-banner"
 import { AgeVerificationProvider } from "@/components/age-verification-provider"
 import { ThemeStylesProvider } from "@/components/theme-styles-provider"
 import { StickyHeader } from "@/components/sticky-header"
@@ -47,6 +48,7 @@ export default async function WebLayout({ children }: WebLayoutProps) {
         >
           <MainHeader />
         </StickyHeader>
+        <ReferralBanner />
         {children}
         <Footer />
       </ThemeStylesProvider>

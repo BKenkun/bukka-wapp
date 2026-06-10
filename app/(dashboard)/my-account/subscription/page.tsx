@@ -64,8 +64,13 @@ export default async function SuscripcionPage() {
   // Get current plan price
   const currentPlanPrice = currentPlan ? Number(currentPlan.monthlyPrice) : 0
 
+  // El plan "Visitante" (sin cuenta) no aplica a usuarios logueados
+  const visiblePlans = subscriptionPlans.filter(
+    (plan) => !(plan.isFree && plan.isDefault && plan.level === 0)
+  )
+
   // Transform plans for the card component
-  const transformedPlans = subscriptionPlans.map((plan) => {
+  const transformedPlans = visiblePlans.map((plan) => {
     const features = Array.isArray(plan.features) ? (plan.features as { text: string; included: boolean }[]) : []
     const monthlyPrice = Number(plan.monthlyPrice)
 
@@ -81,7 +86,8 @@ export default async function SuscripcionPage() {
     let buttonText: string
     if (plan.id === currentPlan?.id) {
       buttonText = "Current Plan"
-    } else if (plan.isFree && plan.slug === "free") {
+    } else if (plan.isFree) {
+      // Los planes gratuitos no se "compran"
       buttonText = ""
     } else {
       buttonText = `Join ${plan.name}`

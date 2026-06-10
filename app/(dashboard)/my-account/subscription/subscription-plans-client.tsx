@@ -84,14 +84,14 @@ export function SubscriptionPlansClient({ plans }: SubscriptionPlansClientProps)
           applied={appliedReferral}
           onApply={setAppliedReferral}
           onRemove={() => setAppliedReferral(null)}
-          title="¿Tienes un código de creadora?"
+          title="Have a creator code?"
         />
         {appliedReferral && appliedReferral.discountPercent > 0 && (
           <p
             className="text-xs text-center mt-2"
             style={{ color: "var(--text-muted)" }}
           >
-            El descuento se aplicará al primer pago de tu suscripción.
+            The discount will be applied to the first payment of your subscription.
           </p>
         )}
       </div>

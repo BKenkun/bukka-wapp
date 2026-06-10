@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { Lock } from "lucide-react"
+import { useAuthModal } from "@/components/auth/auth-modal-provider"
 import type { VideoAccessLockConfig } from "@/lib/get-video-access-settings"
 
 interface VideoPlayerProps {
@@ -23,12 +25,14 @@ export function VideoPlayer({
   lockConfig,
 }: VideoPlayerProps) {
   const [isHovering, setIsHovering] = useState(false)
+  const { data: session } = useSession()
+  const { openAuthModal } = useAuthModal()
 
   // Use config values with fallbacks
   const config = {
-    title: lockConfig?.title ?? "Acceso Denegado",
-    description: lockMessage ?? lockConfig?.description ?? "Este contenido requiere una suscripción",
-    buttonText: lockConfig?.buttonText ?? "Ver Planes",
+    title: lockConfig?.title ?? "Access Denied",
+    description: lockMessage ?? lockConfig?.description ?? "This content requires a subscription",
+    buttonText: lockConfig?.buttonText ?? "View Plans",
     buttonUrl: lockConfig?.buttonUrl ?? "/suscripciones",
     backgroundImage: lockConfig?.backgroundImage ?? null,
     overlaySize: lockConfig?.overlaySize ?? "normal",
@@ -80,23 +84,40 @@ export function VideoPlayer({
             </p>
             {config.showTierBadge && requiredTier && (
               <p className="text-sm" style={{ color: config.tierBadgeTextColor }}>
-                Requiere suscripción{" "}
-                <span className="font-semibold" style={{ color: config.tierBadgeAccentColor }}>{requiredTier}</span> o
-                superior
+                Requires a{" "}
+                <span className="font-semibold" style={{ color: config.tierBadgeAccentColor }}>{requiredTier}</span>{" "}
+                subscription or higher
               </p>
             )}
-            <Link
-              href={config.buttonUrl}
-              className={`inline-block mt-4 font-semibold transition-colors cursor-pointer ${config.buttonPaddingX} ${config.buttonPaddingY} ${config.buttonBorderRadius}`}
-              style={{
-                backgroundColor: isHovering ? config.buttonHoverBgColor : config.buttonBgColor,
-                color: config.buttonTextColor,
-              }}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-            >
-              {config.buttonText}
-            </Link>
+            {session?.user ? (
+              <Link
+                href={config.buttonUrl}
+                className={`inline-block mt-4 font-semibold transition-colors cursor-pointer ${config.buttonPaddingX} ${config.buttonPaddingY} ${config.buttonBorderRadius}`}
+                style={{
+                  backgroundColor: isHovering ? config.buttonHoverBgColor : config.buttonBgColor,
+                  color: config.buttonTextColor,
+                }}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+              >
+                {config.buttonText}
+              </Link>
+            ) : (
+              // Visitante sin cuenta: primero registro, después elegir plan
+              <button
+                type="button"
+                onClick={() => openAuthModal({ view: "register", callbackUrl: config.buttonUrl })}
+                className={`inline-block mt-4 font-semibold transition-colors cursor-pointer ${config.buttonPaddingX} ${config.buttonPaddingY} ${config.buttonBorderRadius}`}
+                style={{
+                  backgroundColor: isHovering ? config.buttonHoverBgColor : config.buttonBgColor,
+                  color: config.buttonTextColor,
+                }}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+              >
+                {config.buttonText}
+              </button>
+            )}
           </div>
         </div>
       )}
