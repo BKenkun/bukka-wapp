@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ replies })
   } catch (error) {
     console.error("Error fetching replies:", error)
-    return NextResponse.json({ error: "Error al obtener respuestas" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching replies" }, { status: 500 })
   }
 }
 
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     // Check forum access
     const userPlan = await getUserPlan(session.user.id)
     if (!canUserAccessForum(userPlan)) {
       return NextResponse.json(
-        { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+        { error: "You need a Gold subscription or higher to access the forum" },
         { status: 403 }
       )
     }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { content, parentId } = body
 
     if (!content) {
-      return NextResponse.json({ error: "El contenido es requerido" }, { status: 400 })
+      return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
 
     // Check if post exists and is not locked
@@ -67,11 +67,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!post) {
-      return NextResponse.json({ error: "Tema no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
 
     if (post.isLocked) {
-      return NextResponse.json({ error: "Este tema está cerrado" }, { status: 403 })
+      return NextResponse.json({ error: "This topic is closed" }, { status: 403 })
     }
 
     // Check user tier for category access
@@ -124,6 +124,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(reply, { status: 201 })
   } catch (error) {
     console.error("Error creating reply:", error)
-    return NextResponse.json({ error: "Error al crear respuesta" }, { status: 500 })
+    return NextResponse.json({ error: "Error creating reply" }, { status: 500 })
   }
 }

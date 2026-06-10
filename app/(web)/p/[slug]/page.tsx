@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!page) {
     return {
-      title: "Página no encontrada",
+      title: "Page not found",
     }
   }
 
@@ -92,7 +92,7 @@ export default async function CmsPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Última actualización: {new Date(page.updatedAt).toLocaleDateString("es-ES", {
+              Last updated: {new Date(page.updatedAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",

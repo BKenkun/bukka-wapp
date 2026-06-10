@@ -29,8 +29,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   },
   discountBanner: {
     enabled: true,
-    text: "DESCUENTO ESPECIAL PARA MIEMBROS DIAMANTE -30%",
-    buttonText: "SUBSCRÍBETE AHORA",
+    text: "SPECIAL DISCOUNT FOR DIAMOND MEMBERS -30%",
+    buttonText: "SUBSCRIBE NOW",
     buttonUrl: "/registro",
     backgroundColor: "#00B1DE",
   },

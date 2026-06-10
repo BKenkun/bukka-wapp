@@ -16,9 +16,9 @@ interface AgeVerificationModalProps {
 export function AgeVerificationModal({
   enabled = true,
   okysafeEnabled = true,
-  title = "Este es un Sitio Web para adultos",
-  description = "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
-  exitButtonText = "Soy menor de 18 años - Salir",
+  title = "This is an Adult Website",
+  description = "This website contains age-restricted material, including nudity and explicit depictions of sexual activity. By entering, you affirm that you are at least 18 years of age or the age of majority in the jurisdiction from which you are accessing the website, and that you consent to viewing sexually explicit content.",
+  exitButtonText = "I am under 18 - Exit",
   exitUrl = "https://www.google.com",
 }: AgeVerificationModalProps) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -55,11 +55,11 @@ export function AgeVerificationModal({
 
       // Show error if verification failed
       if (avResult === "failed") {
-        setError("La verificación no se completó correctamente. Inténtalo de nuevo.")
+        setError("Verification was not completed successfully. Please try again.")
         // Clean URL params
         window.history.replaceState({}, "", window.location.pathname)
       } else if (avResult === "error") {
-        setError("Hubo un error en la verificación. Inténtalo de nuevo.")
+        setError("There was an error during verification. Please try again.")
         window.history.replaceState({}, "", window.location.pathname)
       }
 
@@ -86,7 +86,7 @@ export function AgeVerificationModal({
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Error al iniciar la verificación")
+        setError(data.error || "Error starting verification")
         return
       }
 
@@ -100,7 +100,7 @@ export function AgeVerificationModal({
         window.location.href = data.verificationUrl
       }
     } catch {
-      setError("Error de conexión. Inténtalo de nuevo.")
+      setError("Connection error. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -278,7 +278,7 @@ export function AgeVerificationModal({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Tu email"
+            placeholder="Your email"
             required
             disabled={isSubmitting}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 text-white placeholder-white/50 mb-4 outline-none focus:border-[#FA4860] transition-colors"
@@ -303,7 +303,7 @@ export function AgeVerificationModal({
             className="btn-primary cursor-pointer w-full disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ minWidth: "260px" }}
           >
-            {isSubmitting ? "Verificando..." : "Verificar mi edad"}
+            {isSubmitting ? "Verifying..." : "Verify My Age"}
           </button>
         </form>
 

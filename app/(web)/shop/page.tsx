@@ -143,14 +143,14 @@ export default async function TiendaPage({
                 className="text-3xl md:text-4xl font-bold mb-2"
                 style={{ color: "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
               >
-                Todos los Productos
+                All Products
               </h2>
               <p
                 className="text-sm"
                 style={{ color: "var(--text-muted, #6b7280)", fontFamily: "var(--global-font)" }}
               >
-                Mostrando {skip + 1}-{Math.min(skip + pageSize, totalCount)} de{" "}
-                {totalCount.toLocaleString()} productos
+                Showing {skip + 1}-{Math.min(skip + pageSize, totalCount)} of{" "}
+                {totalCount.toLocaleString()} products
               </p>
             </div>
 
@@ -159,14 +159,14 @@ export default async function TiendaPage({
                 className="text-sm"
                 style={{ color: "var(--text-muted, #6b7280)" }}
               >
-                Ordenar:
+                Sort by:
               </span>
               <div className="flex gap-2 flex-wrap">
                 {[
-                  { value: "newest", label: "Recientes" },
-                  { value: "popular", label: "Populares" },
-                  { value: "price_asc", label: "Precio ↑" },
-                  { value: "price_desc", label: "Precio ↓" },
+                  { value: "newest", label: "Newest" },
+                  { value: "popular", label: "Popular" },
+                  { value: "price_asc", label: "Price ↑" },
+                  { value: "price_desc", label: "Price ↓" },
                 ].map((option) => (
                   <Link
                     key={option.value}
@@ -214,7 +214,7 @@ export default async function TiendaPage({
                 className="text-lg"
                 style={{ color: "var(--text-muted, #6b7280)" }}
               >
-                No hay productos disponibles
+                No products available
               </p>
             </div>
           )}
@@ -231,7 +231,7 @@ export default async function TiendaPage({
                     fontFamily: "var(--global-font)",
                   }}
                 >
-                  Anterior
+                  Previous
                 </Link>
               )}
 
@@ -277,7 +277,7 @@ export default async function TiendaPage({
                     fontFamily: "var(--global-font)",
                   }}
                 >
-                  Siguiente
+                  Next
                 </Link>
               )}
             </div>

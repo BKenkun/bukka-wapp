@@ -117,7 +117,7 @@ export function CartButton() {
         onClick={handleClick}
         className={`relative p-1 hover:opacity-80 transition-opacity ${isEmpty ? "cursor-default" : "cursor-pointer"}`}
         style={{ color: "var(--header-nav-text)" }}
-        aria-label="Carrito de compras"
+        aria-label="Shopping cart"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -163,13 +163,13 @@ export function CartButton() {
               {isEmpty ? (
                 // Empty cart state - simple message
                 <div className="text-center py-2">
-                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>Carrito vacío</p>
+                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>Your cart is empty</p>
                 </div>
               ) : (
                 // Cart with items
                 <>
                   <h3 className="font-semibold text-lg mb-4" style={{ color: "var(--text-primary)" }}>
-                    Tu Carrito ({cart?.itemCount || 0})
+                    Your Cart ({cart?.itemCount || 0})
                   </h3>
 
                   <div className="max-h-[300px] overflow-y-auto space-y-4">
@@ -196,7 +196,7 @@ export function CartButton() {
                             {item.quantity} x {item.product.price.toFixed(2)} €
                           </p>
                           {!item.product.available && (
-                            <p className="text-xs" style={{ color: "var(--error-color)" }}>No disponible</p>
+                            <p className="text-xs" style={{ color: "var(--error-color)" }}>Not available</p>
                           )}
                         </div>
                         <button
@@ -227,7 +227,7 @@ export function CartButton() {
                     {cart.discountPercent > 0 && (
                       <div className="flex justify-between text-sm mb-2">
                         <span style={{ color: "var(--cart-summary-label)" }}>
-                          Descuento ({cart.discountPercent}%)
+                          Discount ({cart.discountPercent}%)
                         </span>
                         <span style={{ color: "var(--success-color)" }}>
                           -{cart.discount.toFixed(2)} €
@@ -245,14 +245,14 @@ export function CartButton() {
                         onClick={() => setIsOpen(false)}
                         className="btn-secondary block w-full text-center"
                       >
-                        Ver Carrito
+                        View Cart
                       </Link>
                       <Link
                         href="/checkout"
                         onClick={() => setIsOpen(false)}
                         className="btn-primary block w-full text-center"
                       >
-                        Finalizar Compra
+                        Checkout
                       </Link>
                     </div>
                   </div>

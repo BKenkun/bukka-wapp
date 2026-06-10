@@ -10,17 +10,17 @@ export async function POST(request: NextRequest) {
     const folder = formData.get("folder") as string | null
 
     if (!file) {
-      return NextResponse.json({ error: "No se proporcionó archivo" }, { status: 400 })
+      return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
     if (!folder) {
-      return NextResponse.json({ error: "No se proporcionó carpeta destino" }, { status: 400 })
+      return NextResponse.json({ error: "No destination folder provided" }, { status: 400 })
     }
 
     // Validate folder
     const config = FOLDER_CONFIG[folder]
     if (!config) {
-      return NextResponse.json({ error: "Carpeta no válida" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
     }
 
     // Check authentication
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // For non-casting uploads, require authentication
     if (folder !== "casting" && !session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     // Check admin requirement
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (!user?.isAdmin) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+        return NextResponse.json({ error: "Not authorized" }, { status: 403 })
       }
     }
 
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(
-      { error: "Error al subir archivo" },
+      { error: "Error uploading file" },
       { status: 500 }
     )
   }
@@ -82,7 +82,7 @@ export async function DELETE(request: NextRequest) {
     // Only admins can delete files
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -91,13 +91,13 @@ export async function DELETE(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { url } = await request.json()
 
     if (!url || typeof url !== "string") {
-      return NextResponse.json({ error: "URL no proporcionada" }, { status: 400 })
+      return NextResponse.json({ error: "URL not provided" }, { status: 400 })
     }
 
     const deleted = await deleteFile(url)
@@ -105,12 +105,12 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({
       success: true,
       deleted,
-      message: deleted ? "Archivo eliminado" : "No se pudo eliminar o no existía"
+      message: deleted ? "File deleted" : "Could not delete or did not exist"
     })
   } catch (error) {
     console.error("Error deleting file:", error)
     return NextResponse.json(
-      { error: "Error al eliminar archivo" },
+      { error: "Error deleting file" },
       { status: 500 }
     )
   }

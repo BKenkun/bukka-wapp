@@ -20,13 +20,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!post) {
-      return NextResponse.json({ error: "Artículo no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Article not found" }, { status: 404 })
     }
 
     return NextResponse.json(post)
   } catch (error) {
     console.error("Error fetching blog post:", error)
-    return NextResponse.json({ error: "Error al obtener artículo" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching article" }, { status: 500 })
   }
 }
 
@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -54,14 +54,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const existingPost = await prisma.blogPost.findUnique({ where: { id } })
     if (!existingPost) {
-      return NextResponse.json({ error: "Artículo no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Article not found" }, { status: 404 })
     }
 
     // Check slug uniqueness if changed
     if (slug !== existingPost.slug) {
       const slugExists = await prisma.blogPost.findUnique({ where: { slug } })
       if (slugExists) {
-        return NextResponse.json({ error: "Ya existe un artículo con ese slug" }, { status: 400 })
+        return NextResponse.json({ error: "An article with that slug already exists" }, { status: 400 })
       }
     }
 
@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(post)
   } catch (error) {
     console.error("Error updating blog post:", error)
-    return NextResponse.json({ error: "Error al actualizar artículo" }, { status: 500 })
+    return NextResponse.json({ error: "Error updating article" }, { status: 500 })
   }
 }
 
@@ -99,7 +99,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -118,6 +118,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting blog post:", error)
-    return NextResponse.json({ error: "Error al eliminar artículo" }, { status: 500 })
+    return NextResponse.json({ error: "Error deleting article" }, { status: 500 })
   }
 }

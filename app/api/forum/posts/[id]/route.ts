@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!post) {
-      return NextResponse.json({ error: "Tema no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
 
     // Increment view count
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(post)
   } catch (error) {
     console.error("Error fetching forum post:", error)
-    return NextResponse.json({ error: "Error al obtener tema" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching topic" }, { status: 500 })
   }
 }
 
@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const { id } = await params
@@ -62,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!existingPost) {
-      return NextResponse.json({ error: "Tema no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
 
     // Check permissions
@@ -76,7 +76,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Only owner can edit title/content, only mod can pin/lock
     if (!isOwner && !isMod) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     // Check forum access for non-mod users
@@ -84,7 +84,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       const userPlan = await getUserPlan(session.user.id)
       if (!canUserAccessForum(userPlan)) {
         return NextResponse.json(
-          { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+          { error: "You need a Gold subscription or higher to access the forum" },
           { status: 403 }
         )
       }
@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: "No hay cambios para aplicar" }, { status: 400 })
+      return NextResponse.json({ error: "No changes to apply" }, { status: 400 })
     }
 
     const post = await prisma.forumPost.update({
@@ -126,7 +126,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(post)
   } catch (error) {
     console.error("Error updating forum post:", error)
-    return NextResponse.json({ error: "Error al actualizar tema" }, { status: 500 })
+    return NextResponse.json({ error: "Error updating topic" }, { status: 500 })
   }
 }
 
@@ -136,7 +136,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const { id } = await params
@@ -146,7 +146,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!existingPost) {
-      return NextResponse.json({ error: "Tema no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
 
     // Check permissions
@@ -159,7 +159,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const isMod = user?.isAdmin || user?.isModerator
 
     if (!isOwner && !isMod) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     // Check forum access for non-mod users
@@ -167,7 +167,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       const userPlan = await getUserPlan(session.user.id)
       if (!canUserAccessForum(userPlan)) {
         return NextResponse.json(
-          { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+          { error: "You need a Gold subscription or higher to access the forum" },
           { status: 403 }
         )
       }
@@ -178,6 +178,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting forum post:", error)
-    return NextResponse.json({ error: "Error al eliminar tema" }, { status: 500 })
+    return NextResponse.json({ error: "Error deleting topic" }, { status: 500 })
   }
 }

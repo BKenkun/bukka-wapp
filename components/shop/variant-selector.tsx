@@ -202,7 +202,7 @@ export function VariantSelector({
 
       {/* Variant Info Display */}
       {!isLoading && currentVariant && !currentVariant.isAvailable && (
-        <p className="text-sm font-medium pt-2" style={{ color: "var(--error-color)" }}>Agotado</p>
+        <p className="text-sm font-medium pt-2" style={{ color: "var(--error-color)" }}>Sold Out</p>
       )}
     </div>
   )

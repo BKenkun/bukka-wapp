@@ -25,10 +25,10 @@ interface ProfileTabsProps {
   replies: Reply[]
 }
 
-const tabs = ["Temas Creados", "Respuestas"]
+const tabs = ["Topics Created", "Replies"]
 
 export function ProfileTabs({ posts, replies }: ProfileTabsProps) {
-  const [activeTab, setActiveTab] = useState("Temas Creados")
+  const [activeTab, setActiveTab] = useState("Topics Created")
 
   return (
     <div className="p-6" style={{ background: "rgba(107, 114, 128, 0.38)" }}>
@@ -48,11 +48,11 @@ export function ProfileTabs({ posts, replies }: ProfileTabsProps) {
       </div>
 
       {/* Posts List */}
-      {activeTab === "Temas Creados" && (
+      {activeTab === "Topics Created" && (
         <div className="flex flex-col gap-4">
           {posts.length === 0 ? (
             <p className="text-white/60 font-montserrat text-center py-8">
-              Este usuario no ha creado ningún tema aún.
+              This user has not created any topics yet.
             </p>
           ) : (
             posts.map((post) => (
@@ -89,7 +89,7 @@ export function ProfileTabs({ posts, replies }: ProfileTabsProps) {
                       >
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
-                      {post.responses} respuestas
+                      {post.responses} replies
                     </span>
                     <span className="text-white/60">{post.timeAgo}</span>
                   </div>
@@ -101,18 +101,18 @@ export function ProfileTabs({ posts, replies }: ProfileTabsProps) {
       )}
 
       {/* Replies List */}
-      {activeTab === "Respuestas" && (
+      {activeTab === "Replies" && (
         <div className="flex flex-col gap-4">
           {replies.length === 0 ? (
             <p className="text-white/60 font-montserrat text-center py-8">
-              Este usuario no ha respondido a ningún tema aún.
+              This user has not replied to any topics yet.
             </p>
           ) : (
             replies.map((reply) => (
               <Link key={reply.id} href={`/foro/${reply.postId}`}>
                 <div className="border-l-4 border-[#00B1DE] pl-4 py-2 hover:bg-white/5 transition-colors cursor-pointer">
                   <p className="font-montserrat text-white/60 text-[12px] mb-1">
-                    En respuesta a: <span className="text-white">{reply.postTitle}</span>
+                    In reply to: <span className="text-white">{reply.postTitle}</span>
                   </p>
                   <p className="font-montserrat text-white text-[14px] font-normal leading-[20px] mb-2">
                     {reply.content}

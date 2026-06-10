@@ -68,7 +68,7 @@ export function VideoActionButtons({
     if (!videoId) return
 
     if (!userId) {
-      toast.error("Inicia sesion para guardar en favoritos")
+      toast.error("Log in to save to favorites")
       router.push("/?login=true")
       return
     }
@@ -80,9 +80,9 @@ export function VideoActionButtons({
         if (res.ok) {
           setIsFavorite(false)
           setFavoriteCount((prev) => Math.max(0, prev - 1))
-          toast.success("Eliminado de favoritos")
+          toast.success("Removed from favorites")
         } else {
-          throw new Error("Error al eliminar de favoritos")
+          throw new Error("Error removing from favorites")
         }
       } else {
         const res = await fetch("/api/favorites", {
@@ -93,14 +93,14 @@ export function VideoActionButtons({
         if (res.ok) {
           setIsFavorite(true)
           setFavoriteCount((prev) => prev + 1)
-          toast.success("Añadido a favoritos")
+          toast.success("Added to favorites")
         } else {
           const data = await res.json()
-          throw new Error(data.error || "Error al añadir a favoritos")
+          throw new Error(data.error || "Error adding to favorites")
         }
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al actualizar favoritos")
+      toast.error(error instanceof Error ? error.message : "Error updating favorites")
     } finally {
       setIsTogglingFavorite(false)
     }
@@ -108,7 +108,7 @@ export function VideoActionButtons({
 
   async function handleDownload() {
     if (!canDownload) {
-      toast.error("Tu plan no permite descargas. Actualiza tu suscripcion.")
+      toast.error("Your plan does not allow downloads. Upgrade your subscription.")
       return
     }
 
@@ -118,13 +118,13 @@ export function VideoActionButtons({
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Error al descargar")
+        throw new Error(data.error || "Error downloading")
       }
 
       window.open(data.downloadUrl, "_blank")
-      toast.success("Descarga iniciada")
+      toast.success("Download started")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al descargar")
+      toast.error(error instanceof Error ? error.message : "Error downloading")
     } finally {
       setIsDownloading(false)
     }
@@ -155,7 +155,7 @@ export function VideoActionButtons({
         onClick={handleToggleFavorite}
         disabled={isTogglingFavorite}
         className="flex items-center gap-1.5 p-1 h-auto transition-all duration-200 hover:opacity-80 disabled:opacity-50"
-        title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
       >
         <WaterDropIcon filled={isFavorite} />
         <span
@@ -173,7 +173,7 @@ export function VideoActionButtons({
         onClick={handleDownload}
         disabled={isDownloading || !canDownload}
         className="flex items-center gap-1.5 p-1 h-auto transition-all duration-200 hover:opacity-80 disabled:opacity-50"
-        title={canDownload ? "Descargar video" : "Actualiza tu plan para descargar"}
+        title={canDownload ? "Download video" : "Upgrade your plan to download"}
       >
         {isDownloading ? (
           <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">

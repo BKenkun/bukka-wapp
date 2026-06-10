@@ -13,14 +13,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     // Check forum access
     const userPlan = await getUserPlan(session.user.id)
     if (!canUserAccessForum(userPlan)) {
       return NextResponse.json(
-        { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+        { error: "You need a Gold subscription or higher to access the forum" },
         { status: 403 }
       )
     }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!post) {
-      return NextResponse.json({ error: "Tema no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
 
     // Check if user already liked
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
   } catch (error) {
     console.error("Error toggling post like:", error)
-    return NextResponse.json({ error: "Error al procesar like" }, { status: 500 })
+    return NextResponse.json({ error: "Error processing like" }, { status: 500 })
   }
 }
 
@@ -111,6 +111,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ liked: !!like })
   } catch (error) {
     console.error("Error checking post like:", error)
-    return NextResponse.json({ error: "Error al verificar like" }, { status: 500 })
+    return NextResponse.json({ error: "Error checking like" }, { status: 500 })
   }
 }

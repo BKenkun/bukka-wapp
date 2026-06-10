@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     if (!matchingZone || matchingZone.rates.length === 0) {
       return NextResponse.json({
         available: false,
-        message: "No hay opciones de envio disponibles para esta ubicacion",
+        message: "No shipping options available for this location",
         rates: [],
       })
     }
@@ -141,6 +141,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
     }
     console.error("Error calculating shipping:", error)
-    return NextResponse.json({ error: "Error al calcular envio" }, { status: 500 })
+    return NextResponse.json({ error: "Error calculating shipping" }, { status: 500 })
   }
 }

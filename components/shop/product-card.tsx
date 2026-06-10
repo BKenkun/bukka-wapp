@@ -63,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
               border: badge === "New" ? "1px solid rgba(255,255,255,0.3)" : "none",
             }}
           >
-            {badge === "Sale" ? `-${discountPercent}%` : "Nuevo"}
+            {badge === "Sale" ? `-${discountPercent}%` : "New"}
           </div>
         )}
 
@@ -150,7 +150,7 @@ export function ProductCard({ product }: ProductCardProps) {
             style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
           >
             <ShoppingCart className="w-4 h-4" />
-            Seleccionar variantes
+            Select Variants
           </Link>
         ) : (
           <AddToCartButton

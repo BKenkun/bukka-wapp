@@ -56,11 +56,11 @@ function formatTimeAgo(dateString: string): string {
   const now = new Date()
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-  if (diffInSeconds < 60) return "hace unos segundos"
-  if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} min`
-  if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} horas`
-  if (diffInSeconds < 604800) return `hace ${Math.floor(diffInSeconds / 86400)} días`
-  return `hace ${Math.floor(diffInSeconds / 604800)} semanas`
+  if (diffInSeconds < 60) return "a few seconds ago"
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
+  return `${Math.floor(diffInSeconds / 604800)} weeks ago`
 }
 
 export function RelatedContentTabs({
@@ -155,7 +155,7 @@ export function RelatedContentTabs({
             lineHeight: "48px",
           }}
         >
-          Vídeos relacionados
+          Related videos
         </button>
         <button
           onClick={() => setActiveTab("comments")}
@@ -168,7 +168,7 @@ export function RelatedContentTabs({
             lineHeight: "48px",
           }}
         >
-          Comentarios
+          Comments
         </button>
       </div>
 
@@ -177,11 +177,11 @@ export function RelatedContentTabs({
         {activeTab === "videos" && (
           <div>
             {loadingVideos ? (
-              <div className="text-white text-center py-8">Cargando vídeos...</div>
+              <div className="text-white text-center py-8">Loading videos...</div>
             ) : relatedVideos.length > 0 ? (
               <VideoGrid videos={relatedVideos} />
             ) : (
-              <div className="text-white/60 text-center py-8">No hay vídeos relacionados</div>
+              <div className="text-white/60 text-center py-8">No related videos</div>
             )}
           </div>
         )}
@@ -206,7 +206,7 @@ export function RelatedContentTabs({
                   fontWeight: 500,
                 }}
               >
-                {commentCount} Comentarios
+                {commentCount} Comments
               </span>
             </div>
 
@@ -223,7 +223,7 @@ export function RelatedContentTabs({
                   lineHeight: "24px",
                 }}
               >
-                Populares
+                Popular
                 {commentFilter === "popular" && (
                   <div
                     className="absolute bottom-0 left-0 right-0"
@@ -245,7 +245,7 @@ export function RelatedContentTabs({
                   lineHeight: "24px",
                 }}
               >
-                Nuevos
+                New
                 {commentFilter === "new" && (
                   <div
                     className="absolute bottom-0 left-0 right-0"
@@ -265,7 +265,7 @@ export function RelatedContentTabs({
             <div className="space-y-8">
               {sortedComments.length === 0 ? (
                 <div className="text-white/60 text-center py-8">
-                  No hay comentarios aún. ¡Sé el primero en comentar!
+                  No comments yet. Be the first to comment!
                 </div>
               ) : (
                 sortedComments.map((comment) => (
@@ -451,12 +451,12 @@ export function RelatedContentTabs({
                 >
                   <img
                     src={session?.user?.image || "/placeholder.svg?height=60&width=60"}
-                    alt="Tu avatar"
+                    alt="Your avatar"
                     className="w-[60px] h-[60px] rounded-full flex-shrink-0 object-cover"
                   />
                   <input
                     type="text"
-                    placeholder="Escribe tu comentario..."
+                    placeholder="Write your comment..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => {
@@ -490,7 +490,7 @@ export function RelatedContentTabs({
                     border: "none",
                   }}
                 >
-                  {submitting ? "Enviando..." : "Enviar"}
+                  {submitting ? "Sending..." : "Send"}
                 </button>
               </>
             ) : isAuthenticated && !canComment ? (
@@ -504,18 +504,18 @@ export function RelatedContentTabs({
                 <div className="flex items-center gap-3">
                   <Lock className="w-6 h-6" style={{ color: "var(--accent-color)" }} />
                   <p className="font-montserrat text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                    Los comentarios requieren suscripción Gold o superior
+                    Comments require a Gold subscription or higher
                   </p>
                 </div>
                 <p className="font-montserrat text-sm" style={{ color: "var(--text-muted)" }}>
-                  Tu plan actual: <span className="font-medium" style={{ color: "var(--brand-color)" }}>{planName}</span>
+                  Your current plan: <span className="font-medium" style={{ color: "var(--brand-color)" }}>{planName}</span>
                 </p>
                 <Link
                   href="/suscripciones"
                   className="mt-2 px-6 py-3 font-montserrat font-semibold hover:opacity-80 transition-colors"
                   style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}
                 >
-                  Mejorar Suscripción
+                  Upgrade Subscription
                 </Link>
               </div>
             ) : (
@@ -527,9 +527,9 @@ export function RelatedContentTabs({
               >
                 <p className="font-montserrat" style={{ color: "var(--text-muted)" }}>
                   <Link href="/?login=true" className="hover:underline" style={{ color: "var(--accent-color)" }}>
-                    Inicia sesión
+                    Log in
                   </Link>{" "}
-                  para dejar un comentario
+                  to leave a comment
                 </p>
               </div>
             )}

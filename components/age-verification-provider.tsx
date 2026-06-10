@@ -15,9 +15,9 @@ interface AgeVerificationSettings {
 const DEFAULT_SETTINGS: AgeVerificationSettings = {
   enabled: true,
   okysafeEnabled: true,
-  title: "Este es un Sitio Web para adultos",
-  description: "Este sitio web contiene material restringido a menores de edad, que incluye desnudez y representaciones explícitas de actividad sexual. Al entrar, afirma que tiene por lo menos 18 años de edad o la mayoría de edad en la jurisdicción desde que está accediendo el sitio web y que da consentimiento en ver contenido sexualmente explícito.",
-  exitButtonText: "Soy menor de 18 años - Salir",
+  title: "This is an Adult Website",
+  description: "This website contains age-restricted material, including nudity and explicit depictions of sexual activity. By entering, you affirm that you are at least 18 years of age or the age of majority in the jurisdiction from which you are accessing the website, and that you consent to viewing sexually explicit content.",
+  exitButtonText: "I am under 18 - Exit",
   exitUrl: "https://www.google.com",
 }
 

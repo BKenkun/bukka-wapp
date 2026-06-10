@@ -85,7 +85,7 @@ export function ProductAddToCart({
 
   const handleAddToCart = async () => {
     if (isVariable && !selectedVariant) {
-      toast.error("Selecciona una variante")
+      toast.error("Please select a variant")
       return
     }
 
@@ -103,15 +103,15 @@ export function ProductAddToCart({
       })
 
       if (res.ok) {
-        toast.success("Producto anadido al carrito")
+        toast.success("Product added to cart")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al anadir al carrito")
+        toast.error(error.error || "Error adding to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al anadir al carrito")
+      toast.error("Error adding to cart")
     } finally {
       setLoading(false)
     }
@@ -170,12 +170,12 @@ export function ProductAddToCart({
           }}
         >
           {loading
-            ? "Anadiendo..."
+            ? "Adding..."
             : isOutOfStock
               ? isVariable && !selectedVariant
-                ? "Selecciona opciones"
-                : "Agotado"
-              : "Anadir al carrito"}
+                ? "Select Options"
+                : "Sold Out"
+              : "Add to Cart"}
         </button>
       </div>
     </div>

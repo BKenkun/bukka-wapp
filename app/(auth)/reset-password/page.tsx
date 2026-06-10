@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <Suspense fallback={<div className="text-center text-muted-foreground">Cargando...</div>}>
+            <Suspense fallback={<div className="text-center text-muted-foreground">Loading...</div>}>
               <ResetPasswordContent />
             </Suspense>
           </div>

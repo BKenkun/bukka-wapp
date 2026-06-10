@@ -62,7 +62,7 @@ export async function ShopSectionRenderer({ section }: ShopSectionRendererProps)
       return (
         <ShopFeaturedCollections
           enabled={true}
-          title={section.title || (config.subtitle ? String(section.title) : "Colecciones Destacadas")}
+          title={section.title || (config.subtitle ? String(section.title) : "Featured Collections")}
           subtitle={(config.subtitle as string) || ""}
           categories={categories}
         />
@@ -78,7 +78,7 @@ export async function ShopSectionRenderer({ section }: ShopSectionRendererProps)
       return (
         <ShopReviews
           enabled={true}
-          title={section.title || "Lo Que Dicen Nuestros Clientes"}
+          title={section.title || "What Our Customers Say"}
           items={items}
         />
       )
@@ -89,7 +89,7 @@ export async function ShopSectionRenderer({ section }: ShopSectionRendererProps)
       return (
         <ShopFaq
           enabled={true}
-          title={section.title || "Preguntas Frecuentes"}
+          title={section.title || "Frequently Asked Questions"}
           items={items}
           bgColor={(config.bgColor as string) || undefined}
           titleColor={(config.titleColor as string) || undefined}
@@ -148,7 +148,7 @@ function ShopHeroSection({ config, title }: { config: Record<string, unknown>; t
   const videoUrl = config.videoUrl as string | undefined
   const backgroundImage = config.backgroundImage as string | undefined
   const badgeText = (config.badgeText as string) || ""
-  const heroTitle = (config.title as string) || title || "Descubre Nuestra Tienda"
+  const heroTitle = (config.title as string) || title || "Discover Our Shop"
   const subtitle = (config.subtitle as string) || ""
   const ctaPrimaryText = (config.ctaPrimaryText as string) || ""
   const ctaPrimaryUrl = (config.ctaPrimaryUrl as string) || "/shop#productos"
@@ -308,7 +308,7 @@ async function ProductsGridSection({ config, title }: { config: Record<string, u
           </div>
         ) : (
           <div className="text-center py-12">
-            <p style={{ color: "var(--text-muted)" }}>No hay productos disponibles</p>
+            <p style={{ color: "var(--text-muted)" }}>No products available</p>
           </div>
         )}
 

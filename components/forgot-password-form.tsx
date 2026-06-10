@@ -43,14 +43,14 @@ export function ForgotPasswordForm({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Error al procesar la solicitud")
+        setError(data.error || "Error processing your request")
         setIsLoading(false)
         return
       }
 
       setIsSuccess(true)
     } catch {
-      setError("Error al procesar la solicitud")
+      setError("Error processing your request")
     } finally {
       setIsLoading(false)
     }
@@ -63,13 +63,13 @@ export function ForgotPasswordForm({
           <div className="w-16 h-16 bg-green-500/20 flex items-center justify-center">
             <IconMail className="w-8 h-8 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold">Revisa tu email</h1>
+          <h1 className="text-2xl font-bold">Check your email</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Si existe una cuenta con el email <strong className="text-white">{email}</strong>,
-            recibirás un enlace para restablecer tu contraseña.
+            If an account exists for <strong className="text-white">{email}</strong>,
+            you will receive a link to reset your password.
           </p>
           <p className="text-muted-foreground text-xs">
-            El enlace expirará en 1 hora.
+            The link will expire in 1 hour.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -77,7 +77,7 @@ export function ForgotPasswordForm({
             href="/?login=true"
             className="text-sm text-center underline underline-offset-4 text-white hover:text-white/80"
           >
-            Volver a iniciar sesión
+            Back to log in
           </a>
         </div>
       </div>
@@ -92,9 +92,9 @@ export function ForgotPasswordForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Recuperar contraseña</h1>
+          <h1 className="text-2xl font-bold">Reset password</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Introduce tu email y te enviaremos un enlace para restablecer tu contraseña
+            Enter your email and we will send you a link to reset your password
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export function ForgotPasswordForm({
             id="email"
             name="email"
             type="email"
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -117,12 +117,12 @@ export function ForgotPasswordForm({
 
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Enviando..." : "Enviar enlace"}
+            {isLoading ? "Sending..." : "Send Link"}
           </Button>
           <FieldDescription className="text-center">
-            ¿Recordaste tu contraseña?{" "}
+            Remembered your password?{" "}
             <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
-              Inicia sesión
+              Log In
             </a>
           </FieldDescription>
         </Field>

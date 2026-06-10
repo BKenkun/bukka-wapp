@@ -181,7 +181,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/shop" style={{ color: "var(--text-muted)" }}>Tienda</Link>
+                <Link href="/shop" style={{ color: "var(--text-muted)" }}>Shop</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             {firstCategory && (
@@ -238,8 +238,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         const hasGlobalCare = shopSettings.productDetail.careInstructions.length > 0
 
         const customTitle = hasProductBlocks
-          ? (productMeta?.customSectionTitle || "Detalles del Producto")
-          : "Instrucciones de Cuidado"
+          ? (productMeta?.customSectionTitle || "Product Details")
+          : "Care Instructions"
         const contentBlocks = hasProductBlocks
           ? productMeta!.blocks!
           : hasGlobalCare
@@ -264,7 +264,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       className="text-2xl font-bold mb-6"
                       style={{ color: careStyles?.titleColor || "var(--text-primary, #000)" }}
                     >
-                      Descripcion del Producto
+                      Product Description
                     </h2>
                     <div
                       className="prose max-w-none"
@@ -382,7 +382,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               className="text-2xl md:text-3xl font-bold mb-8"
               style={{ color: shopSettings.productDetail.relatedProductsStyles?.titleColor || "var(--text-primary, #000)", fontFamily: "var(--global-font)" }}
             >
-              Tambien te puede gustar
+              You May Also Like
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relProduct) => {
@@ -417,7 +417,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       {/* Product FAQ */}
       <ShopFaq
         enabled={shopSettings.productDetail.faq.enabled}
-        title="Preguntas Frecuentes"
+        title="Frequently Asked Questions"
         items={shopSettings.productDetail.faq.items}
         bgColor={shopSettings.productDetail.faq.styles?.bgColor || undefined}
         titleColor={shopSettings.productDetail.faq.styles?.titleColor || undefined}

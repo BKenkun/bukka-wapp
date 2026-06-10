@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const adminUser = await prisma.user.findUnique({
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!adminUser?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!submission) {
       return NextResponse.json(
-        { error: "Solicitud no encontrada" },
+        { error: "Application not found" },
         { status: 404 }
       )
     }
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching casting submission:", error)
     return NextResponse.json(
-      { error: "Error al obtener solicitud" },
+      { error: "Error fetching application" },
       { status: 500 }
     )
   }
@@ -59,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const adminUser = await prisma.user.findUnique({
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!adminUser?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (!existingSubmission) {
       return NextResponse.json(
-        { error: "Solicitud no encontrada" },
+        { error: "Application not found" },
         { status: 404 }
       )
     }
@@ -91,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const validStatuses = ["PENDING", "REVIEWING", "ACCEPTED", "REJECTED"]
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json(
-        { error: "Estado no válido" },
+        { error: "Invalid status" },
         { status: 400 }
       )
     }
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating casting submission:", error)
     return NextResponse.json(
-      { error: "Error al actualizar solicitud" },
+      { error: "Error updating application" },
       { status: 500 }
     )
   }
@@ -165,7 +165,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const adminUser = await prisma.user.findUnique({
@@ -174,7 +174,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!adminUser?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -185,7 +185,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!existingSubmission) {
       return NextResponse.json(
-        { error: "Solicitud no encontrada" },
+        { error: "Application not found" },
         { status: 404 }
       )
     }
@@ -198,7 +198,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting casting submission:", error)
     return NextResponse.json(
-      { error: "Error al eliminar solicitud" },
+      { error: "Error deleting application" },
       { status: 500 }
     )
   }

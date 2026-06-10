@@ -15,7 +15,7 @@ export async function GET() {
     return NextResponse.json({ categories })
   } catch (error) {
     console.error("Error fetching forum categories:", error)
-    return NextResponse.json({ error: "Error al obtener categorías" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching categories" }, { status: 500 })
   }
 }
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Check slug uniqueness
     const existing = await prisma.forumCategory.findUnique({ where: { slug } })
     if (existing) {
-      return NextResponse.json({ error: "Ya existe una categoría con ese slug" }, { status: 400 })
+      return NextResponse.json({ error: "A category with that slug already exists" }, { status: 400 })
     }
 
     // Get max order
@@ -65,6 +65,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(category, { status: 201 })
   } catch (error) {
     console.error("Error creating forum category:", error)
-    return NextResponse.json({ error: "Error al crear categoría" }, { status: 500 })
+    return NextResponse.json({ error: "Error creating category" }, { status: 500 })
   }
 }

@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  return { title: "No encontrado" }
+  return { title: "Not found" }
 }
 
 export default async function VideoOrCategoryPage({ params, searchParams }: PageProps) {
@@ -723,7 +723,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
-                    <span className="line-clamp-1 max-w-[200px]">Anterior</span>
+                    <span className="line-clamp-1 max-w-[200px]">Previous</span>
                   </Link>
                 ) : <span />}
                 {nextVideo ? (
@@ -733,7 +733,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                     style={{ color: "var(--text-muted)" }}
                     title={nextVideo.title}
                   >
-                    <span className="line-clamp-1 max-w-[200px]">Siguiente</span>
+                    <span className="line-clamp-1 max-w-[200px]">Next</span>
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -836,7 +836,7 @@ async function VideoDetailPage({ slug }: { slug: string }) {
                 {video.releaseDate && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium" style={{ color: "var(--text-primary)" }}>Fecha:</span>
-                    <span>{new Date(video.releaseDate).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</span>
+                    <span>{new Date(video.releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
                   </div>
                 )}
                 {video.duration != null && video.duration > 0 && (

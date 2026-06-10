@@ -413,7 +413,7 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
       {latestRelease && (
         <div className="px-4 md:px-8 mt-8">
           <div className="w-full">
-            <SectionHeader title="ÚLTIMO LANZAMIENTO" />
+            <SectionHeader title="LATEST RELEASE" />
             <Link href={`/videos/${latestRelease.slug}`}>
               <div className="relative w-full aspect-[21/9] overflow-hidden mt-6 group cursor-pointer">
                 <Image

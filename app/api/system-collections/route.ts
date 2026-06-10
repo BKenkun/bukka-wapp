@@ -9,7 +9,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching system collections:", error)
     return NextResponse.json(
-      { error: "Error al obtener las colecciones" },
+      { error: "Error fetching collections" },
       { status: 500 }
     )
   }

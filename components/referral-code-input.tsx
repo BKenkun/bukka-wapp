@@ -52,8 +52,8 @@ export function ReferralCodeInput({
   onApply,
   onRemove,
   className,
-  title = "¿Tienes un código de creadora?",
-  placeholder = "Introduce tu código",
+  title = "Have a creator code?",
+  placeholder = "Enter your code",
 }: ReferralCodeInputProps) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -73,7 +73,7 @@ export function ReferralCodeInput({
       })
       const data = await res.json()
       if (!res.ok || !data.valid) {
-        if (!silent) setError(data.error || "Código no válido")
+        if (!silent) setError(data.error || "Invalid code")
         return
       }
       onApply({
@@ -84,19 +84,19 @@ export function ReferralCodeInput({
         owner: data.owner,
       })
       if (!silent) {
-        const ownerName: string = data.owner?.name || "referido"
+        const ownerName: string = data.owner?.name || "referral"
         if (Number(data.discountPercent) > 0) {
           toast.success(
             data.owner?.type === "performer"
-              ? `Cupón creadora ${ownerName} aplicado`
-              : `Cupón ${ownerName} aplicado`,
+              ? `Creator coupon ${ownerName} applied`
+              : `Coupon ${ownerName} applied`,
           )
         } else {
-          toast.success(`Cupón de ${ownerName} aplicado`)
+          toast.success(`Coupon from ${ownerName} applied`)
         }
       }
     } catch {
-      if (!silent) setError("Error al validar el código")
+      if (!silent) setError("Error validating code")
     } finally {
       setLoading(false)
     }
@@ -130,9 +130,9 @@ export function ReferralCodeInput({
       applied.owner.type === "performer" ? applied.owner.profileImage : null
     const defaultLabel = isDiscount
       ? applied.owner.type === "performer"
-        ? `Cupón creadora ${ownerName} · ${applied.discountPercent}%`
-        : `Cupón ${ownerName} · ${applied.discountPercent}%`
-      : `Cupón referido ${ownerName}`
+        ? `Creator coupon ${ownerName} · ${applied.discountPercent}%`
+        : `Coupon ${ownerName} · ${applied.discountPercent}%`
+      : `Referral coupon ${ownerName}`
     return (
       <div className={className}>
         <p
@@ -193,7 +193,7 @@ export function ReferralCodeInput({
                 </p>
               ) : (
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Atribuido a {ownerName}
+                  Attributed to {ownerName}
                 </p>
               )}
             </div>
@@ -218,7 +218,7 @@ export function ReferralCodeInput({
               (e.currentTarget.style.color = "var(--cart-summary-label)")
             }
           >
-            Quitar
+            Remove
           </button>
         </div>
       </div>
@@ -269,7 +269,7 @@ export function ReferralCodeInput({
             color: "var(--text-primary)",
           }}
         >
-          {loading ? "..." : "Aplicar"}
+          {loading ? "..." : "Apply"}
         </button>
       </div>
       {error && (

@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: PageProps) {
     select: { name: true },
   })
 
-  if (!category) return { title: "Categoria no encontrada" }
+  if (!category) return { title: "Category not found" }
 
   return {
     title: category.name,
-    description: `Productos de ${category.name} en nuestra tienda`,
+    description: `${category.name} products in our shop`,
   }
 }
 
@@ -198,7 +198,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/shop" style={{ color: "var(--text-muted)" }}>Tienda</Link>
+                <Link href="/shop" style={{ color: "var(--text-muted)" }}>Shop</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator style={{ color: "var(--text-muted)" }} />
@@ -219,17 +219,17 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 className="text-sm font-medium"
                 style={{ color: "var(--text-primary, #000)" }}
               >
-                {totalCount} {totalCount === 1 ? "producto" : "productos"}
+                {totalCount} {totalCount === 1 ? "product" : "products"}
               </p>
             </div>
 
             {/* Sort pills */}
             <div className="flex gap-2 flex-wrap">
               {[
-                { value: "newest", label: "Recientes" },
-                { value: "popular", label: "Populares" },
-                { value: "price_asc", label: "Precio ↑" },
-                { value: "price_desc", label: "Precio ↓" },
+                { value: "newest", label: "Newest" },
+                { value: "popular", label: "Popular" },
+                { value: "price_asc", label: "Price ↑" },
+                { value: "price_desc", label: "Price ↓" },
               ].map((option) => (
                 <Link
                   key={option.value}
@@ -277,14 +277,14 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 className="text-lg mb-4"
                 style={{ color: "var(--text-muted, #6b7280)" }}
               >
-                No hay productos en esta categoria
+                No products in this category
               </p>
               <Link
                 href="/shop"
                 className="inline-flex items-center px-6 py-3 font-bold text-white transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
               >
-                Ver todos los productos
+                View All Products
               </Link>
             </div>
           )}
@@ -301,7 +301,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                     color: "var(--text-primary, #000)",
                   }}
                 >
-                  Anterior
+                  Previous
                 </Link>
               )}
 
@@ -345,7 +345,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                     color: "var(--text-primary, #000)",
                   }}
                 >
-                  Siguiente
+                  Next
                 </Link>
               )}
             </div>
@@ -361,7 +361,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               className="text-2xl md:text-3xl font-bold mb-8 text-center"
               style={{ color: "var(--text-primary, #000)" }}
             >
-              Otras Categorias
+              Other Categories
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {otherCategories.map((cat) => (

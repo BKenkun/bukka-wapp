@@ -82,12 +82,12 @@ export function ShippingCalculator({
           }
         }
       } else {
-        setError(data.message || data.error || "Error al calcular envio")
+        setError(data.message || data.error || "Error calculating shipping")
         setRates([])
       }
     } catch (err) {
       console.error("Error calculating shipping:", err)
-      setError("Error al calcular envio")
+      setError("Error calculating shipping")
       setRates([])
     } finally {
       setLoading(false)
@@ -127,7 +127,7 @@ export function ShippingCalculator({
       {/* Postal Code Input */}
       <div>
         <label className="block text-sm font-medium mb-2" style={{ color: "var(--form-label-color)" }}>
-          Codigo Postal
+          Postal Code
         </label>
         <div className="flex gap-2">
           <input
@@ -136,7 +136,7 @@ export function ShippingCalculator({
             onChange={(e) => onPostalCodeChange(e.target.value.replace(/\D/g, "").slice(0, 5))}
             onBlur={handlePostalCodeBlur}
             onKeyDown={handlePostalCodeKeyDown}
-            placeholder="Ej: 28001"
+            placeholder="E.g. 28001"
             className="flex-1 px-4 py-2 focus:outline-none"
             style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
             onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
@@ -147,7 +147,7 @@ export function ShippingCalculator({
             disabled={loading || postalCode.length < 4}
             className="btn-primary px-4 py-2"
           >
-            {loading ? "..." : "Calcular"}
+            {loading ? "..." : "Calculate"}
           </button>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function ShippingCalculator({
       {rates.length > 0 && (
         <div className="space-y-2">
           <label className="block text-sm font-medium" style={{ color: "var(--form-label-color)" }}>
-            Metodo de envio
+            Shipping method
           </label>
           {rates.map((rate) => (
             <label
@@ -192,7 +192,7 @@ export function ShippingCalculator({
                   )}
                   {rate.estimatedDays && (
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                      Entrega en {rate.estimatedDays} {rate.estimatedDays === 1 ? "dia" : "dias"}
+                      Delivery in {rate.estimatedDays} {rate.estimatedDays === 1 ? "day" : "days"}
                     </p>
                   )}
                 </div>
@@ -205,7 +205,7 @@ export function ShippingCalculator({
                         {rate.originalPrice.toFixed(2)} €
                       </span>
                     )}
-                    <span className="font-bold" style={{ color: "var(--success-color)" }}>GRATIS</span>
+                    <span className="font-bold" style={{ color: "var(--success-color)" }}>FREE</span>
                   </div>
                 ) : (
                   <span className="font-bold" style={{ color: "var(--text-primary)" }}>{rate.price.toFixed(2)} €</span>
@@ -219,7 +219,7 @@ export function ShippingCalculator({
       {/* No shipping available message */}
       {hasCalculated && rates.length === 0 && !error && (
         <p className="text-sm" style={{ color: "var(--warning-color)" }}>
-          No hay opciones de envio disponibles para este codigo postal
+          No shipping options available for this postal code
         </p>
       )}
     </div>
@@ -257,10 +257,10 @@ export function FreeShippingProgress({ remaining, percentage, threshold }: FreeS
         <p className="text-sm" style={{ color: "var(--text-primary)" }}>
           {remaining > 0 ? (
             <>
-              Anade <span className="font-bold" style={{ color: "var(--brand-color)" }}>{remaining.toFixed(2)} €</span> mas para envio GRATIS
+              Add <span className="font-bold" style={{ color: "var(--brand-color)" }}>{remaining.toFixed(2)} €</span> more for FREE shipping
             </>
           ) : (
-            <span className="font-medium" style={{ color: "var(--success-color)" }}>Tienes envio GRATIS!</span>
+            <span className="font-medium" style={{ color: "var(--success-color)" }}>You have FREE shipping!</span>
           )}
         </p>
       </div>
@@ -274,7 +274,7 @@ export function FreeShippingProgress({ remaining, percentage, threshold }: FreeS
         />
       </div>
       <p className="text-xs mt-1 text-right" style={{ color: "var(--text-muted)" }}>
-        Envio gratis desde {threshold.toFixed(2)} €
+        Free shipping from {threshold.toFixed(2)} €
       </p>
     </div>
   )

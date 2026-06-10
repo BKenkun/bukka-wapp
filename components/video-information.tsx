@@ -69,7 +69,7 @@ export function VideoInformation({ description, performers, tags, director, rele
           <div>
             <span className="font-bold text-base leading-6">Fecha de lanzamiento: </span>
             <span className="font-normal text-base leading-6">
-              {new Date(releaseDate).toLocaleDateString('es-ES', {
+              {new Date(releaseDate).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -80,7 +80,7 @@ export function VideoInformation({ description, performers, tags, director, rele
 
         {duration !== null && duration !== undefined && duration > 0 && (
           <div>
-            <span className="font-bold text-base leading-6">Duración: </span>
+            <span className="font-bold text-base leading-6">Duration: </span>
             <span className="font-normal text-base leading-6">{formatDuration(duration)}</span>
           </div>
         )}
@@ -88,7 +88,7 @@ export function VideoInformation({ description, performers, tags, director, rele
         {categories && categories.length > 0 && (
           <div>
             <span className="font-bold text-base leading-6">
-              {categories.length > 1 ? "Categorías: " : "Categoría: "}
+              {categories.length > 1 ? "Categories: " : "Category: "}
             </span>
             <span className="font-normal text-base leading-6">
               {categories.map((category, index) => (
@@ -108,7 +108,7 @@ export function VideoInformation({ description, performers, tags, director, rele
 
         {description && (
           <div>
-            <span className="font-bold text-base leading-6">Descripción: </span>
+            <span className="font-bold text-base leading-6">Description: </span>
             <span className="font-normal text-base leading-6">{description}</span>
           </div>
         )}

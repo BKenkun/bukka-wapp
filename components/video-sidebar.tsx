@@ -4,17 +4,17 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 
 export function VideoSidebar() {
-  const [activeGroup, setActiveGroup] = useState("Todo")
+  const [activeGroup, setActiveGroup] = useState("All")
   const [selectedRadio, setSelectedRadio] = useState<string | null>("radio-1")
   const [selectedChecks, setSelectedChecks] = useState<string[]>([])
 
-  const alphabetGroups = ["Todo", "A-C", "D-F", "G-I", "M-O", "P-R", "S-U", "V-Z"]
+  const alphabetGroups = ["All", "A-C", "D-F", "G-I", "M-O", "P-R", "S-U", "V-Z"]
 
   return (
     <aside className="w-full" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>
-      <h3 className="text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Filtros:</h3>
+      <h3 className="text-[18px] font-semibold leading-[28px] mb-6" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Filters:</h3>
 
-      <p className="text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Alfabético:</p>
+      <p className="text-[14px] font-medium leading-[20px] mb-3" style={{ color: "var(--text-primary)", fontFamily: "var(--global-font)" }}>Alphabetical:</p>
 
       {/* Alphabet Filter */}
       <div className="grid grid-cols-4 gap-2 mb-12">
@@ -135,12 +135,12 @@ export function VideoSidebar() {
         onClick={() => {
           setSelectedRadio(null)
           setSelectedChecks([])
-          setActiveGroup("Todo")
+          setActiveGroup("All")
         }}
         className="w-full py-4 font-bold text-sm tracking-wide hover:opacity-90 transition-colors"
         style={{ backgroundColor: "var(--brand-color)", color: "var(--text-primary)" }}
       >
-        Borrar todos los filtros
+        Clear All Filters
       </button>
     </aside>
   )

@@ -14,18 +14,18 @@ export async function POST(request: NextRequest) {
     // Validate folder
     const config = FOLDER_CONFIG[folder]
     if (!config) {
-      return NextResponse.json({ error: "Carpeta no válida" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
     }
 
     // Validate content type
     if (!config.allowedTypes.includes(contentType)) {
-      return NextResponse.json({ error: "Tipo de archivo no permitido" }, { status: 400 })
+      return NextResponse.json({ error: "File type not allowed" }, { status: 400 })
     }
 
     // Check authentication
     const session = await auth()
     if (folder !== "casting" && !session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     // Check admin requirement
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (!user?.isAdmin) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+        return NextResponse.json({ error: "Not authorized" }, { status: 403 })
       }
     }
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Presigned URL error:", error)
     return NextResponse.json(
-      { error: "Error al generar URL de subida" },
+      { error: "Error generating upload URL" },
       { status: 500 }
     )
   }

@@ -6,7 +6,7 @@ import { z } from "zod"
 
 const schema = z.object({
   token: z.string().min(1, "Token requerido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
 export async function POST(request: Request) {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     if (!resetToken) {
       return NextResponse.json(
-        { error: "Token inválido o expirado" },
+        { error: "Invalid or expired token" },
         { status: 400 }
       )
     }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         where: { id: resetToken.id },
       })
       return NextResponse.json(
-        { error: "El enlace ha expirado" },
+        { error: "The link has expired" },
         { status: 400 }
       )
     }
@@ -74,12 +74,12 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({
-      message: "Contraseña actualizada correctamente",
+      message: "Password updated successfully",
     })
   } catch (error) {
     console.error("Error resetting password:", error)
     return NextResponse.json(
-      { error: "Error al restablecer la contraseña" },
+      { error: "Error resetting password" },
       { status: 500 }
     )
   }

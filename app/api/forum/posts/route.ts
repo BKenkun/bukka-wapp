@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching forum posts:", error)
-    return NextResponse.json({ error: "Error al obtener temas" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching topics" }, { status: 500 })
   }
 }
 
@@ -67,14 +67,14 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     // Check forum access
     const userPlan = await getUserPlan(session.user.id)
     if (!canUserAccessForum(userPlan)) {
       return NextResponse.json(
-        { error: "Necesitas una suscripción Gold o superior para acceder al foro" },
+        { error: "You need a Gold subscription or higher to access the forum" },
         { status: 403 }
       )
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     if (!title || !content || !categoryId) {
       return NextResponse.json(
-        { error: "Título, contenido y categoría son requeridos" },
+        { error: "Title, content and category are required" },
         { status: 400 }
       )
     }
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!category) {
-      return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
     // Check user tier for category access
@@ -140,6 +140,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     console.error("Error creating forum post:", error)
-    return NextResponse.json({ error: "Error al crear tema" }, { status: 500 })
+    return NextResponse.json({ error: "Error creating topic" }, { status: 500 })
   }
 }

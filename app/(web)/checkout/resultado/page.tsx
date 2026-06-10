@@ -19,7 +19,7 @@ export default function CheckoutResultPage() {
         <main className="flex-1 flex flex-col">
           <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
             <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
-              Cargando...
+              Loading...
             </div>
           </div>
         </main>
@@ -85,10 +85,10 @@ function CheckoutResultContent() {
       }
 
       const error = await res.json().catch(() => null)
-      alert(error?.error || "Error al reintentar el pago")
+      alert(error?.error || "Error retrying payment")
     } catch (error) {
       console.error("Error retrying payment:", error)
-      alert("Error al reintentar el pago")
+      alert("Error retrying payment")
     } finally {
       setRetrying(false)
     }
@@ -99,7 +99,7 @@ function CheckoutResultContent() {
       <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
           <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
-            Cargando...
+            Loading...
           </div>
         </div>
       </main>
@@ -135,7 +135,7 @@ function CheckoutResultContent() {
               className="text-4xl font-bold mb-4 font-montserrat"
               style={{ color: "var(--text-primary)" }}
             >
-              ¡Gracias por tu compra!
+              Thank You for Your Purchase!
             </h1>
 
             {order && (
@@ -147,7 +147,7 @@ function CheckoutResultContent() {
                 }}
               >
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>
-                  Número de pedido:
+                  Order number:
                 </p>
                 <p className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
                   {order.orderNumber}
@@ -159,7 +159,7 @@ function CheckoutResultContent() {
                   {order.total.toFixed(2)} €
                 </p>
                 <p className="text-sm mt-4" style={{ color: "var(--cart-summary-label)" }}>
-                  Estado del pago:
+                  Payment status:
                 </p>
                 <p
                   className="text-sm font-medium"
@@ -170,21 +170,21 @@ function CheckoutResultContent() {
                         : "var(--warning-color)",
                   }}
                 >
-                  {order.paymentStatus === "PAID" ? "Pagado" : "Procesando..."}
+                  {order.paymentStatus === "PAID" ? "Paid" : "Processing..."}
                 </p>
               </div>
             )}
 
             <p className="mb-4 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
-              Hemos enviado un email de confirmación con los detalles de tu pedido.
+              We have sent a confirmation email with your order details.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/my-account/payment-history" className="btn-primary inline-block">
-                Ver Mis Pedidos
+                View My Orders
               </Link>
               <Link href="/shop" className="btn-secondary inline-block">
-                Seguir Comprando
+                Continue Shopping
               </Link>
             </div>
           </div>
@@ -223,12 +223,12 @@ function CheckoutResultContent() {
               className="text-4xl font-bold mb-4 font-montserrat"
               style={{ color: "var(--text-primary)" }}
             >
-              Pago no completado
+              Payment not completed
             </h1>
 
             <p className="mb-8 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
-              No hemos podido procesar tu pago. Tu pedido ha sido guardado y puedes
-              intentar el pago de nuevo.
+              We could not process your payment. Your order has been saved and you can
+              try the payment again.
             </p>
 
             {order && (
@@ -240,13 +240,13 @@ function CheckoutResultContent() {
                 }}
               >
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>
-                  Pedido:
+                  Order:
                 </p>
                 <p className="text-lg font-bold mb-2" style={{ color: "var(--text-primary)" }}>
                   {order.orderNumber}
                 </p>
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>
-                  Total pendiente:
+                  Amount due:
                 </p>
                 <p className="text-xl font-bold" style={{ color: "var(--brand-color)" }}>
                   {order.total.toFixed(2)} €
@@ -261,11 +261,11 @@ function CheckoutResultContent() {
                   disabled={retrying}
                   className="btn-primary"
                 >
-                  {retrying ? "Procesando..." : "Reintentar Pago"}
+                  {retrying ? "Processing..." : "Retry Payment"}
                 </button>
               )}
               <Link href="/shop" className="btn-secondary inline-block">
-                Volver a la Tienda
+                Back to Shop
               </Link>
             </div>
           </div>
@@ -280,10 +280,10 @@ function CheckoutResultContent() {
       <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
         <div className="text-center py-12">
           <p style={{ color: "var(--text-secondary)" }}>
-            No se encontró información del pedido.
+            No order information found.
           </p>
           <Link href="/shop" className="btn-primary inline-block mt-4">
-            Ir a la Tienda
+            Go to Shop
           </Link>
         </div>
       </div>

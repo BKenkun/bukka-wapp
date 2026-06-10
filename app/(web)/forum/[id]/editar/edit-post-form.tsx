@@ -38,22 +38,22 @@ export function EditPostForm({
     setError(null)
 
     if (!formData.title.trim()) {
-      setError("El título es requerido")
+      setError("Title is required")
       return
     }
 
     if (formData.title.length < 5) {
-      setError("El título debe tener al menos 5 caracteres")
+      setError("Title must be at least 5 characters")
       return
     }
 
     if (!formData.content.trim()) {
-      setError("El contenido es requerido")
+      setError("Content is required")
       return
     }
 
     if (formData.content.length < 20) {
-      setError("El contenido debe tener al menos 20 caracteres")
+      setError("Content must be at least 20 characters")
       return
     }
 
@@ -68,13 +68,13 @@ export function EditPostForm({
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || "Error al actualizar el tema")
+        throw new Error(data.error || "Error updating topic")
       }
 
       router.push(`/foro/${postId}`)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al actualizar el tema")
+      setError(err instanceof Error ? err.message : "Error updating topic")
       setIsSubmitting(false)
     }
   }
@@ -90,7 +90,7 @@ export function EditPostForm({
       {/* Categoría */}
       <div>
         <label className="block font-montserrat text-white text-[14px] font-medium mb-2">
-          Categoría
+          Category
         </label>
         <select
           value={formData.categoryId}
@@ -109,13 +109,13 @@ export function EditPostForm({
       {/* Título */}
       <div>
         <label className="block font-montserrat text-white text-[14px] font-medium mb-2">
-          Título del tema
+          Topic title
         </label>
         <input
           type="text"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Escribe un título descriptivo..."
+          placeholder="Write a descriptive title..."
           className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 font-montserrat text-[16px] placeholder:text-white/30 focus:outline-none focus:border-[#00B1DE]"
           disabled={isSubmitting}
           maxLength={200}
@@ -128,12 +128,12 @@ export function EditPostForm({
       {/* Contenido */}
       <div>
         <label className="block font-montserrat text-white text-[14px] font-medium mb-2">
-          Contenido
+          Content
         </label>
         <textarea
           value={formData.content}
           onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          placeholder="Escribe el contenido de tu tema..."
+          placeholder="Write your topic content..."
           rows={12}
           className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 font-montserrat text-[16px] placeholder:text-white/30 focus:outline-none focus:border-[#00B1DE] resize-none"
           disabled={isSubmitting}
@@ -148,7 +148,7 @@ export function EditPostForm({
           className="font-montserrat text-white/60 text-[14px] font-medium hover:text-white transition-colors"
           disabled={isSubmitting}
         >
-          Cancelar
+          Cancel
         </button>
         <button
           type="submit"
@@ -177,10 +177,10 @@ export function EditPostForm({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Guardando...
+              Saving...
             </>
           ) : (
-            "Guardar Cambios"
+            "Save Changes"
           )}
         </button>
       </div>

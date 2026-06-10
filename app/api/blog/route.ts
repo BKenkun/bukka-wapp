@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching blog posts:", error)
-    return NextResponse.json({ error: "Error al obtener artículos" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching articles" }, { status: 500 })
   }
 }
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Check slug uniqueness
     const existing = await prisma.blogPost.findUnique({ where: { slug } })
     if (existing) {
-      return NextResponse.json({ error: "Ya existe un artículo con ese slug" }, { status: 400 })
+      return NextResponse.json({ error: "An article with that slug already exists" }, { status: 400 })
     }
 
     const post = await prisma.blogPost.create({
@@ -95,6 +95,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     console.error("Error creating blog post:", error)
-    return NextResponse.json({ error: "Error al crear artículo" }, { status: 500 })
+    return NextResponse.json({ error: "Error creating article" }, { status: 500 })
   }
 }

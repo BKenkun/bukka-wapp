@@ -47,7 +47,7 @@ export async function GET(
     const { path: pathSegments } = await params
 
     if (!pathSegments || pathSegments.length === 0) {
-      return NextResponse.json({ error: "Ruta no válida" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid path" }, { status: 400 })
     }
 
     // Get folder type (first segment)
@@ -55,7 +55,7 @@ export async function GET(
     const accessLevel = ACCESS_LEVELS[folderType]
 
     if (!accessLevel) {
-      return NextResponse.json({ error: "Carpeta no válida" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
     }
 
     // Check access based on level
@@ -63,7 +63,7 @@ export async function GET(
       const session = await auth()
 
       if (!session?.user?.id) {
-        return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+        return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
       }
 
       if (accessLevel === "admin") {
@@ -73,7 +73,7 @@ export async function GET(
         })
 
         if (!user?.isAdmin) {
-          return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+          return NextResponse.json({ error: "Not authorized" }, { status: 403 })
         }
       }
 
@@ -89,7 +89,7 @@ export async function GET(
 
         if (userLevel < requiredLevel) {
           return NextResponse.json(
-            { error: "Suscripción requerida" },
+            { error: "Subscription required" },
             { status: 403 }
           )
         }
@@ -108,14 +108,14 @@ export async function GET(
     const resolvedPath = path.resolve(filePath)
 
     if (!resolvedPath.startsWith(privateDir)) {
-      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 })
+      return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
 
     // Check if file exists
     try {
       await stat(filePath)
     } catch {
-      return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
     // Read file
@@ -143,7 +143,7 @@ export async function GET(
   } catch (error) {
     console.error("Error serving file:", error)
     return NextResponse.json(
-      { error: "Error al servir archivo" },
+      { error: "Error serving file" },
       { status: 500 }
     )
   }

@@ -46,14 +46,14 @@ export async function compareFaces(
         return {
           match: false,
           similarity: 0,
-          error: "No se detectó un rostro en una o ambas imágenes. Asegúrate de que las fotos muestren tu cara claramente.",
+          error: "No face was detected in one or both images. Make sure the photos clearly show your face.",
         }
       }
 
       return {
         match: false,
         similarity: 0,
-        error: "La verificación de identidad no fue exitosa. El rostro del DNI no coincide con la foto proporcionada.",
+        error: "Identity verification was not successful. The face on the ID does not match the provided photo.",
       }
     }
 
@@ -72,7 +72,7 @@ export async function compareFaces(
       return {
         match: false,
         similarity: 0,
-        error: "No se pudo procesar una de las imágenes. Asegúrate de subir fotos claras en formato JPG o PNG.",
+        error: "One of the images could not be processed. Make sure to upload clear photos in JPG or PNG format.",
       }
     }
 
@@ -80,7 +80,7 @@ export async function compareFaces(
       return {
         match: false,
         similarity: 0,
-        error: "Una de las imágenes es demasiado grande. El tamaño máximo es 5MB por imagen.",
+        error: "One of the images is too large. The maximum size is 5MB per image.",
       }
     }
 

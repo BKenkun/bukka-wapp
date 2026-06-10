@@ -29,17 +29,17 @@ export default async function Page() {
     return (
       <main className="min-h-screen flex flex-col gap-[5px] font-sans">
         <Hero />
-        <SectionHeader title="ÚLTIMOS VÍDEOS AÑADIDOS" />
+        <SectionHeader title="LATEST VIDEOS ADDED" />
         <VideoGrid />
-        <SectionHeader title="ACTRICES" />
+        <SectionHeader title="ACTRESSES" />
         <ActressesGrid />
-        <SectionHeader title="ÚLTIMAS PUBLICACIONES" />
+        <SectionHeader title="LATEST POSTS" />
         <VideoGrid />
-        <SectionHeader title="CATEGORÍA DESTACADA" />
+        <SectionHeader title="FEATURED CATEGORY" />
         <VideoGrid />
-        <SectionHeader title="CATEGORÍA DESTACADA" />
+        <SectionHeader title="FEATURED CATEGORY" />
         <VideoGrid />
-        <SectionHeader title="CATEGORÍA DESTACADA" />
+        <SectionHeader title="FEATURED CATEGORY" />
         <VideoGrid />
         <CountdownTimer />
       </main>

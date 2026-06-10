@@ -102,7 +102,7 @@ export default function CastingPage() {
 
   const handleVerification = async () => {
     if (files.generalPhotos.length === 0) {
-      toast.error("Sube al menos una foto general para la verificación")
+      toast.error("Upload at least one general photo for verification")
       return
     }
 
@@ -117,14 +117,14 @@ export default function CastingPage() {
 
       if (data.serviceError) {
         // Service error (network, AWS down) — let them retry without clearing files
-        toast.error(data.error || "Error en el servicio de verificación. Inténtalo de nuevo.")
+        toast.error(data.error || "Verification service error. Please try again.")
         return
       }
 
       if (data.verified) {
         setVerificationPassed(true)
         setVerificationSimilarity(data.similarity)
-        toast.success("Identidad verificada correctamente")
+        toast.success("Identity verified successfully")
         setCurrentStep(3)
       } else {
         // Verification failed — clear all files, go back to step 1
@@ -139,12 +139,12 @@ export default function CastingPage() {
 
         toast.error(
           data.error ||
-          "No pudimos verificar tu identidad. Las fotos han sido eliminadas. Por favor, inténtalo de nuevo con fotos más claras.",
+          "We could not verify your identity. The photos have been deleted. Please try again with clearer photos.",
           { duration: 8000 }
         )
       }
     } catch {
-      toast.error("Error en la verificación. Inténtalo de nuevo.")
+      toast.error("Verification error. Please try again.")
     } finally {
       setIsVerifying(false)
     }
@@ -153,7 +153,7 @@ export default function CastingPage() {
   const goNext = () => {
     if (currentStep === 1) {
       if (!files.dniFront || !files.dniBack) {
-        toast.error("Sube ambas caras del DNI para continuar")
+        toast.error("Upload both sides of your ID to continue")
         return
       }
     }
@@ -328,9 +328,9 @@ export default function CastingPage() {
                 </svg>
               </div>
             </div>
-            <h3 className="text-xl font-bold mb-2 font-['Montserrat']">Verificando identidad</h3>
+            <h3 className="text-xl font-bold mb-2 font-['Montserrat']">Verifying identity</h3>
             <p className="text-gray-400 text-sm font-['Montserrat']">
-              Estamos comparando tu foto del DNI con tu foto personal. Esto solo tomará unos segundos...
+              We are comparing your ID photo with your personal photo. This will only take a few seconds...
             </p>
           </div>
         </div>

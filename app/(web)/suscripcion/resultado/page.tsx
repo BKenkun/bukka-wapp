@@ -11,7 +11,7 @@ export default function SubscriptionResultPage() {
         <main className="flex-1 flex flex-col">
           <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
             <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
-              Cargando...
+              Loading...
             </div>
           </div>
         </main>
@@ -55,20 +55,20 @@ function SubscriptionResultContent() {
               className="text-4xl font-bold mb-4 font-montserrat"
               style={{ color: "var(--text-primary)" }}
             >
-              ¡Suscripción activada!
+              Subscription activated!
             </h1>
 
             <p className="mb-8 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
-              Tu suscripción se ha procesado correctamente. Ya puedes disfrutar de todo el
-              contenido exclusivo.
+              Your subscription has been processed successfully. You can now enjoy all the
+              exclusive content.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/videos" className="btn-primary inline-block">
-                Explorar Videos
+                Explore Videos
               </Link>
               <Link href="/my-account/subscription" className="btn-secondary inline-block">
-                Ver Mi Suscripción
+                View My Subscription
               </Link>
             </div>
           </div>
@@ -106,20 +106,20 @@ function SubscriptionResultContent() {
               className="text-4xl font-bold mb-4 font-montserrat"
               style={{ color: "var(--text-primary)" }}
             >
-              Pago no completado
+              Payment not completed
             </h1>
 
             <p className="mb-8 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
-              No hemos podido procesar el pago de tu suscripción. Puedes intentarlo de nuevo
-              desde tu página de suscripción.
+              We could not process your subscription payment. You can try again
+              from your subscription page.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/my-account/subscription" className="btn-primary inline-block">
-                Reintentar Suscripción
+                Retry Subscription
               </Link>
               <Link href="/" className="btn-secondary inline-block">
-                Volver al Inicio
+                Back to Home
               </Link>
             </div>
           </div>
@@ -133,10 +133,10 @@ function SubscriptionResultContent() {
       <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 pt-8 pb-12">
         <div className="text-center py-12">
           <p style={{ color: "var(--text-secondary)" }}>
-            No se encontró información de la suscripción.
+            No subscription information found.
           </p>
           <Link href="/my-account/subscription" className="btn-primary inline-block mt-4">
-            Ver Suscripciones
+            View Subscriptions
           </Link>
         </div>
       </div>

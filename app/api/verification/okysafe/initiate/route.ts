@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || typeof email !== "string") {
       return NextResponse.json(
-        { error: "Email es requerido" },
+        { error: "Email is required" },
         { status: 400 }
       )
     }
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: "Email no válido" },
+        { error: "Invalid email" },
         { status: 400 }
       )
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.verificationUrl) {
       return NextResponse.json(
-        { error: "No se pudo iniciar la verificación" },
+        { error: "Verification could not be started" },
         { status: 502 }
       )
     }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[OkySafe] Error initiating verification:", error)
     return NextResponse.json(
-      { error: "Error al iniciar la verificación de edad" },
+      { error: "Error starting age verification" },
       { status: 500 }
     )
   }

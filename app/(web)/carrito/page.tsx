@@ -110,7 +110,7 @@ export default function CarritoPage() {
     return (
       <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
-          <div className="text-center py-12">Cargando...</div>
+          <div className="text-center py-12">Loading...</div>
         </div>
       </main>
     )
@@ -122,10 +122,10 @@ export default function CarritoPage() {
       <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
         {/* Header */}
         <h1 className="font-montserrat font-bold text-[30px] leading-[36px] mb-2" style={{ color: "var(--text-secondary)" }}>
-          Tu Carrito
+          Your Cart
         </h1>
         <p className="font-montserrat text-base mb-8" style={{ color: "var(--text-primary)" }}>
-          {cart?.itemCount || 0} {cart?.itemCount === 1 ? "producto" : "productos"} en tu carrito
+          {cart?.itemCount || 0} {cart?.itemCount === 1 ? "product" : "products"} in your cart
         </p>
 
         {!cart || cart.items.length === 0 ? (
@@ -147,12 +147,12 @@ export default function CarritoPage() {
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
-            <p className="text-lg mb-6" style={{ color: "var(--cart-empty-text)" }}>Tu carrito esta vacio</p>
+            <p className="text-lg mb-6" style={{ color: "var(--cart-empty-text)" }}>Your cart is empty</p>
             <Link
               href="/shop"
               className="btn-primary inline-block"
             >
-              Explorar Tienda
+              Explore Shop
             </Link>
           </div>
         ) : (
@@ -202,11 +202,11 @@ export default function CarritoPage() {
                     {/* Availability warnings */}
                     {!item.product.available ? (
                       <p className="text-sm mt-1" style={{ color: "var(--error-color)" }}>
-                        Este producto ya no esta disponible
+                        This product is no longer available
                       </p>
                     ) : item.product.stock > 0 && item.product.stock <= 3 && (
                       <p className="text-sm mt-1" style={{ color: "var(--warning-color)" }}>
-                        Solo quedan {item.product.stock} unidades
+                        Only {item.product.stock} left in stock
                       </p>
                     )}
 
@@ -242,7 +242,7 @@ export default function CarritoPage() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-sm" style={{ color: "var(--error-color)" }}>No disponible</span>
+                        <span className="text-sm" style={{ color: "var(--error-color)" }}>Not available</span>
                       )}
 
                       <button
@@ -286,7 +286,7 @@ export default function CarritoPage() {
             <div className="lg:col-span-1">
               <div className="p-6 sticky top-4" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
                 <h2 className="font-montserrat font-bold text-xl mb-6" style={{ color: "var(--text-primary)" }}>
-                  Resumen del Pedido
+                  Order Summary
                 </h2>
 
                 <div className="space-y-4 mb-6">
@@ -297,14 +297,14 @@ export default function CarritoPage() {
 
                   {cart.discountPercent > 0 && (
                     <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
-                      <span>Descuento miembro ({cart.discountPercent}%)</span>
+                      <span>Member discount ({cart.discountPercent}%)</span>
                       <span>-{cart.discount.toFixed(2)} €</span>
                     </div>
                   )}
 
                   <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
-                    <span>Envio</span>
-                    <span style={{ color: "var(--text-primary)" }}>Calculado en checkout</span>
+                    <span>Shipping</span>
+                    <span style={{ color: "var(--text-primary)" }}>Calculated at checkout</span>
                   </div>
 
                   <div className="pt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
@@ -319,7 +319,7 @@ export default function CarritoPage() {
                   href="/checkout"
                   className="btn-primary block w-full text-center"
                 >
-                  Finalizar Compra
+                  Checkout
                 </Link>
 
                 <Link
@@ -327,7 +327,7 @@ export default function CarritoPage() {
                   className="block w-full text-center font-montserrat py-3 mt-4 hover:underline"
                   style={{ color: "var(--accent-color)" }}
                 >
-                  Continuar Comprando
+                  Continue Shopping
                 </Link>
 
                 {/* Trust badges */}
@@ -345,7 +345,7 @@ export default function CarritoPage() {
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                    <span>Pago seguro SSL</span>
+                    <span>Secure SSL payment</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "var(--cart-trust-badge)" }}>
                     <svg
@@ -359,7 +359,7 @@ export default function CarritoPage() {
                     >
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
-                    <span>Garantia de satisfaccion</span>
+                    <span>Satisfaction guarantee</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm" style={{ color: "var(--cart-trust-badge)" }}>
                     <svg
@@ -376,7 +376,7 @@ export default function CarritoPage() {
                       <circle cx="5.5" cy="18.5" r="2.5" />
                       <circle cx="18.5" cy="18.5" r="2.5" />
                     </svg>
-                    <span>Envio discreto</span>
+                    <span>Discreet shipping</span>
                   </div>
                 </div>
               </div>

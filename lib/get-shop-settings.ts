@@ -93,51 +93,51 @@ export interface ShopSettings {
 const DEFAULT_SETTINGS: ShopSettings = {
   banner: {
     imageUrl: "/images/shop.jpg",
-    alt: "Tienda",
+    alt: "Shop",
   },
   hero: {
     enabled: true,
     backgroundImageUrl: null,
-    badgeText: "NUEVA COLECCION",
-    title: "Descubre Nuestra Tienda",
-    subtitle: "Encuentra los mejores productos con envio discreto y garantia de calidad",
-    ctaPrimaryText: "Comprar Ahora",
+    badgeText: "NEW COLLECTION",
+    title: "Discover Our Shop",
+    subtitle: "Find the best products with discreet shipping and quality guarantee",
+    ctaPrimaryText: "Buy Now",
     ctaPrimaryUrl: "/shop#productos",
-    ctaSecondaryText: "Ver Colecciones",
+    ctaSecondaryText: "View Collections",
     ctaSecondaryUrl: "/shop#colecciones",
   },
   trustIcons: {
     enabled: true,
     items: [
-      { icon: "Package", label: "Envio Discreto" },
-      { icon: "Shield", label: "Pago Seguro" },
-      { icon: "Lock", label: "Privacidad Garantizada" },
-      { icon: "RotateCcw", label: "Devolucion 30 Dias" },
+      { icon: "Package", label: "Discreet Shipping" },
+      { icon: "Shield", label: "Secure Payment" },
+      { icon: "Lock", label: "Guaranteed Privacy" },
+      { icon: "RotateCcw", label: "30-Day Returns" },
     ],
   },
   featuredCollections: {
     enabled: true,
-    title: "Colecciones Destacadas",
-    subtitle: "Explora nuestras categorias mas populares",
+    title: "Featured Collections",
+    subtitle: "Explore our most popular categories",
     categoryIds: [],
   },
   reviews: {
     enabled: true,
-    title: "Lo Que Dicen Nuestros Clientes",
+    title: "What Our Customers Say",
     items: [
-      { name: "Maria G.", rating: 5, text: "Excelente calidad y envio muy discreto. Totalmente recomendable." },
-      { name: "Carlos R.", rating: 5, text: "Muy buena experiencia de compra. El producto llego perfecto." },
-      { name: "Laura P.", rating: 4, text: "Gran variedad de productos y atencion al cliente impecable." },
+      { name: "Maria G.", rating: 5, text: "Excellent quality and very discreet shipping. Totally recommended." },
+      { name: "Carlos R.", rating: 5, text: "Great shopping experience. The product arrived in perfect condition." },
+      { name: "Laura P.", rating: 4, text: "Wide variety of products and impeccable customer service." },
     ],
   },
   faq: {
     enabled: true,
-    title: "Preguntas Frecuentes",
+    title: "Frequently Asked Questions",
     items: [
-      { question: "¿Cual es el tiempo de envio?", answer: "Los pedidos se envian en 24-48h laborables. El envio es completamente discreto sin marcas identificativas." },
-      { question: "¿Puedo devolver un producto?", answer: "Si, tienes 30 dias para devolver cualquier producto sin abrir en su embalaje original." },
-      { question: "¿Es seguro comprar aqui?", answer: "Absolutamente. Utilizamos encriptacion SSL y pasarelas de pago seguras para proteger tus datos." },
-      { question: "¿El envio es discreto?", answer: "Si, todos los envios son completamente discretos. El paquete no contiene ninguna marca o referencia al contenido." },
+      { question: "What is the shipping time?", answer: "Orders ship within 24-48 business hours. Shipping is completely discreet with no identifying marks." },
+      { question: "Can I return a product?", answer: "Yes, you have 30 days to return any unopened product in its original packaging." },
+      { question: "Is it safe to shop here?", answer: "Absolutely. We use SSL encryption and secure payment gateways to protect your data." },
+      { question: "Is shipping discreet?", answer: "Yes, all shipments are completely discreet. The package contains no branding or reference to the contents." },
     ],
     styles: {
       bgColor: "",
@@ -146,10 +146,10 @@ const DEFAULT_SETTINGS: ShopSettings = {
   },
   productDetail: {
     trustBadges: [
-      { icon: "Shield", label: "Pago 100% Seguro" },
-      { icon: "Truck", label: "Envio Discreto" },
-      { icon: "Package", label: "Embalaje Privado" },
-      { icon: "RotateCcw", label: "Devolucion 30 Dias" },
+      { icon: "Shield", label: "100% Secure Payment" },
+      { icon: "Truck", label: "Discreet Shipping" },
+      { icon: "Package", label: "Private Packaging" },
+      { icon: "RotateCcw", label: "30-Day Returns" },
     ],
     trustBadgesStyles: {
       bgColor: "",
@@ -158,9 +158,9 @@ const DEFAULT_SETTINGS: ShopSettings = {
       iconBgColor: "",
     },
     careInstructions: [
-      { title: "Limpieza", description: "Limpiar con agua tibia y jabon neutro antes y despues de cada uso." },
-      { title: "Almacenamiento", description: "Guardar en un lugar seco y fresco, preferiblemente en su estuche original." },
-      { title: "Proteccion", description: "Evitar la exposicion directa al sol y a temperaturas extremas." },
+      { title: "Cleaning", description: "Clean with warm water and neutral soap before and after each use." },
+      { title: "Storage", description: "Store in a cool, dry place, preferably in its original case." },
+      { title: "Protection", description: "Avoid direct sunlight and extreme temperatures." },
     ],
     careInstructionsStyles: {
       bgColor: "",
@@ -171,9 +171,9 @@ const DEFAULT_SETTINGS: ShopSettings = {
     faq: {
       enabled: true,
       items: [
-        { question: "¿Cual es el tiempo de envio?", answer: "Los pedidos se envian en 24-48h laborables con envio discreto." },
-        { question: "¿Tiene garantia?", answer: "Si, todos nuestros productos tienen garantia de calidad." },
-        { question: "¿Puedo devolver el producto?", answer: "Si, tienes 30 dias para devolver productos sin abrir." },
+        { question: "What is the shipping time?", answer: "Orders ship within 24-48 business hours with discreet shipping." },
+        { question: "Does it have a warranty?", answer: "Yes, all our products come with a quality guarantee." },
+        { question: "Can I return the product?", answer: "Yes, you have 30 days to return unopened products." },
       ],
       styles: {
         bgColor: "",

@@ -152,7 +152,7 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = "var(--carousel-arrow-bg, #1A1A1A)"
         }}
-        aria-label="Anterior"
+        aria-label="Previous"
       >
         <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -170,7 +170,7 @@ export function ActressesCarousel({ actresses }: ActressesCarouselProps) {
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = "var(--carousel-arrow-bg, #1A1A1A)"
         }}
-        aria-label="Siguiente"
+        aria-label="Next"
       >
         <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

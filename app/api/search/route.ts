@@ -338,7 +338,7 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Error searching:", error)
-    return NextResponse.json({ error: "Error en la búsqueda" }, { status: 500 })
+    return NextResponse.json({ error: "Search error" }, { status: 500 })
   }
 }
 

@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 })
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.errors[0]?.message || "Datos inválidos" },
+      { error: parsed.error.errors[0]?.message || "Invalid data" },
       { status: 400 },
     )
   }

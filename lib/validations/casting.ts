@@ -9,13 +9,13 @@ const calculateAge = (birthDate: Date): number => {
 // Schema para el formulario del frontend
 export const castingFormSchema = z.object({
   // Campos requeridos
-  fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email"),
   birthDate: z.string().refine((date) => {
     if (!date) return false
     const birth = new Date(date)
     return !isNaN(birth.getTime()) && calculateAge(birth) >= 18
-  }, "Debes tener al menos 18 años"),
+  }, "You must be at least 18 years old"),
 
   // Campos opcionales
   phone: z.string().optional(),
@@ -41,13 +41,13 @@ export type CastingFormData = z.infer<typeof castingFormSchema>
 
 // Schema para la API (con campos adicionales de archivos)
 export const castingApiSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email"),
   birthDate: z.string().refine((date) => {
     if (!date) return false
     const birth = new Date(date)
     return !isNaN(birth.getTime()) && calculateAge(birth) >= 18
-  }, "Debes tener al menos 18 años"),
+  }, "You must be at least 18 years old"),
   phone: z.string().nullable().optional(),
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),

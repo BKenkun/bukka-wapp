@@ -13,7 +13,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching home sections:", error)
     return NextResponse.json(
-      { error: "Error al obtener secciones" },
+      { error: "Error fetching sections" },
       { status: 500 }
     )
   }

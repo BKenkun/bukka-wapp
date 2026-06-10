@@ -41,7 +41,7 @@ export async function validateReferralCode(
   amount: number,
 ): Promise<ReferralValidationResult> {
   const code = normalizeCode(rawCode)
-  if (!code) return { ok: false, error: "Código requerido" }
+  if (!code) return { ok: false, error: "Code required" }
 
   const referral = await prisma.referralCode.findUnique({
     where: { code },
@@ -52,18 +52,18 @@ export async function validateReferralCode(
     },
   })
 
-  if (!referral) return { ok: false, error: "Código no válido" }
-  if (!referral.isActive) return { ok: false, error: "Este código ya no está activo" }
+  if (!referral) return { ok: false, error: "Invalid code" }
+  if (!referral.isActive) return { ok: false, error: "This code is no longer active" }
 
   const now = new Date()
   if (referral.startDate && now < referral.startDate) {
-    return { ok: false, error: "Este código aún no está activo" }
+    return { ok: false, error: "This code is not active yet" }
   }
   if (referral.endDate && now > referral.endDate) {
-    return { ok: false, error: "Este código ha expirado" }
+    return { ok: false, error: "This code has expired" }
   }
   if (referral.maxUses !== null && referral.usedCount >= referral.maxUses) {
-    return { ok: false, error: "Este código ha alcanzado su límite de uso" }
+    return { ok: false, error: "This code has reached its usage limit" }
   }
 
   const discountPercent = Number(referral.discountPercent)

@@ -164,7 +164,7 @@ export function ProductDetailClient({
   // Add to cart
   const handleAddToCart = async () => {
     if (isVariable && !selectedVariant) {
-      toast.error("Selecciona una variante")
+      toast.error("Please select a variant")
       return
     }
 
@@ -182,15 +182,15 @@ export function ProductDetailClient({
       })
 
       if (res.ok) {
-        toast.success("Anadido al carrito")
+        toast.success("Added to cart")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al anadir al carrito")
+        toast.error(error.error || "Error adding to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al anadir al carrito")
+      toast.error("Error adding to cart")
     } finally {
       setLoading(false)
     }
@@ -204,7 +204,7 @@ export function ProductDetailClient({
       })
     } catch {
       await navigator.clipboard.writeText(window.location.href)
-      toast.success("Enlace copiado")
+      toast.success("Link copied")
     }
   }
 
@@ -250,7 +250,7 @@ export function ProductDetailClient({
                 borderColor: "var(--border-color, #e5e7eb)",
                 color: "var(--text-primary, #000)",
               }}
-              aria-label="Compartir"
+              aria-label="Share"
             >
               <Share2 className="w-4 h-4" />
             </button>
@@ -368,7 +368,7 @@ export function ProductDetailClient({
                     color: "var(--brand-color, #E03E54)",
                   }}
                 >
-                  AHORRA {discountPercent}%
+                  SAVE {discountPercent}%
                 </span>
               </>
             )}
@@ -393,9 +393,9 @@ export function ProductDetailClient({
               )}
               {currentStock > 0
                 ? currentStock <= 5
-                  ? `En stock — Solo quedan ${currentStock}!`
-                  : "En stock"
-                : "Agotado"}
+                  ? `In stock — Only ${currentStock} left!`
+                  : "In stock"
+                : "Sold Out"}
             </div>
           )}
 
@@ -439,7 +439,7 @@ export function ProductDetailClient({
                 className="text-sm font-medium"
                 style={{ color: "var(--text-primary, #000)" }}
               >
-                Cantidad
+                Quantity
               </span>
               <div
                 className="flex items-center overflow-hidden"
@@ -511,12 +511,12 @@ export function ProductDetailClient({
                 }}
               >
                 {loading
-                  ? "Anadiendo..."
+                  ? "Adding..."
                   : isOutOfStock
                     ? isVariable && !selectedVariant
-                      ? "Selecciona opciones"
-                      : "Agotado"
-                    : `Anadir al Carrito — ${(currentPrice * quantity).toFixed(2)}€`}
+                      ? "Select Options"
+                      : "Sold Out"
+                    : `Add to Cart — ${(currentPrice * quantity).toFixed(2)}€`}
               </button>
 
               {/* Buy Now */}
@@ -538,7 +538,7 @@ export function ProductDetailClient({
                     e.currentTarget.style.color = "var(--text-primary, #000)"
                   }}
                 >
-                  Comprar Ahora
+                  Buy Now
                 </button>
               )}
             </div>

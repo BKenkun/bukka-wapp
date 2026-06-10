@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -30,14 +30,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const existingCategory = await prisma.forumCategory.findUnique({ where: { id } })
     if (!existingCategory) {
-      return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
     // Check slug uniqueness if changed
     if (slug !== existingCategory.slug) {
       const slugExists = await prisma.forumCategory.findUnique({ where: { slug } })
       if (slugExists) {
-        return NextResponse.json({ error: "Ya existe una categoría con ese slug" }, { status: 400 })
+        return NextResponse.json({ error: "A category with that slug already exists" }, { status: 400 })
       }
     }
 
@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(category)
   } catch (error) {
     console.error("Error updating forum category:", error)
-    return NextResponse.json({ error: "Error al actualizar categoría" }, { status: 500 })
+    return NextResponse.json({ error: "Error updating category" }, { status: 500 })
   }
 }
 
@@ -65,7 +65,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { id } = await params
@@ -93,6 +93,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting forum category:", error)
-    return NextResponse.json({ error: "Error al eliminar categoría" }, { status: 500 })
+    return NextResponse.json({ error: "Error deleting category" }, { status: 500 })
   }
 }

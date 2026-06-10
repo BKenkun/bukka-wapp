@@ -7,7 +7,7 @@ import { z } from "zod"
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
 const schema = z.object({
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Invalid email"),
 })
 
 export async function POST(request: Request) {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Always return success to prevent email enumeration attacks
     if (!user) {
       return NextResponse.json({
-        message: "Si el email existe, recibirás un enlace para restablecer tu contraseña",
+        message: "If the email exists, you will receive a link to reset your password",
       })
     }
 
@@ -68,12 +68,12 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({
-      message: "Si el email existe, recibirás un enlace para restablecer tu contraseña",
+      message: "If the email exists, you will receive a link to reset your password",
     })
   } catch (error) {
     console.error("Error in forgot password:", error)
     return NextResponse.json(
-      { error: "Error al procesar la solicitud" },
+      { error: "Error processing request" },
       { status: 500 }
     )
   }

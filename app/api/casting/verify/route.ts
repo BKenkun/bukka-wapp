@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!dniPhoto || !selfiePhoto) {
       return NextResponse.json(
-        { verified: false, similarity: 0, error: "Se requieren ambas fotos: DNI y foto personal" },
+        { verified: false, similarity: 0, error: "Both photos are required: ID and personal photo" },
         { status: 400 }
       )
     }
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
     if (!allowedTypes.includes(dniPhoto.type) || !allowedTypes.includes(selfiePhoto.type)) {
       return NextResponse.json(
-        { verified: false, similarity: 0, error: "Las imágenes deben ser JPG, PNG o WebP" },
+        { verified: false, similarity: 0, error: "Images must be JPG, PNG or WebP" },
         { status: 400 }
       )
     }
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       {
         verified: false,
         similarity: 0,
-        error: "Error en el servicio de verificación. Por favor, inténtalo de nuevo.",
+        error: "Verification service error. Please try again.",
         serviceError: true,
       },
       { status: 503 }

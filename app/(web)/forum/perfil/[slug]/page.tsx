@@ -13,11 +13,11 @@ function formatTimeAgo(date: Date): string {
   const now = new Date()
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-  if (diffInSeconds < 60) return "hace unos segundos"
-  if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} min`
-  if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} horas`
-  if (diffInSeconds < 604800) return `hace ${Math.floor(diffInSeconds / 86400)} días`
-  return `hace ${Math.floor(diffInSeconds / 604800)} semanas`
+  if (diffInSeconds < 60) return "a few seconds ago"
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
+  return `${Math.floor(diffInSeconds / 604800)} weeks ago`
 }
 
 export async function generateMetadata({ params }: ForumProfilePageProps) {
@@ -27,10 +27,10 @@ export async function generateMetadata({ params }: ForumProfilePageProps) {
     select: { name: true },
   })
 
-  if (!user) return { title: "Usuario no encontrado" }
+  if (!user) return { title: "User not found" }
 
   return {
-    title: `${user.name || "Usuario"} - Perfil del Foro`,
+    title: `${user.name || "User"} - Forum Profile`,
   }
 }
 
@@ -89,7 +89,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
 
   // Get tier badge info
   const tierBadges: Record<string, { label: string; textColor: string; bgColor: string }> = {
-    VISITOR: { label: "Visitante", textColor: "#6B7280", bgColor: "#E5E7EB" },
+    VISITOR: { label: "Visitor", textColor: "#6B7280", bgColor: "#E5E7EB" },
     FREE: { label: "Free", textColor: "#16A34A", bgColor: "#DCFCE7" },
     SILVER: { label: "Silver", textColor: "#6B7280", bgColor: "#E5E7EB" },
     GOLD: { label: "Gold", textColor: "#854D0E", bgColor: "#FEF9C3" },
@@ -108,7 +108,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
   return (
     <div className="flex-1 flex flex-col font-sans bg-black text-white">
       <div className="px-4 md:px-8 pt-8">
-        <h1 className="font-montserrat text-white text-[30px] font-bold leading-[36px]">Foro</h1>
+        <h1 className="font-montserrat text-white text-[30px] font-bold leading-[36px]">Forum</h1>
       </div>
 
       <div className="flex flex-1 px-4 md:px-8 py-12 gap-8">
@@ -143,7 +143,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
             <div className="pt-[60px] px-6 pb-6 flex flex-col items-center">
               {/* Username */}
               <h2 className="font-montserrat text-white text-[20px] font-bold leading-[28px] text-center mb-2">
-                {user.name || "Usuario"}
+                {user.name || "User"}
               </h2>
 
               {/* Badges */}
@@ -158,7 +158,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
 
               {/* Member since */}
               <p className="font-montserrat text-white/60 text-[14px] font-normal leading-[23px] text-center mb-4">
-                Miembro desde {new Date(memberSince).toLocaleDateString("es-ES", {
+                Member since {new Date(memberSince).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                 })}
@@ -176,13 +176,13 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
                   <span className="font-montserrat text-white text-[20px] font-bold leading-normal block">
                     {user._count.ForumPost}
                   </span>
-                  <span className="font-montserrat text-white text-[12px] font-normal">Temas</span>
+                  <span className="font-montserrat text-white text-[12px] font-normal">Topics</span>
                 </div>
                 <div className="text-center">
                   <span className="font-montserrat text-white text-[20px] font-bold leading-normal block">
                     {reputation}%
                   </span>
-                  <span className="font-montserrat text-white text-[12px] font-normal">Reputación</span>
+                  <span className="font-montserrat text-white text-[12px] font-normal">Reputation</span>
                 </div>
               </div>
 
@@ -200,7 +200,7 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
                   >
                     <path d="M19 12H5M12 19l-7-7 7-7" />
                   </svg>
-                  Volver al Foro
+                  Back to Forum
                 </button>
               </Link>
             </div>
@@ -212,32 +212,32 @@ export default async function ForumProfilePage({ params }: ForumProfilePageProps
           {/* Activity Section */}
           <div className="p-6" style={{ background: "rgba(107, 114, 128, 0.38)" }}>
             <h2 className="font-montserrat text-white text-[18px] font-semibold leading-normal mb-6">
-              Estadísticas
+              Stats
             </h2>
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-4 bg-black/20">
                 <span className="font-montserrat text-[#FA4860] text-[24px] font-bold block">
                   {user._count.ForumPost}
                 </span>
-                <span className="font-montserrat text-white text-[14px]">Temas Creados</span>
+                <span className="font-montserrat text-white text-[14px]">Topics Created</span>
               </div>
               <div className="text-center p-4 bg-black/20">
                 <span className="font-montserrat text-[#00B1DE] text-[24px] font-bold block">
                   {user._count.ForumReply}
                 </span>
-                <span className="font-montserrat text-white text-[14px]">Respuestas</span>
+                <span className="font-montserrat text-white text-[14px]">Replies</span>
               </div>
               <div className="text-center p-4 bg-black/20">
                 <span className="font-montserrat text-[#16A34A] text-[24px] font-bold block">
                   {totalLikes}
                 </span>
-                <span className="font-montserrat text-white text-[14px]">Likes Recibidos</span>
+                <span className="font-montserrat text-white text-[14px]">Likes Received</span>
               </div>
               <div className="text-center p-4 bg-black/20">
                 <span className="font-montserrat text-[#8B5CF6] text-[24px] font-bold block">
                   {reputation}%
                 </span>
-                <span className="font-montserrat text-white text-[14px]">Reputación</span>
+                <span className="font-montserrat text-white text-[14px]">Reputation</span>
               </div>
             </div>
           </div>

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!page) {
       return NextResponse.json(
-        { error: "Página no encontrada" },
+        { error: "Page not found" },
         { status: 404 }
       )
     }
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching page:", error)
     return NextResponse.json(
-      { error: "Error al obtener página" },
+      { error: "Error fetching page" },
       { status: 500 }
     )
   }

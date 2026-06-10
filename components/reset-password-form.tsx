@@ -34,21 +34,21 @@ export function ResetPasswordForm({
           <div className="w-16 h-16 bg-red-500/20 flex items-center justify-center">
             <IconAlertCircle className="w-8 h-8 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold">Enlace inválido</h1>
+          <h1 className="text-2xl font-bold">Invalid link</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            El enlace de recuperación no es válido o ha expirado.
-            Por favor, solicita uno nuevo.
+            The reset link is invalid or has expired.
+            Please request a new one.
           </p>
         </div>
         <div className="flex flex-col gap-2">
           <a href="/forgot-password">
-            <Button className="w-full">Solicitar nuevo enlace</Button>
+            <Button className="w-full">Request New Link</Button>
           </a>
           <a
             href="/?login=true"
             className="text-sm text-center underline underline-offset-4 text-white hover:text-white/80"
           >
-            Volver a iniciar sesión
+            Back to log in
           </a>
         </div>
       </div>
@@ -65,13 +65,13 @@ export function ResetPasswordForm({
     const confirmPassword = formData.get("confirmPassword") as string
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+      setError("Password must be at least 6 characters")
       setIsLoading(false)
       return
     }
@@ -88,14 +88,14 @@ export function ResetPasswordForm({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Error al restablecer la contraseña")
+        setError(data.error || "Error resetting password")
         setIsLoading(false)
         return
       }
 
       setIsSuccess(true)
     } catch {
-      setError("Error al restablecer la contraseña")
+      setError("Error resetting password")
     } finally {
       setIsLoading(false)
     }
@@ -108,15 +108,15 @@ export function ResetPasswordForm({
           <div className="w-16 h-16 bg-green-500/20 flex items-center justify-center">
             <IconCheck className="w-8 h-8 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold">Contraseña actualizada</h1>
+          <h1 className="text-2xl font-bold">Password updated</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Tu contraseña ha sido restablecida correctamente.
-            Ya puedes iniciar sesión con tu nueva contraseña.
+            Your password has been reset successfully.
+            You can now log in with your new password.
           </p>
         </div>
         <div className="flex flex-col gap-2">
           <a href="/?login=true">
-            <Button className="w-full">Iniciar sesión</Button>
+            <Button className="w-full">Log In</Button>
           </a>
         </div>
       </div>
@@ -131,9 +131,9 @@ export function ResetPasswordForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Nueva contraseña</h1>
+          <h1 className="text-2xl font-bold">New password</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Introduce tu nueva contraseña
+            Enter your new password
           </p>
         </div>
 
@@ -142,12 +142,12 @@ export function ResetPasswordForm({
         )}
 
         <Field>
-          <FieldLabel htmlFor="password">Nueva contraseña</FieldLabel>
+          <FieldLabel htmlFor="password">New password</FieldLabel>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Minimum 6 characters"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -155,12 +155,12 @@ export function ResetPasswordForm({
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="confirmPassword">Confirmar contraseña</FieldLabel>
+          <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
           <Input
             id="confirmPassword"
             name="confirmPassword"
             type="password"
-            placeholder="Repite tu contraseña"
+            placeholder="Repeat your password"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -169,12 +169,12 @@ export function ResetPasswordForm({
 
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Guardando..." : "Guardar contraseña"}
+            {isLoading ? "Saving..." : "Save Password"}
           </Button>
           <FieldDescription className="text-center">
-            ¿Recordaste tu contraseña?{" "}
+            Remembered your password?{" "}
             <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
-              Inicia sesión
+              Log In
             </a>
           </FieldDescription>
         </Field>

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const adminUser = await prisma.user.findUnique({
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!adminUser?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching casting submissions:", error)
     return NextResponse.json(
-      { error: "Error al obtener solicitudes" },
+      { error: "Error fetching applications" },
       { status: 500 }
     )
   }
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "Datos inválidos",
+          error: "Invalid data",
           details: result.error.flatten().fieldErrors
         },
         { status: 400 }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     if (existingSubmission) {
       return NextResponse.json(
-        { error: "Ya tienes una solicitud en proceso" },
+        { error: "You already have an application in progress" },
         { status: 400 }
       )
     }
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating casting submission:", error)
     return NextResponse.json(
-      { error: "Error al crear solicitud" },
+      { error: "Error creating application" },
       { status: 500 }
     )
   }

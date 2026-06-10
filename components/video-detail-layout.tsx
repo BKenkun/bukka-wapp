@@ -69,11 +69,11 @@ function formatTimeAgo(dateString: string): string {
   const now = new Date()
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-  if (diffInSeconds < 60) return "hace unos segundos"
-  if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} min`
-  if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} horas`
-  if (diffInSeconds < 604800) return `hace ${Math.floor(diffInSeconds / 86400)} dias`
-  return `hace ${Math.floor(diffInSeconds / 604800)} semanas`
+  if (diffInSeconds < 60) return "a few seconds ago"
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
+  return `${Math.floor(diffInSeconds / 604800)} weeks ago`
 }
 
 function formatViews(views: number): string {
@@ -215,7 +215,7 @@ export function VideoDetailLayout({
                     letterSpacing: "var(--sh-letter-spacing)",
                   }}
                 >
-                  Galeria
+                  Gallery
                 </button>
                 <div
                   className="h-4 mx-2"
@@ -235,7 +235,7 @@ export function VideoDetailLayout({
                 letterSpacing: "var(--sh-letter-spacing)",
               }}
             >
-              Comentarios
+              Comments
             </button>
           </div>
           <div className="flex-1" style={{ height: "var(--sh-line-height)", backgroundColor: "var(--sh-line-color)" }} />
@@ -303,7 +303,7 @@ export function VideoDetailLayout({
           {/* Header: Comment Count + Sort Buttons */}
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-              Comentarios ({comments.length})
+              Comments ({comments.length})
             </h3>
             <div className="flex gap-1">
               <button
@@ -317,7 +317,7 @@ export function VideoDetailLayout({
                   fontFamily: "var(--global-font)",
                 }}
               >
-                Populares
+                Popular
               </button>
               <button
                 onClick={() => setCommentFilter("new")}
@@ -330,7 +330,7 @@ export function VideoDetailLayout({
                   fontFamily: "var(--global-font)",
                 }}
               >
-                Nuevos
+                New
               </button>
             </div>
           </div>
@@ -339,7 +339,7 @@ export function VideoDetailLayout({
           {isAuthenticated && canComment ? (
             <div>
               <textarea
-                placeholder="Escribe tu comentario..."
+                placeholder="Write your comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="w-full min-h-[80px] p-4 resize-none outline-none text-sm"
@@ -358,7 +358,7 @@ export function VideoDetailLayout({
                   disabled={submitting || !newComment.trim()}
                   className="btn-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Enviando..." : "Enviar"}
+                  {submitting ? "Sending..." : "Send"}
                 </button>
               </div>
             </div>
@@ -373,17 +373,17 @@ export function VideoDetailLayout({
               <div className="flex items-center gap-3">
                 <Lock className="w-6 h-6" style={{ color: "var(--accent-color)" }} />
                 <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Los comentarios requieren suscripcion Gold o superior
+                  Comments require a Gold subscription or higher
                 </p>
               </div>
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Tu plan actual: <span className="font-medium" style={{ color: "var(--brand-color)" }}>{planName}</span>
+                Your current plan: <span className="font-medium" style={{ color: "var(--brand-color)" }}>{planName}</span>
               </p>
               <Link
                 href="/suscripciones"
                 className="btn-primary inline-block hover:opacity-80 transition-colors"
               >
-                Mejorar Suscripcion
+                Upgrade Subscription
               </Link>
             </div>
           ) : (
@@ -393,9 +393,9 @@ export function VideoDetailLayout({
             >
               <p style={{ color: "var(--text-muted)" }}>
                 <Link href="/?login=true" className="hover:underline" style={{ color: "var(--link-color)" }}>
-                  Inicia sesion
+                  Log in
                 </Link>{" "}
-                para dejar un comentario
+                to leave a comment
               </p>
             </div>
           )}
@@ -404,7 +404,7 @@ export function VideoDetailLayout({
           <div className="space-y-6">
             {sortedComments.length === 0 ? (
               <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>
-                No hay comentarios aun. Se el primero en comentar!
+                No comments yet. Be the first to comment!
               </div>
             ) : (
               sortedComments.map((comment) => (
@@ -498,10 +498,10 @@ export function VideoDetailLayout({
 
       {/* Related Videos */}
       <section className="mt-16 mb-8">
-        <SectionTitle>Videos Relacionados</SectionTitle>
+        <SectionTitle>Related Videos</SectionTitle>
         {loadingVideos ? (
           <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>
-            Cargando videos...
+            Loading videos...
           </div>
         ) : displayedVideos.length > 0 ? (
           <>
@@ -513,14 +513,14 @@ export function VideoDetailLayout({
                   className="btn-secondary inline-flex items-center gap-2 cursor-pointer"
                 >
                   <ChevronDown className="w-4 h-4" />
-                  Ver mas
+                  See more
                 </button>
               </div>
             )}
           </>
         ) : (
           <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>
-            No hay videos relacionados
+            No related videos
           </div>
         )}
       </section>

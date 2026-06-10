@@ -46,7 +46,7 @@ export function LoginForm({
       })
 
       if (result?.error) {
-        setError("Email o contraseña incorrectos")
+        setError("Incorrect email or password")
         setIsLoading(false)
         return
       }
@@ -61,7 +61,7 @@ export function LoginForm({
       }
       router.refresh()
     } catch {
-      setError("Error al iniciar sesión")
+      setError("Error logging in")
       setIsLoading(false)
     }
   }
@@ -74,9 +74,9 @@ export function LoginForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Inicia sesión en tu cuenta</h1>
+          <h1 className="text-2xl font-bold">Log in to your account</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Introduce tu email y contraseña para acceder
+            Enter your email and password to continue
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export function LoginForm({
             id="email"
             name="email"
             type="email"
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -99,13 +99,13 @@ export function LoginForm({
 
         <Field>
           <div className="flex items-center">
-            <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+            <FieldLabel htmlFor="password">Password</FieldLabel>
             {showForgotPassword && (
               <a
                 href="#"
                 className="ml-auto text-sm underline-offset-4 hover:underline"
               >
-                ¿Olvidaste tu contraseña?
+                Forgot your password?
               </a>
             )}
           </div>
@@ -121,13 +121,13 @@ export function LoginForm({
 
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+            {isLoading ? "Logging in..." : "Log In"}
           </Button>
           {showRegisterLink && (
             <FieldDescription className="text-center">
-              ¿No tienes cuenta?{" "}
+              Don&apos;t have an account?{" "}
               <a href="/?register=true" className="underline underline-offset-4 text-white hover:text-white">
-                Regístrate
+                Sign Up
               </a>
             </FieldDescription>
           )}

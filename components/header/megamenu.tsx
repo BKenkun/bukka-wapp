@@ -233,7 +233,7 @@ function FeaturedSlider({ items }: { items: FeaturedItem[] }) {
           onClick={() => setOffset((o) => Math.max(0, o - 1))}
           className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center transition-colors cursor-pointer"
           style={{ backgroundColor: "var(--brand-color)" }}
-          aria-label="Anterior"
+          aria-label="Previous"
         >
           <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -259,7 +259,7 @@ function FeaturedSlider({ items }: { items: FeaturedItem[] }) {
           onClick={() => setOffset((o) => Math.min(maxOffset, o + 1))}
           className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center transition-colors cursor-pointer"
           style={{ backgroundColor: "var(--brand-color)" }}
-          aria-label="Siguiente"
+          aria-label="Next"
         >
           <svg className="w-3 h-3" style={{ color: "var(--text-primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

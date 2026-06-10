@@ -30,7 +30,7 @@ export function MobileMenu({ links }: MobileMenuProps) {
           style={{ color: "var(--header-nav-text)" }}
         >
           <IconMenu2 className="size-6" />
-          <span className="sr-only">Abrir menú</span>
+          <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -39,7 +39,7 @@ export function MobileMenu({ links }: MobileMenuProps) {
         style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--footer-border-color)" }}
       >
         <SheetHeader className="p-4 border-b" style={{ borderColor: "var(--footer-border-color)" }}>
-          <SheetTitle className="text-left" style={{ color: "var(--text-primary)" }}>Menú</SheetTitle>
+          <SheetTitle className="text-left" style={{ color: "var(--text-primary)" }}>Menu</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col py-4">
           {links.map((link, index) => (

@@ -145,12 +145,12 @@ export default function CheckoutPage() {
       !shippingAddress.city ||
       !shippingAddress.postalCode
     ) {
-      toast.error("Por favor completa todos los campos obligatorios")
+      toast.error("Please fill in all required fields")
       return
     }
     // Validate shipping rate selection
     if (!selectedShippingRate) {
-      toast.error("Por favor selecciona un metodo de envio")
+      toast.error("Please select a shipping method")
       return
     }
     setStep("payment")
@@ -184,10 +184,10 @@ export default function CheckoutPage() {
         })
         toast.success(data.message)
       } else {
-        setPromoCodeError(data.error || "Código no válido")
+        setPromoCodeError(data.error || "Invalid code")
       }
     } catch (error) {
-      setPromoCodeError("Error al validar el código")
+      setPromoCodeError("Error validating code")
     } finally {
       setPromoCodeLoading(false)
     }
@@ -231,7 +231,7 @@ export default function CheckoutPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        toast.error(error.error || "Error al procesar el pedido")
+        toast.error(error.error || "Error processing your order")
         return
       }
 
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
 
       // Step 2: For card payments, redirect to EasierPay
       if (paymentMethod === "card") {
-        toast.info("Redirigiendo a la pasarela de pago...")
+        toast.info("Redirecting to payment gateway...")
 
         const payRes = await fetch("/api/payments/easierpay/initiate", {
           method: "POST",
@@ -257,7 +257,7 @@ export default function CheckoutPage() {
 
         // If EasierPay initiation fails, show error but order is created
         const payError = await payRes.json().catch(() => null)
-        toast.error(payError?.error || "Error al conectar con la pasarela de pago. Puedes reintentar desde tu historial de pedidos.")
+        toast.error(payError?.error || "Error connecting to the payment gateway. You can retry from your order history.")
         // Redirect to result page with failed status
         router.push(`/checkout/resultado?order=${data.order.orderNumber}&status=failed`)
         return
@@ -269,10 +269,10 @@ export default function CheckoutPage() {
         total: data.order.total,
       })
       setStep("confirmation")
-      toast.success("¡Pedido realizado con éxito!")
+      toast.success("Order placed successfully!")
     } catch (error) {
       console.error("Error placing order:", error)
-      toast.error("Error al procesar el pedido")
+      toast.error("Error processing your order")
     } finally {
       setSubmitting(false)
     }
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
     return (
       <main className="flex-1 flex flex-col">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 pt-8 pb-12">
-          <div className="text-center py-12">Cargando...</div>
+          <div className="text-center py-12">Loading...</div>
         </div>
       </main>
     )
@@ -311,12 +311,12 @@ export default function CheckoutPage() {
             </div>
 
             <h1 className="text-4xl font-bold mb-4 font-montserrat" style={{ color: "var(--text-primary)" }}>
-              ¡Gracias por tu compra!
+              Thank You for Your Purchase!
             </h1>
 
             {confirmedOrder && (
               <div className="p-6 mb-8 text-left max-w-md mx-auto" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
-                <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Número de pedido:</p>
+                <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Order number:</p>
                 <p className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>{confirmedOrder.orderNumber}</p>
                 <p className="text-sm mb-2" style={{ color: "var(--cart-summary-label)" }}>Total:</p>
                 <p className="text-2xl font-bold" style={{ color: "var(--brand-color)" }}>{confirmedOrder.total.toFixed(2)} €</p>
@@ -324,7 +324,7 @@ export default function CheckoutPage() {
             )}
 
             <p className="mb-4 max-w-md mx-auto" style={{ color: "var(--cart-summary-label)" }}>
-              Hemos enviado un email de confirmación con los detalles de tu pedido a tu correo electrónico.
+              We have sent a confirmation email with your order details to your email address.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -332,13 +332,13 @@ export default function CheckoutPage() {
                 href="/my-account/payment-history"
                 className="btn-primary inline-block"
               >
-                Ver Mis Pedidos
+                View My Orders
               </Link>
               <Link
                 href="/shop"
                 className="btn-secondary inline-block"
               >
-                Seguir Comprando
+                Continue Shopping
               </Link>
             </div>
           </div>
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
             >
               1
             </div>
-            <span className="font-medium">Envio</span>
+            <span className="font-medium">Shipping</span>
           </div>
           <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-color)" }} />
           <div
@@ -380,7 +380,7 @@ export default function CheckoutPage() {
             >
               2
             </div>
-            <span className="font-medium">Pago</span>
+            <span className="font-medium">Payment</span>
           </div>
         </div>
 
@@ -389,11 +389,11 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             {step === "shipping" && (
               <form onSubmit={handleShippingSubmit} className="p-6" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Direccion de Envio</h2>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Shipping Address</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Nombre *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>First Name *</label>
                     <input
                       type="text"
                       value={shippingAddress.firstName}
@@ -408,7 +408,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Apellidos *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Last Name *</label>
                     <input
                       type="text"
                       value={shippingAddress.lastName}
@@ -441,7 +441,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Telefono</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Phone</label>
                     <input
                       type="tel"
                       value={shippingAddress.phone}
@@ -457,7 +457,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Direccion *</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Address *</label>
                   <input
                     type="text"
                     value={shippingAddress.address}
@@ -468,14 +468,14 @@ export default function CheckoutPage() {
                     style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
                     onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
                     onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
-                    placeholder="Calle, numero, piso..."
+                    placeholder="Street, number, apartment..."
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Ciudad *</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>City *</label>
                     <input
                       type="text"
                       value={shippingAddress.city}
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Pais</label>
+                    <label className="block text-sm mb-2" style={{ color: "var(--form-label-color)" }}>Country</label>
                     <select
                       value={shippingAddress.country}
                       onChange={(e) =>
@@ -517,19 +517,19 @@ export default function CheckoutPage() {
                       onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
                       onBlur={(e) => e.currentTarget.style.borderColor = "var(--form-input-border)"}
                     >
-                      <option value="ES">Espana</option>
+                      <option value="ES">Spain</option>
                       <option value="PT">Portugal</option>
-                      <option value="FR">Francia</option>
-                      <option value="DE">Alemania</option>
-                      <option value="IT">Italia</option>
-                      <option value="UK">Reino Unido</option>
+                      <option value="FR">France</option>
+                      <option value="DE">Germany</option>
+                      <option value="IT">Italy</option>
+                      <option value="UK">United Kingdom</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Shipping Calculator */}
                 <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--border-color)" }}>
-                  <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>Opciones de Envio</h3>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>Shipping Options</h3>
                   <ShippingCalculator
                     postalCode={shippingAddress.postalCode}
                     country={shippingAddress.country}
@@ -547,20 +547,20 @@ export default function CheckoutPage() {
                   disabled={!selectedShippingRate}
                   className="btn-primary mt-6 w-full"
                 >
-                  Continuar al Pago
+                  Continue to Payment
                 </button>
               </form>
             )}
 
             {step === "payment" && (
               <div className="p-6" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Metodo de Pago</h2>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Payment Method</h2>
 
                 {/* Shipping Address Summary */}
                 <div className="p-4 mb-6" style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)" }}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Enviar a:</p>
+                      <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Ship to:</p>
                       <p style={{ color: "var(--text-primary)" }}>
                         {shippingAddress.firstName} {shippingAddress.lastName}
                       </p>
@@ -570,10 +570,10 @@ export default function CheckoutPage() {
                       </p>
                       {selectedShippingRate && (
                         <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border-color)" }}>
-                          <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Metodo de envio:</p>
+                          <p className="text-sm mb-1" style={{ color: "var(--form-label-color)" }}>Shipping method:</p>
                           <p style={{ color: "var(--text-primary)" }}>{selectedShippingRate.name}</p>
                           <p className="font-medium" style={{ color: "var(--brand-color)" }}>
-                            {selectedShippingRate.isFree ? "GRATIS" : `${selectedShippingRate.price.toFixed(2)} €`}
+                            {selectedShippingRate.isFree ? "FREE" : `${selectedShippingRate.price.toFixed(2)} €`}
                           </p>
                         </div>
                       )}
@@ -583,7 +583,7 @@ export default function CheckoutPage() {
                       className="text-sm hover:underline"
                       style={{ color: "var(--accent-color)" }}
                     >
-                      Editar
+                      Edit
                     </button>
                   </div>
                 </div>
@@ -617,7 +617,7 @@ export default function CheckoutPage() {
                           <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                           <line x1="1" y1="10" x2="23" y2="10" />
                         </svg>
-                        <span className="font-medium" style={{ color: "var(--text-primary)" }}>Tarjeta de Credito/Debito</span>
+                        <span className="font-medium" style={{ color: "var(--text-primary)" }}>Credit/Debit Card</span>
                       </div>
                     </div>
                   </label>
@@ -689,14 +689,14 @@ export default function CheckoutPage() {
                     onClick={() => setStep("shipping")}
                     className="btn-secondary flex-1"
                   >
-                    Volver
+                    Back
                   </button>
                   <button
                     onClick={handlePlaceOrder}
                     disabled={submitting || !termsAccepted}
                     className="btn-primary flex-1"
                   >
-                    {submitting ? "Procesando..." : "Place Order & Pay"}
+                    {submitting ? "Processing..." : "Place Order & Pay"}
                   </button>
                 </div>
               </div>
@@ -706,7 +706,7 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="p-6 sticky top-4" style={{ backgroundColor: "var(--surface-bg)", border: "1px solid var(--border-color)" }}>
-              <h2 className="font-montserrat font-bold text-xl mb-6" style={{ color: "var(--text-primary)" }}>Tu Pedido</h2>
+              <h2 className="font-montserrat font-bold text-xl mb-6" style={{ color: "var(--text-primary)" }}>Your Order</h2>
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
@@ -730,7 +730,7 @@ export default function CheckoutPage() {
                       )}
                       <p className="text-sm" style={{ color: "var(--cart-item-meta)" }}>{item.product.price.toFixed(2)} €</p>
                       {!item.product.available && (
-                        <p className="text-xs" style={{ color: "var(--error-color)" }}>No disponible</p>
+                        <p className="text-xs" style={{ color: "var(--error-color)" }}>Not available</p>
                       )}
                     </div>
                     <div className="font-medium" style={{ color: "var(--text-primary)" }}>
@@ -748,14 +748,14 @@ export default function CheckoutPage() {
 
                 {cart && cart.discountPercent > 0 && (
                   <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
-                    <span>Descuento miembro ({cart.discountPercent}%)</span>
+                    <span>Member discount ({cart.discountPercent}%)</span>
                     <span>-{cart.discount.toFixed(2)} €</span>
                   </div>
                 )}
 
                 {appliedPromoCode && (
                   <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
-                    <span>Código {appliedPromoCode.code}</span>
+                    <span>Code {appliedPromoCode.code}</span>
                     <span>-{appliedPromoCode.discountAmount.toFixed(2)} €</span>
                   </div>
                 )}
@@ -764,8 +764,8 @@ export default function CheckoutPage() {
                   <div className="flex justify-between" style={{ color: "var(--success-color)" }}>
                     <span>
                       {appliedReferral.owner.type === "performer"
-                        ? `Cupón creadora ${appliedReferral.owner.name}`
-                        : `Cupón ${appliedReferral.owner.name}`}{" "}
+                        ? `Creator coupon ${appliedReferral.owner.name}`
+                        : `Coupon ${appliedReferral.owner.name}`}{" "}
                       ({appliedReferral.discountPercent}%)
                     </span>
                     <span>-{appliedReferral.discountAmount.toFixed(2)} €</span>
@@ -773,13 +773,13 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex justify-between" style={{ color: "var(--cart-summary-label)" }}>
-                  <span>Envio</span>
+                  <span>Shipping</span>
                   {selectedShippingRate ? (
                     <span style={{ color: selectedShippingRate.isFree ? "var(--success-color)" : "var(--text-primary)" }}>
-                      {selectedShippingRate.isFree ? "GRATIS" : `${shippingCost.toFixed(2)} €`}
+                      {selectedShippingRate.isFree ? "FREE" : `${shippingCost.toFixed(2)} €`}
                     </span>
                   ) : (
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>Selecciona codigo postal</span>
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>Enter postal code</span>
                   )}
                 </div>
 
@@ -793,7 +793,7 @@ export default function CheckoutPage() {
 
               {/* Promo Code Section */}
               <div className="pt-4 mt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
-                <p className="font-medium mb-3" style={{ color: "var(--text-primary)" }}>Código Promocional</p>
+                <p className="font-medium mb-3" style={{ color: "var(--text-primary)" }}>Promo Code</p>
                 {appliedPromoCode ? (
                   <div className="flex items-center justify-between p-3" style={{ backgroundColor: "color-mix(in srgb, var(--success-color) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--success-color) 30%, transparent)" }}>
                     <div>
@@ -809,7 +809,7 @@ export default function CheckoutPage() {
                       onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-primary)"}
                       onMouseLeave={(e) => e.currentTarget.style.color = "var(--cart-summary-label)"}
                     >
-                      Quitar
+                      Remove
                     </button>
                   </div>
                 ) : (
@@ -821,7 +821,7 @@ export default function CheckoutPage() {
                         setPromoCodeInput(e.target.value.toUpperCase())
                         setPromoCodeError(null)
                       }}
-                      placeholder="Introduce código"
+                      placeholder="Enter code"
                       className="flex-1 px-3 py-2 text-sm focus:outline-none"
                       style={{ backgroundColor: "var(--form-input-bg)", border: "1px solid var(--form-input-border)", color: "var(--form-input-text)" }}
                       onFocus={(e) => e.currentTarget.style.borderColor = "var(--form-input-focus-border)"}
@@ -833,7 +833,7 @@ export default function CheckoutPage() {
                       className="px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       style={{ backgroundColor: "var(--accent-color)", color: "var(--text-primary)" }}
                     >
-                      {promoCodeLoading ? "..." : "Aplicar"}
+                      {promoCodeLoading ? "..." : "Apply"}
                     </button>
                   </div>
                 )}
@@ -850,7 +850,7 @@ export default function CheckoutPage() {
                   applied={appliedReferral}
                   onApply={setAppliedReferral}
                   onRemove={() => setAppliedReferral(null)}
-                  title="¿Tienes un código de creadora?"
+                  title="Have a creator code?"
                 />
               </div>
 
@@ -859,7 +859,7 @@ export default function CheckoutPage() {
                 className="block text-center text-sm mt-4 hover:underline"
                 style={{ color: "var(--accent-color)" }}
               >
-                Editar Carrito
+                Edit Cart
               </Link>
             </div>
           </div>

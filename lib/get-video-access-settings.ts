@@ -39,9 +39,9 @@ const SETTINGS_KEY = "video_access_settings"
 
 export const defaultVideoAccessSettings: VideoAccessSettings = {
   lockScreen: {
-    title: "Acceso Denegado",
-    description: "Este contenido requiere una suscripción",
-    buttonText: "Ver Planes",
+    title: "Access Denied",
+    description: "This content requires a subscription",
+    buttonText: "View Plans",
     buttonUrl: "/suscripciones",
     backgroundImage: null,
     overlaySize: "normal",
@@ -64,10 +64,10 @@ export const defaultVideoAccessSettings: VideoAccessSettings = {
     tierBadgeTextColor: "var(--access-denied-text-color)",
     tierBadgeAccentColor: "var(--access-denied-accent-color)",
     // Lock messages — se muestran como descripción del overlay según el motivo
-    messageLockedByTier: "Este contenido requiere una suscripción superior",
-    messageLockedByExclusive: "Contenido exclusivo para suscriptores Diamond",
-    messageLockedByEarlyAccess: "Acceso anticipado para suscriptores Platinum+",
-    messageLockedByNoSession: "Inicia sesión para ver este contenido",
+    messageLockedByTier: "This content requires a higher subscription",
+    messageLockedByExclusive: "Exclusive content for Diamond subscribers",
+    messageLockedByEarlyAccess: "Early access for Platinum+ subscribers",
+    messageLockedByNoSession: "Log in to view this content",
   },
 }
 

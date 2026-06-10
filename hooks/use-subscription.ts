@@ -93,7 +93,7 @@ export function useSubscription() {
   /**
    * Get plan name for display
    */
-  const planName = plan?.name ?? (isAuthenticated ? "Gratuito" : "Visitante")
+  const planName = plan?.name ?? (isAuthenticated ? "Free" : "Visitor")
 
   /**
    * Get plan slug

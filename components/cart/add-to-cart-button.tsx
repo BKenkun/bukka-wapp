@@ -33,16 +33,16 @@ export function AddToCartButton({
       })
 
       if (res.ok) {
-        toast.success("Producto añadido al carrito")
+        toast.success("Product added to cart")
         // Dispatch custom event to update cart button
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al añadir al carrito")
+        toast.error(error.error || "Error adding to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al añadir al carrito")
+      toast.error("Error adding to cart")
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export function AddToCartButton({
         padding: "12px 72px",
       }}
     >
-      {loading ? "Añadiendo..." : isOutOfStock ? "Agotado" : "Añadir al carrito"}
+      {loading ? "Adding..." : isOutOfStock ? "Sold Out" : "Add to Cart"}
     </button>
   )
 }

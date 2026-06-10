@@ -36,15 +36,15 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
       })
 
       if (res.ok) {
-        toast.success("Producto añadido al carrito")
+        toast.success("Product added to cart")
         window.dispatchEvent(new CustomEvent("cart-updated"))
       } else {
         const error = await res.json()
-        toast.error(error.error || "Error al añadir al carrito")
+        toast.error(error.error || "Error adding to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      toast.error("Error al añadir al carrito")
+      toast.error("Error adding to cart")
     } finally {
       setLoadingId(null)
     }
@@ -53,7 +53,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
   if (products.length === 0) {
     return (
       <div className="p-4 text-center" style={{ color: "var(--text-muted)" }}>
-        <p className="text-sm">No hay productos relacionados</p>
+        <p className="text-sm">No related products</p>
       </div>
     )
   }
@@ -129,7 +129,7 @@ export function ProductSidebar({ products }: ProductSidebarProps) {
                 ) : (
                   <ShoppingCart className="h-3.5 w-3.5" />
                 )}
-                {loadingId === product.id ? "..." : "Añadir"}
+                {loadingId === product.id ? "..." : "Add"}
               </button>
             </div>
           </div>

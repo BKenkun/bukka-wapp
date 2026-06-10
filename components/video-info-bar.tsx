@@ -66,7 +66,7 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
     if (!videoId) return
 
     if (!userId) {
-      toast.error("Inicia sesión para guardar en favoritos")
+      toast.error("Log in to save to favorites")
       router.push("/?login=true")
       return
     }
@@ -81,9 +81,9 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
         if (res.ok) {
           setIsFavorite(false)
           setFavoriteCount((prev) => Math.max(0, prev - 1))
-          toast.success("Eliminado de favoritos")
+          toast.success("Removed from favorites")
         } else {
-          throw new Error("Error al eliminar de favoritos")
+          throw new Error("Error removing from favorites")
         }
       } else {
         // Add to favorites
@@ -95,14 +95,14 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
         if (res.ok) {
           setIsFavorite(true)
           setFavoriteCount((prev) => prev + 1)
-          toast.success("Añadido a favoritos")
+          toast.success("Added to favorites")
         } else {
           const data = await res.json()
-          throw new Error(data.error || "Error al añadir a favoritos")
+          throw new Error(data.error || "Error adding to favorites")
         }
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al actualizar favoritos")
+      toast.error(error instanceof Error ? error.message : "Error updating favorites")
     } finally {
       setIsTogglingFavorite(false)
     }
@@ -110,7 +110,7 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
 
   async function handleDownload() {
     if (!canDownload) {
-      toast.error("Tu plan no permite descargas. Actualiza tu suscripción para desbloquear esta función.")
+      toast.error("Your plan does not allow downloads. Upgrade your subscription to unlock this feature.")
       return
     }
 
@@ -120,14 +120,14 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Error al descargar")
+        throw new Error(data.error || "Error downloading")
       }
 
       // Abrir URL de descarga en nueva pestaña
       window.open(data.downloadUrl, "_blank")
-      toast.success("Descarga iniciada")
+      toast.success("Download started")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al descargar")
+      toast.error(error instanceof Error ? error.message : "Error downloading")
     } finally {
       setIsDownloading(false)
     }
@@ -170,7 +170,7 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
                   color: canDownload ? "var(--text-primary)" : "color-mix(in srgb, var(--text-primary) 50%, transparent)",
                   background: canDownload ? "var(--accent-color)" : "color-mix(in srgb, var(--text-primary) 20%, transparent)",
                 }}
-                title={canDownload ? "Descargar video" : "Actualiza tu plan para descargar"}
+                title={canDownload ? "Download video" : "Upgrade your plan to download"}
               >
                 {isDownloading ? (
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
                     />
                   </svg>
                 )}
-                {isDownloading ? "Descargando..." : "Descargar"}
+                {isDownloading ? "Downloading..." : "Download"}
               </button>
             </div>
           </div>
@@ -201,7 +201,7 @@ export function VideoInfoBar({ title, subscriberCount, likePercentage, commentCo
                 onClick={handleToggleFavorite}
                 disabled={isTogglingFavorite}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity disabled:opacity-50"
-                title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
               >
                 <WaterDropIcon className="w-[22px] h-[29px]" filled={isFavorite} />
                 <span style={{ fontSize: "16px", fontWeight: 400, lineHeight: "24px", color: isFavorite ? "var(--brand-color)" : "var(--text-primary)" }}>

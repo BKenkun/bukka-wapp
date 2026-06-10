@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching menu:", error)
     return NextResponse.json(
-      { error: "Error al obtener menú" },
+      { error: "Error fetching menu" },
       { status: 500 }
     )
   }

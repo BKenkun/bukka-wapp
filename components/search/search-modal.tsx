@@ -252,7 +252,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar en Bukkakery"
+            placeholder="Search Bukkakery"
             className="bg-transparent border-none outline-none text-white placeholder-zinc-500 w-full font-['Montserrat'] text-base"
           />
           {isLoading && <Loader2 className="w-5 h-5 text-[#FA4860] animate-spin shrink-0 mr-3" />}
@@ -274,7 +274,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <div className="p-4 border-b border-zinc-800">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="w-4 h-4 text-[#FA4860]" />
-                  <span className="text-sm font-semibold text-white">Búsquedas de Tendencia</span>
+                  <span className="text-sm font-semibold text-white">Trending Searches</span>
                 </div>
                 <div className="space-y-1">
                   {trending.searches.map((search, index) => (
@@ -294,13 +294,13 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             {trending.performers.length > 0 && (
               <div className="p-4 border-b border-zinc-800">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-white">Estrellas porno y modelos en tendencia</span>
+                  <span className="text-sm font-semibold text-white">Trending porn stars and models</span>
                   <Link
                     href="/performers"
                     onClick={() => onOpenChange(false)}
                     className="text-[#FA4860] text-sm font-medium hover:underline"
                   >
-                    Ver Todos
+                    View All
                   </Link>
                 </div>
                 <div className="space-y-3">
@@ -330,7 +330,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         {(performer.videoCount !== undefined || performer.totalViews !== undefined) && (
                           <p className="text-zinc-500 text-xs">
                             {performer.videoCount !== undefined && (
-                              <span>{performer.videoCount} {performer.videoCount === 1 ? "vídeo" : "vídeos"}</span>
+                              <span>{performer.videoCount} {performer.videoCount === 1 ? "video" : "videos"}</span>
                             )}
                             {performer.videoCount !== undefined && performer.totalViews !== undefined && " · "}
                             {performer.totalViews !== undefined && (
@@ -349,13 +349,13 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             {trending.videos.length > 0 && (
               <div className="p-4 border-b border-zinc-800">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-white">Vídeos populares</span>
+                  <span className="text-sm font-semibold text-white">Popular videos</span>
                   <Link
                     href="/videos"
                     onClick={() => onOpenChange(false)}
                     className="text-[#FA4860] text-sm font-medium hover:underline"
                   >
-                    Ver Todos
+                    View All
                   </Link>
                 </div>
                 <div className="space-y-3">
@@ -388,7 +388,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium truncate">{video.title}</p>
                         <p className="text-zinc-500 text-xs">
-                          {video.viewCount.toLocaleString()} visualizaciones
+                          {video.viewCount.toLocaleString()} views
                         </p>
                       </div>
                     </Link>
@@ -401,13 +401,13 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             {trending.products && trending.products.length > 0 && (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-white">Productos destacados</span>
+                  <span className="text-sm font-semibold text-white">Featured products</span>
                   <Link
                     href="/shop"
                     onClick={() => onOpenChange(false)}
                     className="text-[#FA4860] text-sm font-medium hover:underline"
                   >
-                    Ver Todos
+                    View All
                   </Link>
                 </div>
                 <div className="space-y-3">
@@ -459,7 +459,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <ShoppingBag className="w-4 h-4 text-[#FA4860]" />
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Productos</span>
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Products</span>
                 </div>
                 <div className="space-y-2">
                   {results.products.map((product) => {
@@ -514,7 +514,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Play className="w-4 h-4 text-[#FA4860]" />
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Vídeos</span>
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Videos</span>
                 </div>
                 <div className="space-y-2">
                   {results.videos.map((video) => {
@@ -554,7 +554,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm font-medium truncate">{video.title}</p>
                           <p className="text-zinc-500 text-xs">
-                            {video.viewCount.toLocaleString()} visualizaciones
+                            {video.viewCount.toLocaleString()} views
                           </p>
                         </div>
                       </Link>
@@ -569,7 +569,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <User className="w-4 h-4 text-[#FA4860]" />
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Modelos</span>
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Models</span>
                 </div>
                 <div className="space-y-2">
                   {results.performers.map((performer) => {
@@ -604,7 +604,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm font-medium truncate">{performer.name}</p>
                           <p className="text-zinc-500 text-xs">
-                            {performer.videoCount} {performer.videoCount === 1 ? "vídeo" : "vídeos"}
+                            {performer.videoCount} {performer.videoCount === 1 ? "video" : "videos"}
                             {performer.totalViews !== undefined && ` · ${formatViews(performer.totalViews)} views`}
                           </p>
                         </div>
@@ -621,8 +621,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         {noResults && (
           <div className="mt-2 bg-zinc-900 border border-zinc-700 p-8 text-center">
             <Search className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-            <p className="text-white font-medium">No se encontraron resultados</p>
-            <p className="text-zinc-500 text-sm mt-1">Intenta con otros términos de búsqueda</p>
+            <p className="text-white font-medium">No results found</p>
+            <p className="text-zinc-500 text-sm mt-1">Try different search terms</p>
           </div>
         )}
       </div>

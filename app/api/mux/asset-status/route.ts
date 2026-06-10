@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // Only admins can check asset status
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
     const assetId = searchParams.get("assetId")
 
     if (!assetId) {
-      return NextResponse.json({ error: "assetId requerido" }, { status: 400 })
+      return NextResponse.json({ error: "assetId required" }, { status: 400 })
     }
 
     const asset = await getMuxAsset(assetId)
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error checking Mux asset status:", error)
     return NextResponse.json(
-      { error: "Error al verificar estado del video" },
+      { error: "Error checking video status" },
       { status: 500 }
     )
   }

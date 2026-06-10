@@ -142,7 +142,7 @@ export function GuestMenuDropdown({
   const defaultFeaturedItems: GuestMenuItem[] = [
     {
       id: "register",
-      label: "Registrarse",
+      label: "Sign Up",
       url: "/?register=true",
       icon: "IconUserPlus",
       customIcon: null,
@@ -152,7 +152,7 @@ export function GuestMenuDropdown({
     },
     {
       id: "login",
-      label: "Iniciar Sesion",
+      label: "Log In",
       url: "/?login=true",
       icon: "IconUser",
       customIcon: null,
@@ -177,7 +177,7 @@ export function GuestMenuDropdown({
       <button
         className="cursor-pointer hover:opacity-80 transition-opacity p-1"
         style={{ color: "var(--header-nav-text)" }}
-        aria-label="Menu de usuario"
+        aria-label="User menu"
       >
         <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
