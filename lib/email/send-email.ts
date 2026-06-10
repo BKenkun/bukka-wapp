@@ -1,4 +1,6 @@
+import { render } from "@react-email/components"
 import { resend, EMAIL_FROM, EMAIL_REPLY_TO } from "./resend"
+import { isMailjetConfigured, sendViaMailjet } from "./mailjet"
 import { prisma } from "@/lib/prisma"
 import type { SendEmailOptions, EmailResult, EmailSettings } from "./types"
 import { DEFAULT_EMAIL_SETTINGS } from "./types"
@@ -59,14 +61,39 @@ export async function sendEmail({
     // Get settings for from address
     const settings = await getEmailSettings()
     const from = `${settings.fromName} <${settings.fromEmail}>`
+    const replyTo = settings.replyTo || EMAIL_REPLY_TO
 
-    const { data, error } = await resend.emails.send({
-      from: from || EMAIL_FROM,
-      to,
-      replyTo: settings.replyTo || EMAIL_REPLY_TO,
-      subject,
-      ...(html ? { html } : { react }),
-    })
+    let messageId: string | undefined
+    let sendError: { message: string } | undefined
+
+    if (isMailjetConfigured()) {
+      // Proveedor: Mailjet (prioritario si hay claves configuradas)
+      const htmlBody = html ?? (react ? await render(react) : undefined)
+      if (!htmlBody) {
+        return { success: false, error: new Error("No email content provided") }
+      }
+      const result = await sendViaMailjet({
+        fromEmail: settings.fromEmail,
+        fromName: settings.fromName,
+        to,
+        replyTo,
+        subject,
+        html: htmlBody,
+      })
+      messageId = result.id ?? undefined
+      sendError = result.error ? { message: result.error } : undefined
+    } else {
+      // Proveedor: Resend (fallback)
+      const { data, error } = await resend.emails.send({
+        from: from || EMAIL_FROM,
+        to,
+        replyTo,
+        subject,
+        ...(html ? { html } : { react }),
+      })
+      messageId = data?.id
+      sendError = error ? { message: error.message } : undefined
+    }
 
     // Log the email
     await prisma.emailLog.create({
@@ -74,19 +101,19 @@ export async function sendEmail({
         to,
         subject,
         template,
-        status: error ? "failed" : "sent",
-        resendId: data?.id,
-        error: error?.message,
+        status: sendError ? "failed" : "sent",
+        resendId: messageId,
+        error: sendError?.message,
         metadata: metadata as object,
       },
     })
 
-    if (error) {
-      console.error("Resend error:", error)
-      return { success: false, error }
+    if (sendError) {
+      console.error("Email provider error:", sendError.message)
+      return { success: false, error: sendError }
     }
 
-    return { success: true, data }
+    return { success: true, data: { id: messageId ?? "unknown" } }
   } catch (err) {
     console.error("Email send error:", err)
 

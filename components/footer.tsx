@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { FooterAccordion } from "@/components/footer/footer-accordion"
+import { NewsletterForm } from "@/components/footer/newsletter-form"
 import { getFooterSettings, type FooterSocialLink } from "@/lib/get-footer-settings"
 import { auth } from "@/auth"
 
@@ -18,16 +19,16 @@ interface FooterSection {
 // Links por defecto si los menús no están configurados
 const DEFAULT_SECTIONS: FooterSection[] = [
   {
-    title: "SERVICIOS",
+    title: "SERVICES",
     links: [
       { label: "The Bukkake Degree™", url: "#" },
-      { label: "Tienda", url: "/shop" },
+      { label: "Shop", url: "/shop" },
       { label: "Blog", url: "/news" },
-      { label: "Foro", url: "/forum" },
+      { label: "Forum", url: "/forum" },
     ],
   },
   {
-    title: "CONTACTO",
+    title: "CONTACT",
     links: [
       { label: "Contact & Support", url: "#" },
       { label: "Report Content", url: "#" },
@@ -35,7 +36,7 @@ const DEFAULT_SECTIONS: FooterSection[] = [
     ],
   },
   {
-    title: "INFORMACIÓN",
+    title: "INFORMATION",
     links: [
       { label: "Terms of Service", url: "#" },
       { label: "Privacy Policy", url: "#" },
@@ -43,11 +44,11 @@ const DEFAULT_SECTIONS: FooterSection[] = [
       { label: "Content Removal Policy", url: "#" },
       { label: "Casting", url: "/casting" },
       { label: "Webmaster", url: "#" },
-      { label: "Tienda/Apparel", url: "/shop" },
+      { label: "Shop/Apparel", url: "/shop" },
     ],
   },
   {
-    title: "FACTURACIÓN",
+    title: "BILLING",
     links: [
       { label: "Epoch", url: "#" },
       { label: "Segpay", url: "#" },
@@ -101,11 +102,10 @@ async function getFooterMenuItems(slug: string, userTierLevel: number | null): P
       return null
     }
 
-    // Filtrar items por nivel de suscripción del usuario
+    // Filtrar items por nivel de suscripción del usuario (deslogueado = Visitante, level 0)
     const filteredItems = menu.items.filter((item) => {
       if (item.minTierLevel === null) return true
-      if (userTierLevel === null) return false
-      return userTierLevel >= item.minTierLevel
+      return (userTierLevel ?? 0) >= item.minTierLevel
     })
 
     if (filteredItems.length === 0) {
@@ -292,22 +292,22 @@ export async function Footer() {
 
   const sections: FooterSection[] = [
     {
-      title: serviciosMenu?.title || "SERVICIOS",
+      title: serviciosMenu?.title || "SERVICES",
       links: serviciosMenu?.links || DEFAULT_SECTIONS[0].links,
     },
     {
-      title: contactoMenu?.title || "CONTACTO",
+      title: contactoMenu?.title || "CONTACT",
       links: contactoMenu?.links || DEFAULT_SECTIONS[1].links,
     },
     {
-      title: informacionMenu?.title || "INFORMACIÓN",
+      title: informacionMenu?.title || "INFORMATION",
       links: [
         ...(informacionMenu?.links || DEFAULT_SECTIONS[2].links),
         ...informacionPages,
       ],
     },
     {
-      title: facturacionMenu?.title || "FACTURACIÓN",
+      title: facturacionMenu?.title || "BILLING",
       links: facturacionMenu?.links || DEFAULT_SECTIONS[3].links,
     },
   ]
@@ -443,6 +443,26 @@ export async function Footer() {
                   ))}
             </div>
           </div>
+        </div>
+
+        {/* Newsletter: HTML personalizado del admin o formulario por defecto */}
+        <div className="mt-10">
+          {footerSettings.newsletter.customHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: footerSettings.newsletter.customHtml }} />
+          ) : (
+            <NewsletterForm
+              title={footerSettings.newsletter.title}
+              titleUrl={footerSettings.newsletter.titleUrl}
+              openInNewTab={footerSettings.newsletter.openInNewTab}
+              placeholder={footerSettings.newsletter.placeholder}
+              buttonText={footerSettings.newsletter.buttonText}
+              privacyText={footerSettings.newsletter.privacyText}
+              privacyLinkText={footerSettings.newsletter.privacyLinkText}
+              privacyLinkUrl={privacyLinkUrl}
+              privacyLinkOpenInNewTab={footerSettings.newsletter.privacyLinkOpenInNewTab}
+              source="footer"
+            />
+          )}
         </div>
 
         {/* Bottom: Copyright + Disclaimer */}
