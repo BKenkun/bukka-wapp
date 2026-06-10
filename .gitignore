@@ -34,3 +34,6 @@ next-env.d.ts
 /public/uploads/
 
 CLAUDE.md
+# documentos de cliente con credenciales
+*.docx
+.claude/
