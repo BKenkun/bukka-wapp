@@ -41,21 +41,27 @@ export interface PacklinkRate {
   totalPrice: number
   currency: string
   transitTime: string | null
+  // true si el destino es un punto de recogida/locker en vez del domicilio
+  deliveryToParcelshop: boolean
+  // true si hay que llevar el paquete a un punto (no recogida a domicilio)
+  dropoff: boolean
 }
 
 interface RawService {
   id: number
   carrier_name?: string
   name?: string
-  base_price?: number
-  total_price?: number
+  base_price?: string | number
   price?: { base_price?: number; total_price?: number; currency?: string }
   currency?: string
   transit_time?: string
+  delivery_to_parcelshop?: boolean
+  dropoff?: boolean
 }
 
 /**
- * Obtiene tarifas disponibles para un envío origen → destino.
+ * Obtiene tarifas disponibles para un envío origen → destino
+ * (GET /v1/services, verificado contra la API real de Packlink PRO).
  */
 export async function getPacklinkRates(params: {
   toZip: string
@@ -66,40 +72,27 @@ export async function getPacklinkRates(params: {
   const fromCountry = process.env.PACKLINK_FROM_COUNTRY || "ES"
   const packages = params.packages?.length ? params.packages : [DEFAULT_PACKAGE]
 
-  const response = await fetch(`${PACKLINK_API_URL}/services`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      from: { country: fromCountry, zip: fromZip },
-      to: { country: params.toCountry, zip: params.toZip },
-      packages: Object.fromEntries(packages.map((p, i) => [String(i), p])),
-    }),
-  }).catch(() => null)
+  const qs = new URLSearchParams({
+    "from[country]": fromCountry,
+    "from[zip]": fromZip,
+    "to[country]": params.toCountry,
+    "to[zip]": params.toZip,
+    source: "PRO",
+  })
+  packages.forEach((p, i) => {
+    qs.set(`packages[${i}][weight]`, String(p.weight))
+    qs.set(`packages[${i}][length]`, String(p.length))
+    qs.set(`packages[${i}][width]`, String(p.width))
+    qs.set(`packages[${i}][height]`, String(p.height))
+  })
 
-  // Fallback: algunas cuentas usan GET /v1/services con query params
-  let data: RawService[] | null = null
-  if (response?.ok) {
-    data = (await response.json().catch(() => null)) as RawService[] | null
+  const response = await fetch(`${PACKLINK_API_URL}/services?${qs}`, {
+    headers: headers(),
+  })
+  if (!response.ok) {
+    throw new Error(`Packlink rates failed (HTTP ${response.status})`)
   }
-  if (!data) {
-    const qs = new URLSearchParams({
-      "from[country]": fromCountry,
-      "from[zip]": fromZip,
-      "to[country]": params.toCountry,
-      "to[zip]": params.toZip,
-      "packages[0][weight]": String(packages[0].weight),
-      "packages[0][length]": String(packages[0].length),
-      "packages[0][width]": String(packages[0].width),
-      "packages[0][height]": String(packages[0].height),
-    })
-    const getResponse = await fetch(`${PACKLINK_API_URL}/services?${qs}`, {
-      headers: headers(),
-    })
-    if (!getResponse.ok) {
-      throw new Error(`Packlink rates failed (HTTP ${getResponse.status})`)
-    }
-    data = (await getResponse.json()) as RawService[]
-  }
+  const data = (await response.json()) as RawService[]
 
   if (!Array.isArray(data)) return []
 
@@ -108,9 +101,11 @@ export async function getPacklinkRates(params: {
     carrierName: s.carrier_name || "",
     serviceName: s.name || "",
     basePrice: Number(s.price?.base_price ?? s.base_price ?? 0),
-    totalPrice: Number(s.price?.total_price ?? s.total_price ?? 0),
+    totalPrice: Number(s.price?.total_price ?? s.base_price ?? 0),
     currency: s.price?.currency || s.currency || "EUR",
     transitTime: s.transit_time || null,
+    deliveryToParcelshop: Boolean(s.delivery_to_parcelshop),
+    dropoff: Boolean(s.dropoff),
   }))
 }
 

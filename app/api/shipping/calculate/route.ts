@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { isPacklinkConfigured, getPacklinkRates, DEFAULT_PACKAGE } from "@/lib/packlink"
 
 const calculateSchema = z.object({
   postalCode: z.string().min(1, "Codigo postal requerido"),
@@ -8,6 +9,17 @@ const calculateSchema = z.object({
   subtotal: z.number().min(0),
   weight: z.number().optional(),
 })
+
+// Convierte el transit time de Packlink ("24 HOURS", "1 DAY", "2-3 DAYS"...) a días
+function transitTimeToDays(transitTime: string | null): number | null {
+  if (!transitTime) return null
+  const t = transitTime.toUpperCase()
+  const num = t.match(/(\d+)(?:\s*-\s*\d+)?/)
+  if (!num) return null
+  const value = parseInt(num[1], 10)
+  if (t.includes("HOUR")) return Math.max(1, Math.ceil(value / 24))
+  return value
+}
 
 // POST /api/shipping/calculate
 // Public API to calculate shipping options for checkout
@@ -18,6 +30,67 @@ export async function POST(request: Request) {
 
     // Get shipping settings
     const settings = await prisma.shippingSettings.findFirst()
+
+    // Envío gratis global (se aplica también sobre tarifas Packlink)
+    const freeShippingApplies = Boolean(
+      settings?.freeShippingEnabled &&
+        settings.freeShippingThreshold &&
+        data.subtotal >= Number(settings.freeShippingThreshold)
+    )
+
+    let freeShippingInfo: { threshold: number; remaining: number; percentage: number } | null = null
+    if (settings?.freeShippingEnabled && settings.freeShippingThreshold) {
+      const threshold = Number(settings.freeShippingThreshold)
+      const remaining = threshold - data.subtotal
+      if (remaining > 0) {
+        freeShippingInfo = {
+          threshold,
+          remaining,
+          percentage: Math.min(100, (data.subtotal / threshold) * 100),
+        }
+      }
+    }
+
+    // ── Fuente principal: tarifas en vivo de Packlink PRO ──────────────
+    if (isPacklinkConfigured()) {
+      try {
+        const packlinkRates = await getPacklinkRates({
+          toZip: data.postalCode,
+          toCountry: data.country,
+          packages: data.weight ? [{ ...DEFAULT_PACKAGE, weight: data.weight }] : undefined,
+        })
+
+        // En el checkout solo ofrecemos entrega a domicilio (la dirección que
+        // recoge el formulario); los servicios a punto de recogida se descartan
+        const homeDelivery = packlinkRates.filter((r) => !r.deliveryToParcelshop)
+
+        if (homeDelivery.length > 0) {
+          const rates = homeDelivery
+            .sort((a, b) => a.totalPrice - b.totalPrice)
+            .slice(0, 6)
+            .map((r) => ({
+              id: `packlink-${r.id}`,
+              name: `${r.carrierName} · ${r.serviceName}`.trim(),
+              description: null,
+              originalPrice: r.totalPrice,
+              price: freeShippingApplies ? 0 : r.totalPrice,
+              isFree: freeShippingApplies,
+              estimatedDays: transitTimeToDays(r.transitTime),
+              isAvailable: true,
+            }))
+
+          return NextResponse.json({
+            available: true,
+            zone: { id: "packlink", name: "Packlink" },
+            rates,
+            freeShippingInfo,
+          })
+        }
+      } catch (error) {
+        // Si Packlink no responde, seguimos con las zonas propias como fallback
+        console.error("[Shipping] Packlink rates failed, falling back to zones:", error)
+      }
+    }
 
     // Find matching zones
     const zones = await prisma.shippingZone.findMany({
@@ -112,20 +185,6 @@ export async function POST(request: Request) {
         isAvailable,
       }
     }).filter((r) => r.isAvailable)
-
-    // Calculate amount remaining for free shipping
-    let freeShippingInfo = null
-    if (settings?.freeShippingEnabled && settings.freeShippingThreshold) {
-      const threshold = Number(settings.freeShippingThreshold)
-      const remaining = threshold - data.subtotal
-      if (remaining > 0) {
-        freeShippingInfo = {
-          threshold,
-          remaining,
-          percentage: Math.min(100, (data.subtotal / threshold) * 100),
-        }
-      }
-    }
 
     return NextResponse.json({
       available: rates.length > 0,
