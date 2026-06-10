@@ -172,7 +172,8 @@ export async function createPacklinkDraft(input: PacklinkDraftInput): Promise<st
       email: input.to.email,
       phone: input.to.phone,
     },
-    packages: Object.fromEntries(packages.map((p, i) => [String(i), p])),
+    // La API exige array (el formato objeto {"0": ...} devuelve Bad Request)
+    packages,
   }
 
   const response = await fetch(`${PACKLINK_API_URL}/shipments`, {
