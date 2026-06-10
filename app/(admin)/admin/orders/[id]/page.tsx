@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { IconLoader2, IconArrowLeft } from "@tabler/icons-react"
+import { PacklinkPanel } from "./packlink-panel"
 
 interface OrderItem {
   id: string
@@ -371,6 +372,9 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Packlink PRO (solo si el pedido tiene dirección de envío) */}
+          {shipping && <PacklinkPanel orderId={order.id} />}
 
           {/* Payment Info */}
           <Card>
