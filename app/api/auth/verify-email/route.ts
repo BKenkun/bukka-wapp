@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendTemplateEmail, WelcomeEmailTemplate } from "@/lib/email"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bukkakery.com"
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -9,7 +11,7 @@ export async function GET(request: Request) {
 
     if (!token) {
       return NextResponse.redirect(
-        new URL("/?login=true&error=Invalid token", request.url)
+        new URL("/?login=true&error=Invalid token", APP_URL)
       )
     }
 
@@ -21,7 +23,7 @@ export async function GET(request: Request) {
 
     if (!verificationToken) {
       return NextResponse.redirect(
-        new URL("/?login=true&error=Invalid or expired token", request.url)
+        new URL("/?login=true&error=Invalid or expired token", APP_URL)
       )
     }
 
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
         where: { id: verificationToken.id },
       })
       return NextResponse.redirect(
-        new URL("/?login=true&error=The link has expired", request.url)
+        new URL("/?login=true&error=The link has expired", APP_URL)
       )
     }
 
@@ -60,12 +62,12 @@ export async function GET(request: Request) {
     // Redirect to login with success message
     // ("email-verified": el parámetro "verified" lo usan los filtros de /performers)
     return NextResponse.redirect(
-      new URL("/?login=true&email-verified=true", request.url)
+      new URL("/?login=true&email-verified=true", APP_URL)
     )
   } catch (error) {
     console.error("Error verifying email:", error)
     return NextResponse.redirect(
-      new URL("/?login=true&error=Error verifying email", request.url)
+      new URL("/?login=true&error=Error verifying email", APP_URL)
     )
   }
 }
