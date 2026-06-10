@@ -64,20 +64,24 @@ export async function POST(request: Request) {
       // Asset ready - video finished processing
       case "video.asset.ready": {
         const assetId = data.id
+        const uploadId = data.upload_id as string | undefined
         const playbackId = data.playback_ids?.[0]?.id
         const duration = data.duration
 
-        // Update video in database
-        const video = await prisma.video.findFirst({
-          where: { muxAssetId: assetId },
-        })
+        // Match by assetId first; fall back to uploadId if asset_created
+        // hasn't arrived yet (webhook reordering).
+        let video = await prisma.video.findFirst({ where: { muxAssetId: assetId } })
+        if (!video && uploadId) {
+          video = await prisma.video.findFirst({ where: { muxUploadId: uploadId } })
+        }
 
         if (video) {
           await prisma.video.update({
             where: { id: video.id },
             data: {
+              muxAssetId: assetId,
               muxPlaybackId: playbackId,
-              duration: duration ? Math.round(duration) : 0,
+              ...(duration && duration > 0 ? { duration: Math.round(duration) } : {}),
               status: "PUBLISHED",
             },
           })
@@ -89,18 +93,18 @@ export async function POST(request: Request) {
       // Asset errored - video processing failed
       case "video.asset.errored": {
         const assetId = data.id
+        const uploadId = data.upload_id as string | undefined
         const errorMessage = data.errors?.messages?.join(", ") || "Processing failed"
 
-        const video = await prisma.video.findFirst({
-          where: { muxAssetId: assetId },
-        })
+        let video = await prisma.video.findFirst({ where: { muxAssetId: assetId } })
+        if (!video && uploadId) {
+          video = await prisma.video.findFirst({ where: { muxUploadId: uploadId } })
+        }
 
         if (video) {
           await prisma.video.update({
             where: { id: video.id },
-            data: {
-              status: "DRAFT",
-            },
+            data: { status: "DRAFT" },
           })
           console.error(`[Mux Webhook] Video ${video.id} error: ${errorMessage}`)
         }
@@ -119,7 +123,10 @@ export async function POST(request: Request) {
         const uploadId = data.id
         const assetId = data.asset_id
 
-        // Find video by upload ID and update with asset ID
+        // Find video by upload ID and link the asset.
+        // Do NOT touch muxPlaybackId/duration: if video.asset.ready
+        // arrived first (webhook reordering), those values are already set
+        // and resetting them here would wipe them.
         const video = await prisma.video.findFirst({
           where: { muxUploadId: uploadId },
         })
@@ -127,11 +134,7 @@ export async function POST(request: Request) {
         if (video) {
           await prisma.video.update({
             where: { id: video.id },
-            data: {
-              muxAssetId: assetId,
-              muxPlaybackId: null,
-              duration: 0,
-            },
+            data: { muxAssetId: assetId },
           })
           console.log(`[Mux Webhook] Video ${video.id} asset created: ${assetId}`)
         }

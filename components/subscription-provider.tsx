@@ -22,6 +22,7 @@ const TrailerViewsContext = createContext<TrailerViewsContextValue | null>(null)
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [viewedTrailers, setViewedTrailers] = useState<string[]>([])
+  const [windowStart, setWindowStart] = useState<number | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -32,8 +33,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (Date.now() - data.lastReset > DAY_MS) {
         localStorage.removeItem(TRAILERS_KEY)
         setViewedTrailers([])
+        setWindowStart(null)
       } else {
         setViewedTrailers(data.viewedIds)
+        setWindowStart(data.lastReset)
       }
     } catch {
       localStorage.removeItem(TRAILERS_KEY)
@@ -47,18 +50,21 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (viewedTrailers.length >= TRAILER_LIMIT) return false
 
       const next = [...viewedTrailers, videoId]
+      // La ventana se ancla a la PRIMERA vista del lote y no se desliza con cada nuevo trailer
+      const lastReset = windowStart ?? Date.now()
       setViewedTrailers(next)
+      if (windowStart === null) setWindowStart(lastReset)
       try {
         localStorage.setItem(
           TRAILERS_KEY,
-          JSON.stringify({ viewedIds: next, lastReset: Date.now() } satisfies TrailerData),
+          JSON.stringify({ viewedIds: next, lastReset } satisfies TrailerData),
         )
       } catch {
         // localStorage lleno o deshabilitado: seguimos con el estado en memoria
       }
       return true
     },
-    [viewedTrailers],
+    [viewedTrailers, windowStart],
   )
 
   const canViewTrailer = useCallback(

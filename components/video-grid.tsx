@@ -101,6 +101,7 @@ export function VideoGrid({ videos = defaultVideos, variant = "overlay", columns
         {videos.map((video) => (
           <VideoCard
             key={video.id}
+            videoId={video.id}
             slug={video.slug || video.id}
             title={video.title}
             subtitle={video.subtitle}

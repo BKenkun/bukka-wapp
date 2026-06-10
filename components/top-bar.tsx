@@ -44,14 +44,10 @@ async function getTopBarItems(userTierLevel: number | null): Promise<TopBarItem[
 
     if (!menu?.items) return []
 
-    // Filtrar items por nivel de suscripción del usuario
+    // Filtrar items por nivel de suscripción del usuario (deslogueado = Visitante, level 0)
     return menu.items.filter((item) => {
-      // Si el item no tiene restricción de tier, es visible para todos
       if (item.minTierLevel === null) return true
-      // Si el usuario no tiene suscripción, solo ve items sin restricción
-      if (userTierLevel === null) return false
-      // El usuario ve el item si su nivel es >= al mínimo requerido
-      return userTierLevel >= item.minTierLevel
+      return (userTierLevel ?? 0) >= item.minTierLevel
     })
   } catch {
     return []

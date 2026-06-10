@@ -84,6 +84,9 @@ export function VideoCard({
   const effectiveVideoId = videoId || slug
 
   const handleMouseEnter = () => {
+    // Sin preview no hay trailer que limitar: no consumimos slot
+    if (!previewUrl) return
+
     // Check if visitor can view more trailers
     if (!canViewTrailer(effectiveVideoId)) {
       setShowTrailerLimit(true)
@@ -100,7 +103,7 @@ export function VideoCard({
       }
 
       setIsHovering(true)
-      if (videoRef.current && previewUrl) {
+      if (videoRef.current) {
         videoRef.current.currentTime = previewStartTime
         videoRef.current.play().catch(() => {
           // Autoplay might be blocked, ignore error
@@ -138,6 +141,11 @@ export function VideoCard({
 
   const handleTrailerLimitCta = (e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
+    // Cerrar el overlay para que no tape el modal de auth
+    setShowTrailerLimit(false)
+    setIsHovering(false)
+    if (videoRef.current) videoRef.current.pause()
     if (isAuthenticated) {
       router.push("/suscripciones")
     } else {
@@ -147,13 +155,13 @@ export function VideoCard({
 
   // Trailer limit overlay component
   const TrailerLimitOverlay = () => (
-    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-20 p-4 text-center">
+    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-30 p-4 text-center">
       <Lock className="w-12 h-12 mb-3" style={{ color: "var(--brand-color)" }} />
-      <h4 className="text-white font-bold text-lg mb-2">Límite de trailers alcanzado</h4>
+      <h4 className="text-white font-bold text-lg mb-2">Trailer limit reached</h4>
       <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
         {isAuthenticated
-          ? "Has alcanzado tu límite diario de trailers. Mejora tu plan para ver más."
-          : "Los visitantes pueden ver 3 trailers. Regístrate para ver más."}
+          ? "You have reached your daily trailer limit. Upgrade your plan to watch more."
+          : "Visitors can watch 3 trailers. Sign up to watch more."}
       </p>
       <button
         type="button"
@@ -161,7 +169,7 @@ export function VideoCard({
         className="text-white px-6 py-2 text-sm font-medium transition-colors cursor-pointer"
         style={{ backgroundColor: "var(--brand-color)" }}
       >
-        {isAuthenticated ? "Ver Suscripciones" : "Registrarse Gratis"}
+        {isAuthenticated ? "View Subscriptions" : "Sign Up Free"}
       </button>
     </div>
   )

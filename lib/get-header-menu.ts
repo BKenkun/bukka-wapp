@@ -6,9 +6,9 @@ interface GetHeaderMenuOptions {
 }
 
 const DEFAULT_NAV_LINKS: NavItemWithMegamenu[] = [
-  { id: "default-1", label: "Vídeos", url: "/videos", hasMegamenu: false },
-  { id: "default-2", label: "Modelos", url: "/performers", hasMegamenu: false },
-  { id: "default-3", label: "Categorías", url: "#", hasMegamenu: false },
+  { id: "default-1", label: "Videos", url: "/videos", hasMegamenu: false },
+  { id: "default-2", label: "Models", url: "/performers", hasMegamenu: false },
+  { id: "default-3", label: "Categories", url: "#", hasMegamenu: false },
   { id: "default-4", label: "Shop Live", url: "/shop", hasMegamenu: false },
   { id: "default-5", label: "Casting", url: "/casting", hasMegamenu: false },
   { id: "default-6", label: "Blog", url: "/news", hasMegamenu: false },
@@ -33,11 +33,10 @@ export async function getHeaderMenu({ userTierLevel }: GetHeaderMenuOptions): Pr
       return DEFAULT_NAV_LINKS
     }
 
-    // Filter items by subscription level
+    // Filter items by subscription level (deslogueado = Visitante, level 0)
     const filteredItems = menu.items.filter((item) => {
       if (item.minTierLevel === null) return true
-      if (userTierLevel === null) return false
-      return userTierLevel >= item.minTierLevel
+      return (userTierLevel ?? 0) >= item.minTierLevel
     })
 
     if (filteredItems.length === 0) {
@@ -281,6 +280,6 @@ async function hydrateMegamenuData(config: {
     products: sortedProducts,
     videos,
     links,
-    linksSectionTitle: config.linksSectionTitle || "Descubre",
+    linksSectionTitle: config.linksSectionTitle || "Discover",
   }
 }
