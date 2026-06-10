@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { usePathname } from "next/navigation"
 
 interface StickyHeaderProps {
   children: React.ReactNode
@@ -11,21 +10,8 @@ interface StickyHeaderProps {
 }
 
 export function StickyHeader({ children, topBar, searchBar, discountBanner }: StickyHeaderProps) {
-  const pathname = usePathname()
-  const isHome = pathname === "/"
-  const [scrolled, setScrolled] = useState(false)
   const [headerHeight, setHeaderHeight] = useState(0)
   const headerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    handleScroll()
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
 
   // Update header height using ResizeObserver for accurate measurements
   useEffect(() => {
@@ -52,8 +38,10 @@ export function StickyHeader({ children, topBar, searchBar, discountBanner }: St
     }
   }, [])
 
-  const showBackground = !isHome || scrolled
-  const showTopBar = !isHome || scrolled
+  // Barra de navegación siempre con color sólido y contenido (hero) debajo,
+  // sin superponerse — petición del cliente (antes era transparente en la home).
+  const showBackground = true
+  const showTopBar = true
   const showSearchBar = false // Search is now an icon in header actions
   const showDiscountBanner = true
 
@@ -91,15 +79,15 @@ export function StickyHeader({ children, topBar, searchBar, discountBanner }: St
         {discountBanner && (
           <div
             className={`transition-all duration-300 overflow-hidden ${
-              showDiscountBanner ? "max-h-[80px] opacity-100" : "max-h-0 opacity-0"
+              showDiscountBanner ? "max-h-[160px] opacity-100" : "max-h-0 opacity-0"
             }`}
           >
             {discountBanner}
           </div>
         )}
       </div>
-      {/* Spacer to push content below fixed header */}
-      {!isHome && <div style={{ height: headerHeight }} />}
+      {/* Spacer to push content below fixed header (también en la home: el hero va debajo) */}
+      <div style={{ height: headerHeight }} />
     </>
   )
 }

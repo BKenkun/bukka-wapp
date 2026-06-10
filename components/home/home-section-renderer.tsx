@@ -29,6 +29,7 @@ interface VideoGridConfig {
   videoIds?: string[]
   limit?: number
   columns?: 2 | 3 | 4
+  displayMode?: "carousel" | "grid"
 }
 
 interface ActressGridConfig {
@@ -470,9 +471,16 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
       return (
         <>
           {section.title && <SectionHeader title={section.title} />}
-          <VideoCarousel
-            videos={videos.length > 0 ? videos : undefined}
-          />
+          {videoConfig.displayMode === "grid" ? (
+            <div className="px-4 md:px-8 py-6">
+              <VideoGrid
+                videos={videos.length > 0 ? videos : undefined}
+                columns={videoConfig.columns || 3}
+              />
+            </div>
+          ) : (
+            <VideoCarousel videos={videos.length > 0 ? videos : undefined} />
+          )}
         </>
       )
     }
@@ -509,7 +517,7 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
         <CtaBanner
           title={ctaConfig.title || ""}
           description={ctaConfig.description || ""}
-          buttonText={ctaConfig.buttonText || "Ver más"}
+          buttonText={ctaConfig.buttonText || "See more"}
           buttonUrl={ctaConfig.buttonUrl}
           backgroundImage={ctaConfig.bgSource === "image" || !ctaConfig.bgSource ? ctaConfig.backgroundImage : undefined}
           videoUrl={ctaConfig.bgSource === "uploadedVideo" ? ctaConfig.videoUrl : dbVideoUrl}
@@ -561,7 +569,14 @@ export async function HomeSectionRenderer({ section }: HomeSectionRendererProps)
       return (
         <>
           {section.title && <SectionHeader title={section.title} />}
-          <VideoGrid videos={videos.length > 0 ? videos : undefined} />
+          {categoryConfig.displayMode === "carousel" ? (
+            <VideoCarousel videos={videos.length > 0 ? videos : undefined} />
+          ) : (
+            <VideoGrid
+              videos={videos.length > 0 ? videos : undefined}
+              columns={categoryConfig.columns || 3}
+            />
+          )}
         </>
       )
     }

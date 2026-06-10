@@ -67,6 +67,7 @@ const defaultTheme = {
     navFontWeight: "700",
     navHoverColor: "#FA4860",
     logoColor: "#FA4860",
+    paddingY: "24",
   },
   sectionHeaders: {
     textColor: "#FFFFFF",
@@ -698,6 +699,7 @@ export function ThemeSettings() {
                 <ColorField label="Color del Logo (si es texto)" value={theme.header.logoColor} onChange={(v) => updateSection("header", "logoColor", v)} />
                 <NumberField label="Tamano Fuente Menu" value={theme.header.navFontSize} onChange={(v) => updateSection("header", "navFontSize", v)} min={10} max={24} />
                 <WeightField label="Grosor Fuente Menu" value={theme.header.navFontWeight} onChange={(v) => updateSection("header", "navFontWeight", v)} />
+                <NumberField label="Alto de la Barra (padding vertical, px)" value={theme.header.paddingY ?? "24"} onChange={(v) => updateSection("header", "paddingY", v)} min={4} max={48} />
               </div>
             </TabsContent>
 

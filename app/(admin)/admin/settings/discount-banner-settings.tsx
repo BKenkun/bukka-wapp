@@ -41,6 +41,9 @@ interface BannerConfig {
   buttonText: string
   buttonUrl: string
   backgroundColor: string
+  height?: number | null
+  startDate?: string | null
+  endDate?: string | null
 }
 
 interface Plan {
@@ -56,6 +59,9 @@ const EMPTY_BANNER: Omit<BannerConfig, "planId"> = {
   buttonText: "",
   buttonUrl: "/registro",
   backgroundColor: "#00B1DE",
+  height: null,
+  startDate: null,
+  endDate: null,
 }
 
 export function DiscountBannerSettings() {
@@ -127,7 +133,11 @@ export function DiscountBannerSettings() {
     setBanners((prev) => prev.filter((b) => b.planId !== planId))
   }
 
-  const updateBanner = (planId: string, field: keyof Omit<BannerConfig, "planId">, value: string | boolean) => {
+  const updateBanner = (
+    planId: string,
+    field: keyof Omit<BannerConfig, "planId">,
+    value: string | boolean | number | null
+  ) => {
     setBanners((prev) =>
       prev.map((b) => (b.planId === planId ? { ...b, [field]: value } : b))
     )
@@ -262,7 +272,7 @@ function SortableBannerItem({
 }: {
   banner: BannerConfig
   planName: string
-  onUpdate: (field: keyof Omit<BannerConfig, "planId">, value: string | boolean) => void
+  onUpdate: (field: keyof Omit<BannerConfig, "planId">, value: string | boolean | number | null) => void
   onRemove: () => void
 }) {
   const [open, setOpen] = React.useState(false)
@@ -389,6 +399,44 @@ function SortableBannerItem({
                     onChange={(e) => onUpdate("buttonUrl", e.target.value)}
                     placeholder="/registro"
                   />
+                </div>
+              </div>
+
+              {/* Altura del banner */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Alto de la barra (px)</Label>
+                  <Input
+                    type="number"
+                    min="32"
+                    max="150"
+                    value={banner.height ?? ""}
+                    onChange={(e) =>
+                      onUpdate("height", e.target.value ? parseInt(e.target.value, 10) : null)
+                    }
+                    placeholder="Auto"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Vacío = altura automática. Ej: 40 para una barra fina.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Mostrar desde</Label>
+                  <Input
+                    type="date"
+                    value={banner.startDate ?? ""}
+                    onChange={(e) => onUpdate("startDate", e.target.value || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">Opcional: programar inicio</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Mostrar hasta</Label>
+                  <Input
+                    type="date"
+                    value={banner.endDate ?? ""}
+                    onChange={(e) => onUpdate("endDate", e.target.value || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">Opcional: programar fin</p>
                 </div>
               </div>
 

@@ -10,6 +10,7 @@ interface BannerSettings {
   buttonText: string
   buttonUrl: string
   backgroundColor: string
+  height?: number | null
 }
 
 export function DiscountBanner() {
@@ -46,18 +47,31 @@ export function DiscountBanner() {
     return null
   }
 
+  // Altura configurable desde el admin; si no hay valor se usa el padding clásico
+  const customHeight = settings.height && settings.height > 0 ? settings.height : null
+  const compact = customHeight !== null && customHeight < 56
+
   return (
     <div
-      className="w-full py-4 px-4 md:px-8"
-      style={{ backgroundColor: settings.backgroundColor }}
+      className={`w-full px-4 md:px-8 ${customHeight ? "flex items-center" : "py-4"}`}
+      style={{
+        backgroundColor: settings.backgroundColor,
+        ...(customHeight ? { height: `${customHeight}px` } : {}),
+      }}
     >
-    <div className="flex flex-col md:flex-row items-center justify-between gap-4 max-w-[1400px] mx-auto">
-      <span className="text-white font-bold font-['Montserrat'] text-[16px] leading-[24px] uppercase tracking-wide text-center md:text-left">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-4 max-w-[1400px] mx-auto w-full">
+      <span
+        className={`text-white font-bold font-['Montserrat'] uppercase tracking-wide text-center md:text-left ${
+          compact ? "text-[13px] leading-[18px]" : "text-[16px] leading-[24px]"
+        }`}
+      >
         {settings.text}
       </span>
       <Link
         href={settings.buttonUrl}
-        className="border-2 border-white text-white px-6 py-2 font-bold font-['Montserrat'] text-[14px] leading-[24px] uppercase hover:bg-white hover:text-black transition-colors whitespace-nowrap"
+        className={`border-2 border-white text-white font-bold font-['Montserrat'] uppercase hover:bg-white hover:text-black transition-colors whitespace-nowrap ${
+          compact ? "px-4 py-0.5 text-[12px] leading-[20px]" : "px-6 py-2 text-[14px] leading-[24px]"
+        }`}
         style={{ ["--hover-text-color" as string]: settings.backgroundColor }}
       >
         {settings.buttonText}

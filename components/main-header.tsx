@@ -25,7 +25,10 @@ export async function MainHeader() {
   ])
 
   return (
-    <header className="w-full px-4 md:px-8 py-6">
+    <header
+      className="w-full px-4 md:px-8"
+      style={{ paddingTop: "var(--header-padding-y, 24px)", paddingBottom: "var(--header-padding-y, 24px)" }}
+    >
       <div className="grid grid-cols-12 items-center w-full max-w-[1400px] mx-auto gap-4">
         <div className="col-span-6 md:col-span-3 xl:col-span-2 flex justify-start items-center gap-3">
           <MobileMenu links={links} />

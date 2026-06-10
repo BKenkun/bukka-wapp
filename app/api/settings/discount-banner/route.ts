@@ -10,6 +10,9 @@ interface BannerConfig {
   buttonText: string
   buttonUrl: string
   backgroundColor: string
+  height?: number
+  startDate?: string | null
+  endDate?: string | null
 }
 
 // GET - Obtener banner de descuento para un plan específico (público)
@@ -35,12 +38,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ enabled: false })
     }
 
+    // Programación por fechas: fuera del rango el banner no se muestra
+    const now = new Date()
+    if (banner.startDate && now < new Date(banner.startDate)) {
+      return NextResponse.json({ enabled: false })
+    }
+    if (banner.endDate && now > new Date(`${banner.endDate}T23:59:59`)) {
+      return NextResponse.json({ enabled: false })
+    }
+
     return NextResponse.json({
       enabled: banner.enabled,
       text: banner.text,
       buttonText: banner.buttonText,
       buttonUrl: banner.buttonUrl,
       backgroundColor: banner.backgroundColor,
+      height: banner.height ?? null,
     })
   } catch (error) {
     console.error("Error fetching discount banner settings:", error)

@@ -306,6 +306,26 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 </div>
               )}
 
+              {/* Modo de visualización: carrusel u cuadrícula */}
+              <div className="space-y-2">
+                <Label htmlFor="displayMode">Visualización</Label>
+                <Select
+                  value={(config.displayMode as string) || "carousel"}
+                  onValueChange={(value) => updateConfig("displayMode", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="carousel">Carrusel (scroll horizontal)</SelectItem>
+                    <SelectItem value="grid">Cuadrícula (grid fijo)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  La cuadrícula muestra todos los videos a la vez; útil para destacar una categoría.
+                </p>
+              </div>
+
               <div className={config.source === "manual" ? "" : "grid grid-cols-2 gap-4"}>
                 {config.source !== "manual" && (
                   <div className="space-y-2">
@@ -328,7 +348,7 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="columns">Columnas</Label>
+                  <Label htmlFor="columns">Columnas (en cuadrícula)</Label>
                   <Select
                     value={String((config.columns as number) || 3)}
                     onValueChange={(value) => updateConfig("columns", parseInt(value))}
@@ -1112,6 +1132,21 @@ export function HomeSectionEditor({ section, pages, tags, onSave, onClose }: Hom
                     <SelectItem value="3">3 videos</SelectItem>
                     <SelectItem value="6">6 videos</SelectItem>
                     <SelectItem value="9">9 videos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="featuredDisplayMode">Visualización</Label>
+                <Select
+                  value={(config.displayMode as string) || "grid"}
+                  onValueChange={(value) => updateConfig("displayMode", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grid">Cuadrícula (grid fijo)</SelectItem>
+                    <SelectItem value="carousel">Carrusel (scroll horizontal)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

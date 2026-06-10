@@ -46,6 +46,7 @@ interface ThemeSettings {
     navFontWeight: string
     navHoverColor: string
     logoColor: string
+    paddingY: string
   }
   sectionHeaders: {
     textColor: string
@@ -188,6 +189,7 @@ const defaultTheme: ThemeSettings = {
     navFontWeight: "700",
     navHoverColor: "#FA4860",
     logoColor: "#FA4860",
+    paddingY: "24",
   },
   sectionHeaders: {
     textColor: "#FFFFFF",
@@ -382,6 +384,7 @@ export function ThemeStylesProvider({ children, initialTheme }: ThemeStylesProvi
         --header-nav-font-weight: ${h.navFontWeight};
         --header-nav-hover: ${h.navHoverColor};
         --header-logo-color: ${h.logoColor};
+        --header-padding-y: ${h.paddingY}px;
 
         /* Section Headers */
         --sh-text: ${sh.textColor};
