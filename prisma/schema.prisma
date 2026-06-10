@@ -8,12 +8,14 @@ datasource db {
 }
 
 model ReferralCode {
-  id              String    @id @default(cuid())
-  code            String    @unique
-  performerId     String?
-  partnerName     String?
-  discountPercent Decimal   @default(0) @db.Decimal(5, 2)
-  label           String?
+  id                String    @id @default(cuid())
+  code              String    @unique
+  performerId       String?
+  partnerName       String?
+  discountPercent   Decimal   @default(0) @db.Decimal(5, 2)
+  // % de comisión para el creador/partner, sobre el importe neto generado
+  commissionPercent Decimal   @default(0) @db.Decimal(5, 2)
+  label             String?
   isActive        Boolean   @default(true)
   maxUses         Int?
   usedCount       Int       @default(0)
@@ -42,6 +44,8 @@ model ReferralConversion {
   subscriptionHistoryId String?                @unique
   amount                Decimal                @db.Decimal(10, 2)
   discountAmount        Decimal                @default(0) @db.Decimal(10, 2)
+  // Comisión devengada para el creador/partner en esta conversión
+  commissionAmount      Decimal                @default(0) @db.Decimal(10, 2)
   createdAt             DateTime               @default(now())
 
   referralCode        ReferralCode         @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
@@ -371,6 +375,8 @@ model Order {
   shippingAddress     Json?
   billingAddress      Json?
   trackingNumber      String?
+  // Referencia del borrador/envío creado en Packlink PRO
+  packlinkReference   String?
   paymentGateway      String?
   transactionId       String?
   riskLevel           ProductRiskLevel    @default(LOW_RISK)
@@ -443,6 +449,7 @@ model Performer {
   VideoPerformer  VideoPerformer[]
   PerformerNotify PerformerNotify[]
   ReferralCode    ReferralCode[]
+  PerformerTag    PerformerTag[]
 }
 
 model PerformerPhoto {
@@ -621,11 +628,34 @@ model SubscriptionPlan {
 }
 
 model Tag {
-  id         String       @id @default(cuid())
-  slug       String       @unique
-  name       String
-  ProductTag ProductTag[]
-  VideoTag   VideoTag[]
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  name         String
+  ProductTag   ProductTag[]
+  VideoTag     VideoTag[]
+  PerformerTag PerformerTag[]
+}
+
+model PerformerTag {
+  performerId String
+  tagId       String
+  performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([performerId, tagId])
+}
+
+model NewsletterSubscriber {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  source       String? // "footer" | "blog" | otros
+  isActive     Boolean   @default(true)
+  confirmedAt  DateTime?
+  unsubscribedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([isActive])
 }
 
 model User {
