@@ -22,12 +22,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!video) {
-      return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Video not found" }, { status: 404 })
     }
 
     if (!video.muxPlaybackId) {
       return NextResponse.json(
-        { error: "Video no disponible para streaming" },
+        { error: "Video not available for streaming" },
         { status: 404 }
       )
     }
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!accessResult.hasAccess) {
       return NextResponse.json(
         {
-          error: "No tienes acceso a este video",
+          error: "You do not have access to this video",
           reason: accessResult.reason,
           requiredPlanName: accessResult.requiredPlanName,
           availableAt: accessResult.availableAt,
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error getting stream token:", error)
     return NextResponse.json(
-      { error: "Error al obtener token de streaming" },
+      { error: "Error fetching streaming token" },
       { status: 500 }
     )
   }

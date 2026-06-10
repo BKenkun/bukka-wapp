@@ -93,6 +93,12 @@ interface Category {
   slug: string
 }
 
+interface Tag {
+  id: string
+  name: string
+  slug: string
+}
+
 interface Product {
   id: string
   name: string
@@ -133,6 +139,7 @@ interface VideoFormProps {
     metaDescription: string | null
     performers: { performer: Performer }[]
     categories: { category: Category }[]
+    tags?: { tag: Tag }[]
     relatedProducts: { product: Product }[]
   }
   performers: Performer[]
@@ -153,8 +160,13 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>(
     video?.relatedProducts?.map((vp) => vp.product.id) || []
   )
+  const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>(
+    video?.tags?.map((vt) => vt.tag.id) || []
+  )
+  const [availableTags, setAvailableTags] = React.useState<Tag[]>([])
   const [performersOpen, setPerformersOpen] = React.useState(false)
   const [categoriesOpen, setCategoriesOpen] = React.useState(false)
+  const [tagsOpen, setTagsOpen] = React.useState(false)
   const [productsOpen, setProductsOpen] = React.useState(false)
   const [thumbnailPreview, setThumbnailPreview] = React.useState<string>(video?.thumbnailUrl || "")
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -380,6 +392,22 @@ export function VideoForm({ video, performers, categories, products, subscriptio
 
     fetchPlaybackToken()
   }, [muxPlaybackId])
+
+  // Cargar tags disponibles
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await fetch("/api/admin/tags")
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableTags(data.tags || [])
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error)
+      }
+    }
+    fetchTags()
+  }, [])
 
   // Auto-generate slug from title
   React.useEffect(() => {
@@ -690,6 +718,7 @@ export function VideoForm({ video, performers, categories, products, subscriptio
         performerIds: selectedPerformers,
         categoryIds: selectedCategories,
         productIds: selectedProducts,
+        tagIds: selectedTagIds,
         // Include Mux IDs
         muxUploadId: videoUploadId || video?.muxUploadId || null,
         muxAssetId: muxAssetId || video?.muxAssetId || null,
@@ -739,6 +768,12 @@ export function VideoForm({ video, performers, categories, products, subscriptio
     )
   }
 
+  const toggleTag = (id: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    )
+  }
+
   const getSelectedPerformerNames = () => {
     return selectedPerformers
       .map((id) => performers.find((p) => p.id === id)?.name)
@@ -754,6 +789,12 @@ export function VideoForm({ video, performers, categories, products, subscriptio
   const getSelectedCategoryNames = () => {
     return selectedCategories
       .map((id) => categories.find((c) => c.id === id)?.name)
+      .filter(Boolean)
+  }
+
+  const getSelectedTagNames = () => {
+    return selectedTagIds
+      .map((id) => availableTags.find((t) => t.id === id)?.name)
       .filter(Boolean)
   }
 
@@ -1491,6 +1532,86 @@ export function VideoForm({ video, performers, categories, products, subscriptio
                 <p className="text-xs text-muted-foreground">
                   No hay categorías.{" "}
                   <a href="/admin/video-categories" className="text-primary hover:underline">
+                    Crear
+                  </a>
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tags - Multi-select Combobox */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tags</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Popover open={tagsOpen} onOpenChange={setTagsOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={tagsOpen}
+                    className="w-full justify-between h-10"
+                  >
+                    {selectedTagIds.length > 0
+                      ? `${selectedTagIds.length} seleccionado(s)`
+                      : "Seleccionar..."}
+                    <IconSelector className="ml-2 size-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar tag..." className="h-10" />
+                    <CommandList className="max-h-[200px]">
+                      <CommandEmpty>No se encontraron tags.</CommandEmpty>
+                      <CommandGroup>
+                        {availableTags.map((tag) => (
+                          <CommandItem
+                            key={tag.id}
+                            value={tag.name}
+                            onSelect={() => toggleTag(tag.id)}
+                            className="cursor-pointer"
+                          >
+                            <IconCheck
+                              className={cn(
+                                "mr-2 size-4",
+                                selectedTagIds.includes(tag.id)
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {tag.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              {selectedTagIds.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {getSelectedTagNames().map((name, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-destructive hover:text-white transition-colors text-xs"
+                      onClick={() => {
+                        const tag = availableTags.find((t) => t.name === name)
+                        if (tag) toggleTag(tag.id)
+                      }}
+                    >
+                      {name}
+                      <IconX className="ml-1 size-3" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {availableTags.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No hay tags.{" "}
+                  <a href="/admin/tags" className="text-primary hover:underline">
                     Crear
                   </a>
                 </p>

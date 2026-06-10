@@ -32,6 +32,13 @@ export default async function EditVideoPage({ params }: Props) {
             },
           },
         },
+        tags: {
+          include: {
+            tag: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
+        },
         relatedProducts: {
           include: {
             product: {

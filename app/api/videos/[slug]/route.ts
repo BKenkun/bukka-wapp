@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!existingVideo) {
-      return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Video not found" }, { status: 404 })
     }
 
     const {
@@ -58,6 +58,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       performerIds,
       categoryIds,
       productIds,
+      tagIds,
       // Mux video replacement
       muxUploadId,
       muxAssetId,
@@ -92,7 +93,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       if (slugExists) {
         return NextResponse.json(
-          { error: "Ya existe un video con ese slug" },
+          { error: "A video with that slug already exists" },
           { status: 400 }
         )
       }
@@ -146,6 +147,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Actualizar relaciones de tags
+    if (tagIds !== undefined) {
+      await prisma.videoTag.deleteMany({
+        where: { videoId: existingVideo.id },
+      })
+
+      if (tagIds.length > 0) {
+        await prisma.videoTag.createMany({
+          data: tagIds.map((tagId: string) => ({
+            videoId: existingVideo.id,
+            tagId,
+          })),
+        })
+      }
+    }
+
     const video = await prisma.video.update({
       where: { id: existingVideo.id },
       data: {
@@ -174,6 +191,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         performers: { include: { performer: true } },
         categories: { include: { category: true } },
         relatedProducts: { include: { product: true } },
+        tags: { include: { tag: true } },
       },
     })
 
@@ -181,7 +199,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating video:", error)
     return NextResponse.json(
-      { error: "Error al actualizar video" },
+      { error: "Error updating video" },
       { status: 500 }
     )
   }
@@ -193,7 +211,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -202,7 +220,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -218,7 +236,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!video) {
-      return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Video not found" }, { status: 404 })
     }
 
     // Eliminar asset de Mux si existe
@@ -246,7 +264,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting video:", error)
     return NextResponse.json(
-      { error: "Error al eliminar video" },
+      { error: "Error deleting video" },
       { status: 500 }
     )
   }
@@ -318,7 +336,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!video) {
-      return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Video not found" }, { status: 404 })
     }
 
     // Verificar acceso
@@ -433,7 +451,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching video:", error)
     return NextResponse.json(
-      { error: "Error al obtener video" },
+      { error: "Error fetching video" },
       { status: 500 }
     )
   }

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       riskLevel,
       performerIds,
       categoryIds,
+      tagIds,
       productType,
       weight,
       metadata,
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (existingProduct) {
       return NextResponse.json(
-        { error: "Ya existe un producto con ese slug" },
+        { error: "A product with that slug already exists" },
         { status: 400 }
       )
     }
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       })
       if (existingSku) {
         return NextResponse.json(
-          { error: "Ya existe un producto con ese SKU" },
+          { error: "A product with that SKU already exists" },
           { status: 400 }
         )
       }
@@ -95,6 +96,13 @@ export async function POST(request: NextRequest) {
               })),
             }
           : undefined,
+        ProductTag: tagIds?.length
+          ? {
+              create: tagIds.map((tagId: string) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+          : undefined,
       },
       include: {
         performers: {
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating product:", error)
     return NextResponse.json(
-      { error: "Error al crear producto" },
+      { error: "Error creating product" },
       { status: 500 }
     )
   }
@@ -227,7 +235,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching products:", error)
     return NextResponse.json(
-      { error: "Error al obtener productos" },
+      { error: "Error fetching products" },
       { status: 500 }
     )
   }

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       performerIds,
       categoryIds,
       productIds,
+      tagIds,
       // Mux video IDs
       muxUploadId,
       muxAssetId,
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     if (existingVideo) {
       return NextResponse.json(
-        { error: "Ya existe un video con ese slug" },
+        { error: "A video with that slug already exists" },
         { status: 400 }
       )
     }
@@ -103,11 +104,19 @@ export async function POST(request: NextRequest) {
               })),
             }
           : undefined,
+        tags: tagIds?.length
+          ? {
+              create: tagIds.map((tagId: string) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+          : undefined,
       },
       include: {
         performers: { include: { performer: true } },
         categories: { include: { category: true } },
         relatedProducts: { include: { product: true } },
+        tags: { include: { tag: true } },
       },
     })
 
@@ -115,7 +124,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating video:", error)
     return NextResponse.json(
-      { error: "Error al crear video" },
+      { error: "Error creating video" },
       { status: 500 }
     )
   }
@@ -340,7 +349,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching videos:", error)
     return NextResponse.json(
-      { error: "Error al obtener videos" },
+      { error: "Error fetching videos" },
       { status: 500 }
     )
   }

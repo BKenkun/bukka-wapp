@@ -92,6 +92,12 @@ interface Category {
   slug: string
 }
 
+interface Tag {
+  id: string
+  name: string
+  slug: string
+}
+
 interface AttributeValue {
   id: string
   value: string
@@ -153,6 +159,7 @@ interface ProductFormProps {
     productType: string
     weight: number | null
     categories: { category: Category }[]
+    tags?: { tag: Tag }[]
     metadata?: Record<string, unknown> | null
   }
   performers: Performer[]
@@ -285,6 +292,10 @@ export function ProductForm({
   const [selectedPerformerIds, setSelectedPerformerIds] = React.useState<string[]>(
     product?.performers.map((p) => p.id) || []
   )
+  const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>(
+    product?.tags?.map((pt) => pt.tag.id) || []
+  )
+  const [availableTags, setAvailableTags] = React.useState<Tag[]>([])
   const [images, setImages] = React.useState<string[]>(product?.images || [])
 
   // Metadata state (per-product custom content)
@@ -366,6 +377,22 @@ export function ProductForm({
     }
   }
 
+  // Cargar tags disponibles
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await fetch("/api/admin/tags")
+        if (res.ok) {
+          const data = await res.json()
+          setAvailableTags(data.tags || [])
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error)
+      }
+    }
+    fetchTags()
+  }, [])
+
   // Auto-generate slug from name
   React.useEffect(() => {
     if (!product && watchName) {
@@ -397,6 +424,7 @@ export function ProductForm({
         images,
         categoryIds: selectedCategories,
         performerIds: selectedPerformerIds,
+        tagIds: selectedTagIds,
         metadata: cleanMetadata,
       }
 
@@ -426,6 +454,12 @@ export function ProductForm({
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    )
+  }
+
+  const toggleTag = (id: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     )
   }
 
@@ -848,6 +882,34 @@ export function ProductForm({
                     ))}
                     {categories.length === 0 && (
                       <p className="text-sm text-muted-foreground">No hay categorias disponibles</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tags */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tags</CardTitle>
+                  <CardDescription>Tags del producto</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={selectedTagIds.includes(tag.id) ? "default" : "outline"}
+                        className="cursor-pointer hover:bg-primary/80 transition-colors"
+                        onClick={() => toggleTag(tag.id)}
+                      >
+                        {tag.name}
+                        {selectedTagIds.includes(tag.id) && (
+                          <IconX className="ml-1 size-3" />
+                        )}
+                      </Badge>
+                    ))}
+                    {availableTags.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No hay tags disponibles</p>
                     )}
                   </div>
                 </CardContent>

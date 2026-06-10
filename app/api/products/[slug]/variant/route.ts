@@ -13,13 +13,13 @@ export async function GET(
     const valuesParam = searchParams.get("values")
 
     if (!valuesParam) {
-      return NextResponse.json({ error: "Valores de atributos requeridos" }, { status: 400 })
+      return NextResponse.json({ error: "Attribute values required" }, { status: 400 })
     }
 
     const valueIds = valuesParam.split(",").filter(Boolean)
 
     if (valueIds.length === 0) {
-      return NextResponse.json({ error: "Valores de atributos requeridos" }, { status: 400 })
+      return NextResponse.json({ error: "Attribute values required" }, { status: 400 })
     }
 
     // Get product
@@ -29,11 +29,11 @@ export async function GET(
     })
 
     if (!product) {
-      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
     if (product.productType !== "VARIABLE") {
-      return NextResponse.json({ error: "Este producto no tiene variantes" }, { status: 400 })
+      return NextResponse.json({ error: "This product has no variants" }, { status: 400 })
     }
 
     // Find variant that matches ALL the selected attribute values
@@ -67,7 +67,7 @@ export async function GET(
     })
 
     if (!matchingVariant) {
-      return NextResponse.json({ error: "Variante no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 })
     }
 
     // Format response - ensure Decimals are converted to numbers
@@ -89,6 +89,6 @@ export async function GET(
     return NextResponse.json({ variant: response })
   } catch (error) {
     console.error("Error fetching variant:", error)
-    return NextResponse.json({ error: "Error al obtener variante" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching variant" }, { status: 500 })
   }
 }

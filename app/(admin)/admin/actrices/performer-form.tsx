@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 
 const performerSchema = z.object({
@@ -41,6 +42,12 @@ const performerSchema = z.object({
 })
 
 type PerformerFormData = z.infer<typeof performerSchema>
+
+interface Tag {
+  id: string
+  name: string
+  slug: string
+}
 
 interface GalleryPhoto {
   id?: string
@@ -68,6 +75,7 @@ interface PerformerFormProps {
       caption: string | null
       order: number
     }[]
+    tags?: { tag: Tag }[]
   }
 }
 
@@ -90,6 +98,34 @@ export function PerformerForm({ performer }: PerformerFormProps) {
     })) || []
   )
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null)
+
+  // Tags state
+  const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>(
+    performer?.tags?.map((pt) => pt.tag.id) || []
+  )
+  const [availableTags, setAvailableTags] = React.useState<Tag[]>([])
+
+  // Cargar tags disponibles
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await fetch("/api/admin/tags")
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableTags(data.tags || [])
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error)
+      }
+    }
+    fetchTags()
+  }, [])
+
+  const toggleTag = (id: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    )
+  }
 
   const profileInputRef = React.useRef<HTMLInputElement>(null)
   const coverInputRef = React.useRef<HTMLInputElement>(null)
@@ -338,6 +374,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
           caption: photo.caption || null,
           order: index,
         })),
+        tagIds: selectedTagIds,
       }
 
       const url = performer
@@ -768,6 +805,39 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Tags */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tags</CardTitle>
+              <CardDescription>Tags asociados a la actriz</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant={selectedTagIds.includes(tag.id) ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-primary/80 transition-colors"
+                    onClick={() => toggleTag(tag.id)}
+                  >
+                    {tag.name}
+                    {selectedTagIds.includes(tag.id) && (
+                      <IconX className="ml-1 size-3" />
+                    )}
+                  </Badge>
+                ))}
+                {availableTags.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No hay tags disponibles.{" "}
+                    <a href="/admin/tags" className="text-primary hover:underline">
+                      Crear
+                    </a>
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 

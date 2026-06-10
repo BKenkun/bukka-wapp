@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (!Array.isArray(photoIds) || photoIds.length === 0) {
       return NextResponse.json(
-        { error: "Se requiere un array de IDs de fotos" },
+        { error: "An array of photo IDs is required" },
         { status: 400 }
       )
     }
@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (!performer) {
       return NextResponse.json(
-        { error: "Actriz no encontrada" },
+        { error: "Actress not found" },
         { status: 404 }
       )
     }
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (photos.length !== photoIds.length) {
       return NextResponse.json(
-        { error: "Algunas fotos no pertenecen a esta actriz" },
+        { error: "Some photos do not belong to this actress" },
         { status: 400 }
       )
     }
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error reordering performer photos:", error)
     return NextResponse.json(
-      { error: "Error al reordenar fotos" },
+      { error: "Error reordering photos" },
       { status: 500 }
     )
   }

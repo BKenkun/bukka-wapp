@@ -46,6 +46,13 @@ export default async function EditPerformerPage({ params }: Props) {
       PerformerPhoto: {
         orderBy: { order: "asc" },
       },
+      PerformerTag: {
+        include: {
+          tag: {
+            select: { id: true, name: true, slug: true },
+          },
+        },
+      },
     },
   })
 
@@ -180,6 +187,7 @@ export default async function EditPerformerPage({ params }: Props) {
       <PerformerForm performer={{
         ...performer,
         comingSoonDate: performer.comingSoonDate?.toISOString() ?? null,
+        tags: performer.PerformerTag.map((pt) => ({ tag: pt.tag })),
       }} />
     </div>
   )

@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -32,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!existingProduct) {
-      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
     const {
@@ -49,6 +49,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       riskLevel,
       performerIds,
       categoryIds,
+      tagIds,
       productType,
       weight,
       metadata,
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       if (slugExists) {
         return NextResponse.json(
-          { error: "Ya existe un producto con ese slug" },
+          { error: "A product with that slug already exists" },
           { status: 400 }
         )
       }
@@ -74,7 +75,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       if (skuExists) {
         return NextResponse.json(
-          { error: "Ya existe un producto con ese SKU" },
+          { error: "A product with that SKU already exists" },
           { status: 400 }
         )
       }
@@ -107,6 +108,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           data: performerIds.map((performerId: string) => ({
             productId: existingProduct.id,
             performerId,
+          })),
+        })
+      }
+    }
+
+    // Actualizar tags (many-to-many)
+    if (tagIds !== undefined) {
+      await prisma.productTag.deleteMany({
+        where: { productId: existingProduct.id },
+      })
+
+      if (tagIds.length > 0) {
+        await prisma.productTag.createMany({
+          data: tagIds.map((tagId: string) => ({
+            productId: existingProduct.id,
+            tagId,
           })),
         })
       }
@@ -146,7 +163,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating product:", error)
     return NextResponse.json(
-      { error: "Error al actualizar producto" },
+      { error: "Error updating product" },
       { status: 500 }
     )
   }
@@ -158,7 +175,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -167,7 +184,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -177,7 +194,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!product) {
-      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
     await prisma.product.delete({
@@ -188,7 +205,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting product:", error)
     return NextResponse.json(
-      { error: "Error al eliminar producto" },
+      { error: "Error deleting product" },
       { status: 500 }
     )
   }
@@ -232,7 +249,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!product) {
-      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -255,7 +272,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching product:", error)
     return NextResponse.json(
-      { error: "Error al obtener producto" },
+      { error: "Error fetching product" },
       { status: 500 }
     )
   }

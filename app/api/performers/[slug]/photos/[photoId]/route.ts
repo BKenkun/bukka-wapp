@@ -12,7 +12,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug, photoId } = await params
@@ -33,7 +33,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!performer) {
       return NextResponse.json(
-        { error: "Actriz no encontrada" },
+        { error: "Actress not found" },
         { status: 404 }
       )
     }
@@ -47,7 +47,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!photo) {
       return NextResponse.json(
-        { error: "Foto no encontrada" },
+        { error: "Photo not found" },
         { status: 404 }
       )
     }
@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting performer photo:", error)
     return NextResponse.json(
-      { error: "Error al eliminar foto" },
+      { error: "Error deleting photo" },
       { status: 500 }
     )
   }
@@ -72,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -81,7 +81,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug, photoId } = await params
@@ -95,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (!performer) {
       return NextResponse.json(
-        { error: "Actriz no encontrada" },
+        { error: "Actress not found" },
         { status: 404 }
       )
     }
@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (!photo) {
       return NextResponse.json(
-        { error: "Foto no encontrada" },
+        { error: "Photo not found" },
         { status: 404 }
       )
     }
@@ -123,7 +123,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating performer photo:", error)
     return NextResponse.json(
-      { error: "Error al actualizar foto" },
+      { error: "Error updating photo" },
       { status: 500 }
     )
   }

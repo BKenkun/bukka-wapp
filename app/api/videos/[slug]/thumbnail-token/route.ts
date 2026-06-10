@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!video?.muxPlaybackId) {
       return NextResponse.json(
-        { error: "Video no encontrado o sin playback ID" },
+        { error: "Video not found or missing playback ID" },
         { status: 404 }
       )
     }
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error getting thumbnail token:", error)
     return NextResponse.json(
-      { error: "Error al obtener token de thumbnail" },
+      { error: "Error fetching thumbnail token" },
       { status: 500 }
     )
   }

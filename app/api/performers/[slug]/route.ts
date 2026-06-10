@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -46,6 +46,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       comingSoon,
       comingSoonDate,
       galleryPhotos,
+      tagIds,
     } = body
 
     // Si cambia el slug, verificar que no exista
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       if (slugExists) {
         return NextResponse.json(
-          { error: "Ya existe una performer con ese slug" },
+          { error: "A performer with that slug already exists" },
           { status: 400 }
         )
       }
@@ -76,6 +77,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         comingSoonDate: comingSoonDate !== undefined ? (comingSoonDate ? new Date(comingSoonDate) : null) : existingPerformer.comingSoonDate,
       },
     })
+
+    // Actualizar relaciones de tags
+    if (tagIds !== undefined) {
+      await prisma.performerTag.deleteMany({
+        where: { performerId: existingPerformer.id },
+      })
+
+      if (tagIds.length > 0) {
+        await prisma.performerTag.createMany({
+          data: tagIds.map((tagId: string) => ({
+            performerId: existingPerformer.id,
+            tagId,
+          })),
+        })
+      }
+    }
 
     // Trigger notifications if comingSoon changed from true to false
     if (existingPerformer.comingSoon && comingSoon === false) {
@@ -168,7 +185,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating performer:", error)
     return NextResponse.json(
-      { error: "Error al actualizar performer" },
+      { error: "Error updating performer" },
       { status: 500 }
     )
   }
@@ -180,7 +197,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -189,7 +206,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -210,7 +227,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting performer:", error)
     return NextResponse.json(
-      { error: "Error al eliminar performer" },
+      { error: "Error deleting performer" },
       { status: 500 }
     )
   }
@@ -363,7 +380,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching performer:", error)
     return NextResponse.json(
-      { error: "Error al obtener performer" },
+      { error: "Error fetching performer" },
       { status: 500 }
     )
   }

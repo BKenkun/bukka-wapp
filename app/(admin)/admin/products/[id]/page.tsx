@@ -32,6 +32,13 @@ export default async function EditProductPage({ params }: Props) {
             },
           },
         },
+        ProductTag: {
+          include: {
+            tag: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
+        },
         _count: {
           select: {
             OrderItem: true,
@@ -71,6 +78,9 @@ export default async function EditProductPage({ params }: Props) {
     performers: productRaw.performers.map((pp) => pp.performer),
     categories: productRaw.ProductToCategory.map((ptc) => ({
       category: ptc.ShopCategory,
+    })),
+    tags: productRaw.ProductTag.map((pt) => ({
+      tag: pt.tag,
     })),
     _count: {
       orderItems: productRaw._count.OrderItem,

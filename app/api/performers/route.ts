@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       verified,
       comingSoon,
       comingSoonDate,
+      tagIds,
     } = body
 
     // Verificar slug único
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     if (existingPerformer) {
       return NextResponse.json(
-        { error: "Ya existe una performer con ese slug" },
+        { error: "A performer with that slug already exists" },
         { status: 400 }
       )
     }
@@ -56,6 +57,13 @@ export async function POST(request: NextRequest) {
         verified: verified ?? false,
         comingSoon: comingSoon ?? false,
         comingSoonDate: comingSoonDate ? new Date(comingSoonDate) : null,
+        PerformerTag: tagIds?.length
+          ? {
+              create: tagIds.map((tagId: string) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+          : undefined,
       },
     })
 
@@ -63,7 +71,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating performer:", error)
     return NextResponse.json(
-      { error: "Error al crear performer" },
+      { error: "Error creating performer" },
       { status: 500 }
     )
   }
@@ -137,7 +145,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching performers:", error)
     return NextResponse.json(
-      { error: "Error al obtener performers" },
+      { error: "Error fetching performers" },
       { status: 500 }
     )
   }
@@ -160,7 +168,7 @@ export async function OPTIONS() {
   } catch (error) {
     console.error("Error fetching filters:", error)
     return NextResponse.json(
-      { error: "Error al obtener filtros" },
+      { error: "Error fetching filters" },
       { status: 500 }
     )
   }

@@ -26,14 +26,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!video) {
       return NextResponse.json(
-        { error: "Video no encontrado" },
+        { error: "Video not found" },
         { status: 404 }
       )
     }
 
     if (!video.muxPlaybackId) {
       return NextResponse.json(
-        { error: "El video aún no está procesado en Mux" },
+        { error: "The video has not been processed in Mux yet" },
         { status: 400 }
       )
     }
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error generating preview URL:", error)
     return NextResponse.json(
-      { error: "Error al generar URL del preview" },
+      { error: "Error generating preview URL" },
       { status: 500 }
     )
   }

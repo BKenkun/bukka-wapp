@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!performer) {
       return NextResponse.json(
-        { error: "Actriz no encontrada" },
+        { error: "Actress not found" },
         { status: 404 }
       )
     }
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error fetching performer photos:", error)
     return NextResponse.json(
-      { error: "Error al obtener fotos" },
+      { error: "Error fetching photos" },
       { status: 500 }
     )
   }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!user?.isAdmin) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
     }
 
     const { slug } = await params
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!imageUrl) {
       return NextResponse.json(
-        { error: "URL de imagen requerida" },
+        { error: "Image URL required" },
         { status: 400 }
       )
     }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!performer) {
       return NextResponse.json(
-        { error: "Actriz no encontrada" },
+        { error: "Actress not found" },
         { status: 404 }
       )
     }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error creating performer photo:", error)
     return NextResponse.json(
-      { error: "Error al crear foto" },
+      { error: "Error creating photo" },
       { status: 500 }
     )
   }

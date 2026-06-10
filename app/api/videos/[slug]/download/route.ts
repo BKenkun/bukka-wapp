@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Debes iniciar sesión para descargar" },
+        { error: "You must log in to download" },
         { status: 401 }
       )
     }
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Usuario no encontrado" },
+        { error: "User not found" },
         { status: 404 }
       )
     }
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!user.SubscriptionPlan?.canDownload) {
       return NextResponse.json(
         {
-          error: "Tu plan no permite descargas",
+          error: "Your plan does not allow downloads",
           requiredFeature: "canDownload",
         },
         { status: 403 }
@@ -58,12 +58,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
 
     if (!video) {
-      return NextResponse.json({ error: "Video no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Video not found" }, { status: 404 })
     }
 
     if (!video.muxPlaybackId || !video.muxAssetId) {
       return NextResponse.json(
-        { error: "Video no disponible para descarga" },
+        { error: "Video not available for download" },
         { status: 404 }
       )
     }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!accessResult.hasAccess) {
       return NextResponse.json(
         {
-          error: "No tienes acceso a este video",
+          error: "You do not have access to this video",
           reason: accessResult.reason,
           requiredPlanName: accessResult.requiredPlanName,
         },
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         {
           error:
-            "El video aún no tiene renditions MP4 listas para descarga. Intenta de nuevo en unos minutos.",
+            "The video does not have MP4 renditions ready for download yet. Try again in a few minutes.",
         },
         { status: 503 }
       )
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!chosenFile || !chosenFile.name) {
       return NextResponse.json(
-        { error: "No se encontró una rendition MP4 compatible" },
+        { error: "No compatible MP4 rendition found" },
         { status: 503 }
       )
     }
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error generating download URL:", error)
     return NextResponse.json(
-      { error: "Error al generar enlace de descarga" },
+      { error: "Error generating download link" },
       { status: 500 }
     )
   }
