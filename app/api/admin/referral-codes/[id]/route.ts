@@ -7,6 +7,7 @@ import { z } from "zod"
 const updateSchema = z.object({
   partnerName: z.string().min(1).max(120).nullable().optional(),
   discountPercent: z.number().min(0).max(100).optional(),
+  commissionPercent: z.number().min(0).max(100).optional(),
   label: z.string().max(80).nullable().optional(),
   isActive: z.boolean().optional(),
   maxUses: z.number().int().positive().nullable().optional(),
@@ -44,6 +45,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       ownerType: code.performer ? "performer" : "partner",
       ownerName: code.performer?.name ?? code.partnerName ?? "—",
       discountPercent: Number(code.discountPercent),
+      commissionPercent: Number(code.commissionPercent),
       label: code.label,
       isActive: code.isActive,
       maxUses: code.maxUses,
@@ -82,6 +84,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
 
   const data: Record<string, unknown> = {}
   if (parsed.data.discountPercent !== undefined) data.discountPercent = parsed.data.discountPercent
+  if (parsed.data.commissionPercent !== undefined) data.commissionPercent = parsed.data.commissionPercent
   if (parsed.data.label !== undefined) data.label = parsed.data.label
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive
   if (parsed.data.maxUses !== undefined) data.maxUses = parsed.data.maxUses

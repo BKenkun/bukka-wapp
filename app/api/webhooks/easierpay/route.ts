@@ -325,7 +325,7 @@ async function handleSubscriptionWebhook(
             customerName: userName,
             planName: plan.name,
             amount: monthlyPrice,
-            reason: "No se pudo procesar el pago de tu suscripción",
+            reason: "We were unable to process your subscription payment",
           }),
           metadata: { userId, planId: plan.id },
         })
@@ -397,7 +397,7 @@ async function handleSubscriptionWebhook(
             customerName: userName,
             planName: plan.name,
             amount: monthlyPrice,
-            reason: "No pudimos cobrar la renovación mensual",
+            reason: "We were unable to charge your monthly renewal",
           }),
           metadata: { userId, planId: plan.id },
         })
@@ -500,6 +500,17 @@ async function attributeReferral(input: AttributeReferralInput) {
         if (existing) return
       }
 
+      // Comisión devengada para el creador/partner según el % del código
+      const code = await tx.referralCode.findUnique({
+        where: { id: input.referralCodeId },
+        select: { commissionPercent: true },
+      })
+      const commissionPercent = Number(code?.commissionPercent ?? 0)
+      const commissionAmount =
+        commissionPercent > 0
+          ? Math.round(input.amount * commissionPercent) / 100
+          : 0
+
       await tx.referralConversion.create({
         data: {
           referralCodeId: input.referralCodeId,
@@ -509,6 +520,7 @@ async function attributeReferral(input: AttributeReferralInput) {
           subscriptionHistoryId: input.subscriptionHistoryId,
           amount: input.amount,
           discountAmount: input.discountAmount,
+          commissionAmount,
         },
       })
 

@@ -43,6 +43,7 @@ interface ReferralCode {
   ownerType: "performer" | "partner"
   ownerName: string
   discountPercent: number
+  commissionPercent: number
   label: string | null
   isActive: boolean
   maxUses: number | null
@@ -59,6 +60,7 @@ interface Conversion {
   type: "SHOP_PURCHASE" | "SUBSCRIPTION"
   amount: number
   discountAmount: number
+  commissionAmount: number
   createdAt: string
   user: { id: string; name: string | null; email: string } | null
   order: {
@@ -89,7 +91,16 @@ interface ConversionsResponse {
     shopCount: number
     subscriptionCount: number
     totalRevenue: number
+    commissionCurrentMonth: number
+    commissionPreviousMonth: number
+    commissionTotal: number
   }
+  monthlyHistory: {
+    month: string
+    revenue: number
+    commission: number
+    conversions: number
+  }[]
   conversions: Conversion[]
 }
 
@@ -104,6 +115,7 @@ export default function ReferralDetailPage() {
   const [saving, setSaving] = React.useState(false)
   const [form, setForm] = React.useState({
     discountPercent: "0",
+    commissionPercent: "0",
     partnerName: "",
     label: "",
     isActive: true,
@@ -128,6 +140,7 @@ export default function ReferralDetailPage() {
         setCode(c.code)
         setForm({
           discountPercent: String(c.code.discountPercent ?? 0),
+          commissionPercent: String(c.code.commissionPercent ?? 0),
           partnerName: c.code.partnerName ?? "",
           label: c.code.label ?? "",
           isActive: c.code.isActive,
@@ -152,6 +165,7 @@ export default function ReferralDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           discountPercent: Number(form.discountPercent) || 0,
+          commissionPercent: Number(form.commissionPercent) || 0,
           partnerName:
             code?.ownerType === "partner"
               ? form.partnerName.trim() || null
@@ -269,6 +283,26 @@ export default function ReferralDetailPage() {
         />
       </div>
 
+      {/* Comisiones a pagar al creador/partner */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <MetricCard
+          label="% Comisión"
+          value={`${Number(form.commissionPercent) || code.commissionPercent || 0} %`}
+        />
+        <MetricCard
+          label="Comisión mes actual"
+          value={`${(data?.summary.commissionCurrentMonth ?? 0).toFixed(2)} €`}
+        />
+        <MetricCard
+          label="Comisión mes anterior"
+          value={`${(data?.summary.commissionPreviousMonth ?? 0).toFixed(2)} €`}
+        />
+        <MetricCard
+          label="Comisión acumulada"
+          value={`${(data?.summary.commissionTotal ?? 0).toFixed(2)} €`}
+        />
+      </div>
+
       {/* Edit form */}
       <Card>
         <CardHeader>
@@ -301,6 +335,22 @@ export default function ReferralDetailPage() {
                   setForm({ ...form, discountPercent: e.target.value })
                 }
               />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Comisión creador (%)</label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={form.commissionPercent}
+                onChange={(e) =>
+                  setForm({ ...form, commissionPercent: e.target.value })
+                }
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                % sobre los ingresos generados que se paga al creador/partner
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium">Etiqueta visible</label>
@@ -353,6 +403,53 @@ export default function ReferralDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Histórico mensual de ingresos y comisiones */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico mensual</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mes</TableHead>
+                <TableHead className="text-right">Conversiones</TableHead>
+                <TableHead className="text-right">Ingresos</TableHead>
+                <TableHead className="text-right">Comisión</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {!data?.monthlyHistory?.length ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    Sin datos todavía
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.monthlyHistory.map((m) => (
+                  <TableRow key={m.month}>
+                    <TableCell className="font-medium">
+                      {new Date(`${m.month}-01T00:00:00`).toLocaleDateString("es-ES", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right">{m.conversions}</TableCell>
+                    <TableCell className="text-right">{m.revenue.toFixed(2)} €</TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {m.commission.toFixed(2)} €
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       {/* Conversiones */}
       <Card>
         <CardHeader>
@@ -368,13 +465,14 @@ export default function ReferralDetailPage() {
                 <TableHead>Detalle</TableHead>
                 <TableHead className="text-right">Importe</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
+                <TableHead className="text-right">Comisión</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!data?.conversions.length ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     Sin conversiones todavía
@@ -420,6 +518,11 @@ export default function ReferralDetailPage() {
                     <TableCell className="text-right text-muted-foreground">
                       {c.discountAmount > 0
                         ? `-${c.discountAmount.toFixed(2)} €`
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {c.commissionAmount > 0
+                        ? `${c.commissionAmount.toFixed(2)} €`
                         : "—"}
                     </TableCell>
                   </TableRow>
