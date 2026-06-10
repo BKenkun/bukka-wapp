@@ -15,23 +15,25 @@ export function Hero({
   openInNewTab = false,
 }: HeroProps) {
   const content = (
-    <div className="relative w-full h-screen -mt-[78px] overflow-hidden" style={{ backgroundColor: "var(--global-bg)" }}>
-      {videoUrl ? (
+    <div className="relative w-full h-screen overflow-hidden" style={{ backgroundColor: "var(--global-bg)" }}>
+      {/* Imagen siempre de base: hace de póster mientras el video carga */}
+      <Image
+        src={backgroundImage}
+        alt="Background"
+        fill
+        className="object-cover object-center"
+        priority
+      />
+      {videoUrl && (
         <video
           src={videoUrl}
+          poster={backgroundImage}
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
-        />
-      ) : (
-        <Image
-          src={backgroundImage}
-          alt="Background"
-          fill
-          className="object-cover object-center"
-          priority
         />
       )}
     </div>
