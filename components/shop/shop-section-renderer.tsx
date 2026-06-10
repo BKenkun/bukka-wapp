@@ -319,7 +319,7 @@ async function ProductsGridSection({ config, title }: { config: Record<string, u
               className="inline-flex items-center px-8 py-3 font-bold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
             >
-              Ver Todos los Productos
+              View All Products
             </Link>
           </div>
         )}

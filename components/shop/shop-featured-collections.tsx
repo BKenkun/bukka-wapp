@@ -66,7 +66,7 @@ export function ShopFeaturedCollections({ enabled, title, subtitle, categories }
                   className="inline-flex items-center text-sm font-bold px-4 py-2 text-white transition-all group-hover:scale-105"
                   style={{ backgroundColor: "var(--brand-color, #E03E54)" }}
                 >
-                  Ver Coleccion
+                  View Collection
                 </span>
               </div>
             </Link>

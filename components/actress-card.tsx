@@ -262,7 +262,7 @@ export function ActressCard({ id, name, image, slug, verified = false, viewMode 
           />
           {/* Hover overlay */}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <span className="text-white font-montserrat font-bold text-lg tracking-wider">VER</span>
+            <span className="text-white font-montserrat font-bold text-lg tracking-wider">VIEW</span>
           </div>
         </div>
         <div className="flex flex-col justify-center py-4 pr-4 flex-1">
