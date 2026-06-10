@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { BlogCategoryFilter } from "./blog-category-filter"
+import { BlogNewsletterForm } from "./blog-newsletter-form"
 
 interface BlogPageProps {
   searchParams: Promise<{ categoria?: string; page?: string }>
@@ -63,7 +64,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   // Format date helper
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("es-ES", {
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -75,14 +76,16 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     const wordsPerMinute = 200
     const words = content.split(/\s+/).length
     const minutes = Math.ceil(words / wordsPerMinute)
-    return `${minutes} min lectura`
+    return `${minutes} min read`
   }
 
   return (
-    <main className="bg-black flex-1">
+    <main className="flex-1" style={{ backgroundColor: "var(--global-bg)" }}>
       {/* Hero Banner */}
       <div className="pt-8 px-4 md:px-8">
-        <h1 className="text-white font-['Montserrat'] text-4xl font-bold mb-8">Blog</h1>
+        <h1 className="font-['Montserrat'] text-4xl font-bold mb-8" style={{ color: "var(--text-primary)" }}>
+          Blog
+        </h1>
       </div>
 
       {/* Content */}
@@ -92,7 +95,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <div>
             {/* Hero Featured Post */}
             {featuredPost && (
-              <Link href={`/blog/${featuredPost.slug}`}>
+              <Link href={`/news/${featuredPost.slug}`}>
                 <div className="relative w-full h-[400px] overflow-hidden mb-8 group cursor-pointer">
                   <Image
                     src={featuredPost.featuredImage || "/placeholder-blog.jpg"}
@@ -103,8 +106,11 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-8">
                     <div className="mb-4">
-                      <span className="inline-block bg-[#FEE2E2] text-[#DC2626] text-sm font-medium px-3 py-1 font-['Montserrat']">
-                        Destacado
+                      <span
+                        className="inline-block text-sm font-medium px-3 py-1 font-['Montserrat']"
+                        style={{ backgroundColor: "var(--brand-color)", color: "#ffffff" }}
+                      >
+                        Featured
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-white text-sm mb-3 font-['Montserrat']">
@@ -138,12 +144,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <div className="space-y-6 mb-12">
               {posts.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-white/60 font-['Montserrat']">No hay artículos en esta categoría.</p>
+                  <p className="font-['Montserrat']" style={{ color: "var(--text-muted)" }}>
+                    No articles in this category.
+                  </p>
                 </div>
               ) : (
                 posts.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`}>
-                    <article className="bg-[rgba(0,0,0,0)] overflow-hidden flex flex-col md:flex-row hover:shadow-lg transition-all group cursor-pointer">
+                  <Link key={post.id} href={`/news/${post.slug}`}>
+                    <article className="overflow-hidden flex flex-col md:flex-row hover:shadow-lg transition-all group cursor-pointer">
                       {/* Thumbnail */}
                       <div className="md:w-[250px] h-[200px] relative flex-shrink-0 overflow-hidden">
                         <Image
@@ -160,23 +168,32 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                           {/* Category and Date */}
                           <div className="flex items-center gap-4 mb-3">
                             {post.BlogCategory && (
-                              <span className="bg-[#DCFCE7] text-[#16A34A] px-3 py-1 text-sm font-medium font-['Montserrat']">
+                              <span
+                                className="px-3 py-1 text-sm font-medium font-['Montserrat']"
+                                style={{
+                                  backgroundColor: "color-mix(in srgb, var(--brand-color) 18%, transparent)",
+                                  color: "var(--brand-color)",
+                                }}
+                              >
                                 {post.BlogCategory.name}
                               </span>
                             )}
-                            <span className="text-[#9CA3AF] text-sm font-['Montserrat']">
+                            <span className="text-sm font-['Montserrat']" style={{ color: "var(--text-muted)" }}>
                               {post.publishedAt && formatDate(post.publishedAt)}
                             </span>
                           </div>
 
                           {/* Title */}
-                          <h2 className="text-white font-['Montserrat'] text-xl font-semibold leading-7 mb-3 line-clamp-2 group-hover:text-[#06B6D4] transition-colors">
+                          <h2
+                            className="font-['Montserrat'] text-xl font-semibold leading-7 mb-3 line-clamp-2 transition-colors group-hover:!text-[var(--brand-color)]"
+                            style={{ color: "var(--text-primary)" }}
+                          >
                             {post.title}
                           </h2>
 
                           {/* Description */}
                           {post.excerpt && (
-                            <p className="text-[#9CA3AF] text-sm font-['Montserrat'] mb-4 line-clamp-2">
+                            <p className="text-sm font-['Montserrat'] mb-4 line-clamp-2" style={{ color: "var(--text-muted)" }}>
                               {post.excerpt}
                             </p>
                           )}
@@ -194,8 +211,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               <div className="flex items-center justify-center gap-2 mt-12">
                 {currentPage > 1 && (
                   <Link
-                    href={`/blog?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${currentPage - 1}`}
-                    className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+                    href={`/news?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${currentPage - 1}`}
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                    style={{ color: "var(--text-primary)" }}
                   >
                     ←
                   </Link>
@@ -216,12 +234,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   return (
                     <Link
                       key={pageNum}
-                      href={`/blog?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${pageNum}`}
-                      className={`w-10 h-10 flex items-center justify-center font-['Montserrat'] font-medium transition-colors ${
+                      href={`/news?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${pageNum}`}
+                      className="w-10 h-10 flex items-center justify-center font-['Montserrat'] font-medium transition-colors hover:bg-white/10"
+                      style={
                         currentPage === pageNum
-                          ? "bg-[#06B6D4] text-white"
-                          : "text-white hover:bg-white/10"
-                      }`}
+                          ? { backgroundColor: "var(--brand-color)", color: "#ffffff" }
+                          : { color: "var(--text-primary)" }
+                      }
                     >
                       {pageNum}
                     </Link>
@@ -229,13 +248,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 })}
 
                 {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <span className="text-white font-['Montserrat']">...</span>
+                  <span className="font-['Montserrat']" style={{ color: "var(--text-primary)" }}>...</span>
                 )}
 
                 {currentPage < totalPages && (
                   <Link
-                    href={`/blog?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${currentPage + 1}`}
-                    className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+                    href={`/news?${categorySlug ? `categoria=${categorySlug}&` : ""}page=${currentPage + 1}`}
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                    style={{ color: "var(--text-primary)" }}
                   >
                     →
                   </Link>
@@ -247,57 +267,73 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           {/* RIGHT COLUMN - Sidebar */}
           <aside className="space-y-[30px]">
             {/* Stay Updated Section */}
-            <div className="bg-[rgba(107,114,128,0.15)] p-6">
-              <h3 className="text-white font-['Montserrat'] text-xl font-bold leading-7 mb-2">Mantente Actualizado</h3>
-              <p className="text-[#DBEAFE] font-['Montserrat'] text-sm font-normal leading-5 mb-4">
-                Recibe las últimas novedades en tu correo semanalmente
+            <div className="p-6" style={{ backgroundColor: "color-mix(in srgb, var(--text-primary) 8%, transparent)" }}>
+              <h3 className="font-['Montserrat'] text-xl font-bold leading-7 mb-2" style={{ color: "var(--text-primary)" }}>
+                Stay Updated
+              </h3>
+              <p className="font-['Montserrat'] text-sm font-normal leading-5 mb-4" style={{ color: "var(--text-muted)" }}>
+                Get the latest news in your inbox every week
               </p>
-              <input
-                type="email"
-                placeholder="Tu email"
-                className="w-full bg-white border-0 text-[#ADAEBC] font-['Montserrat'] text-base px-4 py-2 mb-3 placeholder:text-[#ADAEBC]"
-              />
-              <button className="w-full btn-primary">
-                Suscribirse
-              </button>
+              <BlogNewsletterForm />
             </div>
 
             {/* Popular This Week */}
-            <div className="bg-black border border-[#E5E7EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[25px]">
-              <h3 className="text-white text-lg font-bold mb-4">Popular Esta Semana</h3>
+            <div
+              className="shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[25px]"
+              style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)" }}
+            >
+              <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+                Popular This Week
+              </h3>
               <div className="space-y-4">
                 {popularPosts.map((post, index) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} className="flex gap-3 group">
-                    <span className="text-white text-2xl font-bold leading-8">{index + 1}</span>
+                  <Link key={post.id} href={`/news/${post.slug}`} className="flex gap-3 group">
+                    <span className="text-2xl font-bold leading-8" style={{ color: "var(--text-primary)" }}>
+                      {index + 1}
+                    </span>
                     <div className="flex-1">
-                      <p className="text-white text-sm font-medium leading-5 mb-1 group-hover:text-[#06B6D4] transition-colors line-clamp-2">
+                      <p
+                        className="text-sm font-medium leading-5 mb-1 transition-colors line-clamp-2 group-hover:!text-[var(--brand-color)]"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         {post.title}
                       </p>
-                      <p className="text-[#6B7280] text-xs leading-4">{post.viewCount.toLocaleString()} vistas</p>
+                      <p className="text-xs leading-4" style={{ color: "var(--text-muted)" }}>
+                        {post.viewCount.toLocaleString()} views
+                      </p>
                     </div>
                   </Link>
                 ))}
                 {popularPosts.length === 0 && (
-                  <p className="text-[#6B7280] text-sm">No hay artículos populares aún.</p>
+                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>No popular articles yet.</p>
                 )}
               </div>
             </div>
 
             {/* Categories */}
-            <div className="bg-black border border-[#E5E7EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[25px]">
-              <h3 className="text-white text-lg font-bold mb-4">Categorías</h3>
+            <div
+              className="shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] p-[25px]"
+              style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)" }}
+            >
+              <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+                Categories
+              </h3>
               <div className="space-y-3">
                 {categories.map((cat) => (
                   <Link
                     key={cat.id}
-                    href={`/blog?categoria=${cat.slug}`}
-                    className="flex justify-between items-center hover:text-[#06B6D4] transition-colors"
+                    href={`/news?categoria=${cat.slug}`}
+                    className="flex justify-between items-center transition-colors hover:opacity-80"
                   >
-                    <span className="text-white text-base leading-6">{cat.name}</span>
-                    <span className="text-white font-['Inter'] text-sm leading-5">{cat._count.BlogPost}</span>
+                    <span className="text-base leading-6" style={{ color: "var(--text-primary)" }}>{cat.name}</span>
+                    <span className="font-['Inter'] text-sm leading-5" style={{ color: "var(--text-muted)" }}>
+                      {cat._count.BlogPost}
+                    </span>
                   </Link>
                 ))}
-                {categories.length === 0 && <p className="text-[#6B7280] text-sm">No hay categorías.</p>}
+                {categories.length === 0 && (
+                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>No categories.</p>
+                )}
               </div>
             </div>
           </aside>

@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: BlogDetailPageProps) {
     select: { title: true, excerpt: true, featuredImage: true },
   })
 
-  if (!post) return { title: "Artículo no encontrado" }
+  if (!post) return { title: "Article not found" }
 
   return {
     title: post.title,
@@ -69,7 +69,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   // Format date helper
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("es-ES", {
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -81,11 +81,11 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     const wordsPerMinute = 200
     const words = content.split(/\s+/).length
     const minutes = Math.ceil(words / wordsPerMinute)
-    return `${minutes} min lectura`
+    return `${minutes} min read`
   }
 
   return (
-    <main className="bg-black flex-1">
+    <main className="flex-1" style={{ backgroundColor: "var(--global-bg)" }}>
       {/* Back Button */}
       <div className="pt-[100px] px-4 md:px-8">
         <Link
@@ -93,7 +93,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors font-['Montserrat'] text-sm mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Volver al Blog
+          Back to Blog
         </Link>
       </div>
 
@@ -105,15 +105,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             {/* Category */}
             {post.BlogCategory && (
               <Link
-                href={`/blog?categoria=${post.BlogCategory.slug}`}
-                className="inline-block bg-[#DCFCE7] text-[#16A34A] px-3 py-1 text-sm font-medium font-['Montserrat'] mb-4 hover:bg-[#BBF7D0] transition-colors"
+                href={`/news?categoria=${post.BlogCategory.slug}`}
+                className="inline-block px-3 py-1 text-sm font-medium font-['Montserrat'] mb-4 hover:opacity-80 transition-opacity"
+                style={{ backgroundColor: "color-mix(in srgb, var(--brand-color) 18%, transparent)", color: "var(--brand-color)" }}
               >
                 {post.BlogCategory.name}
               </Link>
             )}
 
             {/* Title */}
-            <h1 className="text-white font-['Montserrat'] text-3xl md:text-4xl font-bold leading-tight mb-6">
+            <h1 className="font-['Montserrat'] text-3xl md:text-4xl font-bold leading-tight mb-6" style={{ color: "var(--text-primary)" }}>
               {post.title}
             </h1>
 
@@ -145,7 +146,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
               </span>
               <span className="text-white/40">•</span>
               <span className="text-white/60 text-sm font-['Montserrat']">
-                {post.viewCount.toLocaleString()} vistas
+                {post.viewCount.toLocaleString()} views
               </span>
             </div>
 
@@ -163,7 +164,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
               </div>
               <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
                 <Share2 className="w-5 h-5" />
-                <span className="font-['Montserrat'] text-sm">Compartir</span>
+                <span className="font-['Montserrat'] text-sm">Share</span>
               </button>
             </div>
           </header>
@@ -186,10 +187,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             className="prose prose-invert prose-lg max-w-none font-['Montserrat']
               prose-headings:font-['Montserrat'] prose-headings:font-bold
               prose-p:text-white/80 prose-p:leading-relaxed
-              prose-a:text-[#06B6D4] prose-a:no-underline hover:prose-a:underline
+              prose-a:text-[var(--brand-color)] prose-a:no-underline hover:prose-a:underline
               prose-strong:text-white
-              prose-blockquote:border-l-[#06B6D4] prose-blockquote:text-white/60
-              prose-code:text-[#06B6D4] prose-code:bg-white/5 prose-code:px-1
+              prose-blockquote:border-l-[var(--brand-color)] prose-blockquote:text-white/60
+              prose-code:text-[var(--brand-color)] prose-code:bg-white/5 prose-code:px-1
               prose-pre:bg-white/5
             "
             dangerouslySetInnerHTML={{ __html: post.content }}
@@ -198,7 +199,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           {/* Tags */}
           {post.type && (
             <div className="mt-8 pt-8 border-t border-white/10">
-              <span className="inline-block bg-[#06B6D4] text-white px-3 py-1 text-sm font-['Montserrat']">
+              <span className="inline-block text-white px-3 py-1 text-sm font-['Montserrat']" style={{ backgroundColor: "var(--brand-color)" }}>
                 {post.type}
               </span>
             </div>
@@ -210,14 +211,14 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       {relatedPosts.length > 0 && (
         <section className="px-4 md:px-8 pb-12">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-white font-['Montserrat'] text-2xl font-bold mb-8">
-              Artículos Relacionados
+            <h2 className="font-['Montserrat'] text-2xl font-bold mb-8" style={{ color: "var(--text-primary)" }}>
+              Related Articles
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedPosts.map((relatedPost) => (
                 <Link
                   key={relatedPost.id}
-                  href={`/blog/${relatedPost.slug}`}
+                  href={`/news/${relatedPost.slug}`}
                   className="group"
                 >
                   <article className="bg-[rgba(107,114,128,0.15)] overflow-hidden">
@@ -231,11 +232,11 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                     </div>
                     <div className="p-4">
                       {relatedPost.BlogCategory && (
-                        <span className="text-[#06B6D4] text-xs font-medium font-['Montserrat'] mb-2 block">
+                        <span className="text-xs font-medium font-['Montserrat'] mb-2 block" style={{ color: "var(--brand-color)" }}>
                           {relatedPost.BlogCategory.name}
                         </span>
                       )}
-                      <h3 className="text-white font-['Montserrat'] font-semibold line-clamp-2 group-hover:text-[#06B6D4] transition-colors">
+                      <h3 className="text-white font-['Montserrat'] font-semibold line-clamp-2 group-hover:text-[var(--brand-color)] transition-colors">
                         {relatedPost.title}
                       </h3>
                       <div className="flex items-center gap-2 mt-3 text-white/60 text-sm font-['Montserrat']">

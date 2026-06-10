@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { BlogCategoriesManager } from "./blog-categories-manager"
 import {
   IconPlus,
   IconEdit,
@@ -175,12 +176,15 @@ export default function AdminBlogPage() {
             {posts.length} artículos en total
           </p>
         </div>
-        <Button asChild>
-          <Link href="/admin/blog/new">
-            <IconPlus className="mr-2 size-4" />
-            Nuevo Artículo
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <BlogCategoriesManager />
+          <Button asChild>
+            <Link href="/admin/blog/new">
+              <IconPlus className="mr-2 size-4" />
+              Nuevo Artículo
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
