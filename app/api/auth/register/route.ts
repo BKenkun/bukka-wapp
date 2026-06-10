@@ -4,14 +4,16 @@ import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { sendTemplateEmail, VerifyEmailTemplate } from "@/lib/email"
 import { createAdminNotification } from "@/lib/admin-notifications"
+import { verifyRecaptcha } from "@/lib/recaptcha"
 import { z } from "zod"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
 const registerSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  recaptchaToken: z.string().optional().nullable(),
 })
 
 export async function POST(request: Request) {
@@ -27,7 +29,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const { name, email, password } = result.data
+    const { name, email, password, recaptchaToken } = result.data
+
+    // Anti-spam: verificar reCAPTCHA antes de crear nada
+    const captcha = await verifyRecaptcha(recaptchaToken, "REGISTER")
+    if (!captcha.success) {
+      console.warn(`[Register] reCAPTCHA rejected (${captcha.reason}, score: ${captcha.score ?? "n/a"}) for ${email}`)
+      return NextResponse.json(
+        { error: "Verification failed. Please try again." },
+        { status: 400 }
+      )
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -35,7 +47,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Ya existe una cuenta con este email" },
+        { error: "An account with this email already exists" },
         { status: 400 }
       )
     }
@@ -84,7 +96,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Usuario creado correctamente. Por favor verifica tu email.",
+        message: "Account created successfully. Please verify your email.",
         user: {
           id: user.id,
           name: user.name,
@@ -96,7 +108,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error en registro:", error)
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

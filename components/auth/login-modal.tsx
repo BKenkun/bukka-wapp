@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, ArrowLeft, CheckCircle } from "lucide-react"
+import { Loader2, Mail, ArrowLeft } from "lucide-react"
+import { getRecaptchaToken } from "@/lib/recaptcha-client"
 
 interface LoginModalProps {
   open: boolean
@@ -77,7 +78,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
       })
 
       if (result?.error) {
-        setError("Email o contraseña incorrectos")
+        setError("Incorrect email or password")
         setIsLoading(false)
         return
       }
@@ -89,7 +90,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
         router.refresh()
       }
     } catch {
-      setError("Error al iniciar sesión")
+      setError("Error logging in")
       setIsLoading(false)
     }
   }
@@ -100,18 +101,20 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
     setError("")
 
     if (registerData.password !== registerData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     if (registerData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+      setError("Password must be at least 6 characters")
       setIsLoading(false)
       return
     }
 
     try {
+      const recaptchaToken = await getRecaptchaToken("REGISTER")
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -121,18 +124,19 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
           name: registerData.name,
           email: registerData.email,
           password: registerData.password,
+          recaptchaToken,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Error al crear la cuenta")
+        setError(data.error || "Error creating account")
         setIsLoading(false)
         return
       }
 
-      setSuccess("¡Cuenta creada! Revisa tu email para verificarla.")
+      setSuccess("Account created! Check your email to verify it.")
       setRegisterData({ name: "", email: "", password: "", confirmPassword: "" })
       setIsLoading(false)
 
@@ -141,7 +145,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
         setSuccess("")
       }, 3000)
     } catch {
-      setError("Error al crear la cuenta")
+      setError("Error creating account")
       setIsLoading(false)
     }
   }
@@ -163,7 +167,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Error al procesar la solicitud")
+        setError(data.error || "Error processing the request")
         setIsLoading(false)
         return
       }
@@ -171,7 +175,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
       setView("forgot-password-success")
       setIsLoading(false)
     } catch {
-      setError("Error al procesar la solicitud")
+      setError("Error processing the request")
       setIsLoading(false)
     }
   }
@@ -179,13 +183,13 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
   const getTitle = () => {
     switch (view) {
       case "login":
-        return "Iniciar Sesión"
+        return "Log In"
       case "register":
-        return "Crear Cuenta"
+        return "Create Account"
       case "forgot-password":
-        return "Recuperar Contraseña"
+        return "Reset Password"
       case "forgot-password-success":
-        return "Email Enviado"
+        return "Email Sent"
     }
   }
 
@@ -212,7 +216,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
                 borderBottom: view === "login" ? "2px solid var(--accent-color)" : "2px solid transparent",
               }}
             >
-              Iniciar Sesión
+              Log In
             </button>
             <button
               type="button"
@@ -223,7 +227,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
                 borderBottom: view === "register" ? "2px solid var(--accent-color)" : "2px solid transparent",
               }}
             >
-              Registrarse
+              Sign Up
             </button>
           </div>
         )}
@@ -243,7 +247,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               <Input
                 id="login-email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder="you@email.com"
                 value={loginData.email}
                 onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                 required
@@ -255,7 +259,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
 
             <div className="space-y-2">
               <Label htmlFor="login-password" className="text-sm" style={{ color: "var(--text-primary)" }}>
-                Contraseña
+                Password
               </Label>
               <Input
                 id="login-password"
@@ -278,10 +282,10 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Iniciando...
+                  Logging in...
                 </span>
               ) : (
-                "Entrar"
+                "Log In"
               )}
             </button>
 
@@ -292,7 +296,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
                 className="text-sm transition-colors cursor-pointer"
                 style={{ color: "var(--text-muted)" }}
               >
-                ¿Olvidaste tu contraseña?
+                Forgot your password?
               </button>
             </div>
           </form>
@@ -314,12 +318,12 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
 
             <div className="space-y-2">
               <Label htmlFor="register-name" className="text-sm" style={{ color: "var(--text-primary)" }}>
-                Nombre
+                Name
               </Label>
               <Input
                 id="register-name"
                 type="text"
-                placeholder="Tu nombre"
+                placeholder="Your name"
                 value={registerData.name}
                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                 required
@@ -336,7 +340,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               <Input
                 id="register-email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder="you@email.com"
                 value={registerData.email}
                 onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                 required
@@ -348,12 +352,12 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
 
             <div className="space-y-2">
               <Label htmlFor="register-password" className="text-sm" style={{ color: "var(--text-primary)" }}>
-                Contraseña
+                Password
               </Label>
               <Input
                 id="register-password"
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="At least 6 characters"
                 value={registerData.password}
                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 required
@@ -365,12 +369,12 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
 
             <div className="space-y-2">
               <Label htmlFor="register-confirm" className="text-sm" style={{ color: "var(--text-primary)" }}>
-                Confirmar Contraseña
+                Confirm Password
               </Label>
               <Input
                 id="register-confirm"
                 type="password"
-                placeholder="Repite tu contraseña"
+                placeholder="Repeat your password"
                 value={registerData.confirmPassword}
                 onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                 required
@@ -388,10 +392,10 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Creando cuenta...
+                  Creating account...
                 </span>
               ) : (
-                "Crear Cuenta"
+                "Create Account"
               )}
             </button>
           </form>
@@ -406,11 +410,11 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               style={{ color: "var(--text-muted)" }}
             >
               <ArrowLeft className="w-4 h-4" />
-              Volver
+              Back
             </button>
 
             <p className="text-sm text-center" style={{ color: "var(--text-muted)" }}>
-              Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
+              Enter your email and we will send you a link to reset your password.
             </p>
 
             <form onSubmit={handleForgotPasswordSubmit} className="space-y-5">
@@ -427,7 +431,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
                 <Input
                   id="forgot-email"
                   type="email"
-                  placeholder="tu@email.com"
+                  placeholder="you@email.com"
                   value={forgotPasswordEmail}
                   onChange={(e) => setForgotPasswordEmail(e.target.value)}
                   required
@@ -445,10 +449,10 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Enviando...
+                    Sending...
                   </span>
                 ) : (
-                  "Enviar enlace"
+                  "Send link"
                 )}
               </button>
             </form>
@@ -463,17 +467,17 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               </div>
               <div className="space-y-2">
                 <p className="text-sm" style={{ color: "var(--text-primary)" }}>
-                  Hemos enviado un enlace a
+                  We have sent a link to
                 </p>
                 <p className="font-medium" style={{ color: "var(--accent-color)" }}>
                   {forgotPasswordEmail}
                 </p>
               </div>
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Si existe una cuenta con ese email, recibirás instrucciones para restablecer tu contraseña.
+                If an account exists with that email, you will receive instructions to reset your password.
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                El enlace expirará en 1 hora.
+                The link will expire in 1 hour.
               </p>
             </div>
 
@@ -482,7 +486,7 @@ export function LoginModal({ open, onOpenChange, defaultView = "login", callback
               onClick={() => setView("login")}
               className="w-full btn-primary"
             >
-              Volver a Iniciar Sesión
+              Back to Log In
             </button>
           </div>
         )}

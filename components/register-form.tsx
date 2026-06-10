@@ -12,6 +12,7 @@ import {
   FieldError,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { getRecaptchaToken } from "@/lib/recaptcha-client"
 
 export function RegisterForm({
   className,
@@ -33,37 +34,39 @@ export function RegisterForm({
     const confirmPassword = formData.get("confirmPassword") as string
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+      setError("Password must be at least 6 characters")
       setIsLoading(false)
       return
     }
 
     try {
+      const recaptchaToken = await getRecaptchaToken("REGISTER")
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, recaptchaToken }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Error al crear la cuenta")
+        setError(data.error || "Error creating account")
         setIsLoading(false)
         return
       }
 
       router.push("/?registered=true")
     } catch {
-      setError("Error al crear la cuenta")
+      setError("Error creating account")
       setIsLoading(false)
     }
   }
@@ -76,9 +79,9 @@ export function RegisterForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Crea tu cuenta</h1>
+          <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Introduce tus datos para registrarte
+            Enter your details to sign up
           </p>
         </div>
 
@@ -87,12 +90,12 @@ export function RegisterForm({
         )}
 
         <Field>
-          <FieldLabel htmlFor="name">Nombre</FieldLabel>
+          <FieldLabel htmlFor="name">Name</FieldLabel>
           <Input
             id="name"
             name="name"
             type="text"
-            placeholder="Tu nombre"
+            placeholder="Your name"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -105,7 +108,7 @@ export function RegisterForm({
             id="email"
             name="email"
             type="email"
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -113,12 +116,12 @@ export function RegisterForm({
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Minimum 6 characters"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -126,12 +129,12 @@ export function RegisterForm({
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="confirmPassword">Confirmar contraseña</FieldLabel>
+          <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
           <Input
             id="confirmPassword"
             name="confirmPassword"
             type="password"
-            placeholder="Repite tu contraseña"
+            placeholder="Repeat your password"
             required
             disabled={isLoading}
             className="text-white placeholder:text-white/70"
@@ -140,12 +143,12 @@ export function RegisterForm({
 
         <Field>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creando cuenta..." : "Crear cuenta"}
+            {isLoading ? "Creating account..." : "Create Account"}
           </Button>
           <FieldDescription className="text-center">
-            ¿Ya tienes cuenta?{" "}
+            Already have an account?{" "}
             <a href="/?login=true" className="underline underline-offset-4 text-white hover:text-white">
-              Inicia sesión
+              Log In
             </a>
           </FieldDescription>
         </Field>

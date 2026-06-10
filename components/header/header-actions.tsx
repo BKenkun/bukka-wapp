@@ -35,20 +35,21 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
     const login = searchParams.get("login")
     const register = searchParams.get("register")
     const forgotPassword = searchParams.get("forgot-password")
-    const verified = searchParams.get("verified")
+    // "email-verified" (no "verified": ese parámetro lo usan los filtros de /performers)
+    const emailVerified = searchParams.get("email-verified")
     const error = searchParams.get("error")
 
     if (registered === "true") {
-      toast.success("¡Cuenta creada correctamente!", {
-        description: "Por favor revisa tu email para verificar tu cuenta.",
+      toast.success("Account created successfully!", {
+        description: "Please check your email to verify your account.",
         duration: 5000,
       })
       router.replace("/", { scroll: false })
     }
 
-    if (verified === "true") {
-      toast.success("¡Email verificado correctamente!", {
-        description: "Ya puedes iniciar sesión.",
+    if (emailVerified === "true") {
+      toast.success("Email verified successfully!", {
+        description: "You can now log in.",
         duration: 5000,
       })
     }
@@ -108,23 +109,23 @@ export function HeaderActions({ guestMenu }: HeaderActionsProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56" style={{ backgroundColor: "var(--global-bg)", borderColor: "var(--footer-border-color)" }}>
               <div className="px-2 py-1.5">
-                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{session.user.name || "Usuario"}</p>
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{session.user.name || "User"}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{session.user.email}</p>
               </div>
               <DropdownMenuSeparator style={{ backgroundColor: "var(--footer-border-color)" }} />
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/my-account">Mi cuenta</Link>
+                <Link href="/my-account">My Account</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/my-account/favorites">Favoritos</Link>
+                <Link href="/my-account/favorites">Favorites</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild style={{ color: "var(--text-primary)" }}>
-                <Link href="/my-account/settings">Configuración</Link>
+                <Link href="/my-account/settings">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator style={{ backgroundColor: "var(--footer-border-color)" }} />
               <DropdownMenuItem onClick={handleSignOut} style={{ color: "var(--brand-color)" }}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Cerrar sesión
+                Log Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
     if (!token) {
       return NextResponse.redirect(
-        new URL("/?login=true&error=Token inválido", request.url)
+        new URL("/?login=true&error=Invalid token", request.url)
       )
     }
 
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
     if (!verificationToken) {
       return NextResponse.redirect(
-        new URL("/?login=true&error=Token inválido o expirado", request.url)
+        new URL("/?login=true&error=Invalid or expired token", request.url)
       )
     }
 
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         where: { id: verificationToken.id },
       })
       return NextResponse.redirect(
-        new URL("/?login=true&error=El enlace ha expirado", request.url)
+        new URL("/?login=true&error=The link has expired", request.url)
       )
     }
 
@@ -58,13 +58,14 @@ export async function GET(request: Request) {
     })
 
     // Redirect to login with success message
+    // ("email-verified": el parámetro "verified" lo usan los filtros de /performers)
     return NextResponse.redirect(
-      new URL("/?login=true&verified=true", request.url)
+      new URL("/?login=true&email-verified=true", request.url)
     )
   } catch (error) {
     console.error("Error verifying email:", error)
     return NextResponse.redirect(
-      new URL("/?login=true&error=Error al verificar email", request.url)
+      new URL("/?login=true&error=Error verifying email", request.url)
     )
   }
 }
