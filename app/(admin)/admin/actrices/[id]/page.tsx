@@ -45,6 +45,13 @@ export default async function EditPerformerPage({ params }: Props) {
       },
       PerformerPhoto: {
         orderBy: { order: "asc" },
+        include: {
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true, slug: true } },
+            },
+          },
+        },
       },
       PerformerTag: {
         include: {

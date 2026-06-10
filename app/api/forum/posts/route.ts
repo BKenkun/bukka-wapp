@@ -80,13 +80,47 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, content, categoryId } = body
+    const { title, content, categoryId, poll } = body
 
     if (!title || !content || !categoryId) {
       return NextResponse.json(
         { error: "Title, content and category are required" },
         { status: 400 }
       )
+    }
+
+    // Validate optional poll
+    let pollData: { question: string; multiple: boolean; options: string[] } | null = null
+    if (poll != null) {
+      if (typeof poll !== "object" || Array.isArray(poll)) {
+        return NextResponse.json({ error: "Invalid poll" }, { status: 400 })
+      }
+      const question = typeof poll.question === "string" ? poll.question.trim() : ""
+      if (question.length < 1 || question.length > 200) {
+        return NextResponse.json(
+          { error: "Poll question must be between 1 and 200 characters" },
+          { status: 400 }
+        )
+      }
+      if (!Array.isArray(poll.options)) {
+        return NextResponse.json({ error: "Poll options are required" }, { status: 400 })
+      }
+      const options = poll.options
+        .map((o: unknown) => (typeof o === "string" ? o.trim() : ""))
+        .filter((o: string) => o.length > 0)
+      if (options.length < 2 || options.length > 6) {
+        return NextResponse.json(
+          { error: "Poll must have between 2 and 6 options" },
+          { status: 400 }
+        )
+      }
+      if (options.some((o: string) => o.length > 100)) {
+        return NextResponse.json(
+          { error: "Poll options must be 100 characters or less" },
+          { status: 400 }
+        )
+      }
+      pollData = { question, multiple: poll.multiple === true, options }
     }
 
     // Check if category exists and user has access
@@ -123,6 +157,19 @@ export async function POST(request: NextRequest) {
         content,
         authorId: session.user.id,
         categoryId,
+        ...(pollData
+          ? {
+              poll: {
+                create: {
+                  question: pollData.question,
+                  multiple: pollData.multiple,
+                  options: {
+                    create: pollData.options.map((text, index) => ({ text, order: index })),
+                  },
+                },
+              },
+            }
+          : {}),
       },
       include: {
         user: { select: { id: true, name: true, image: true } },

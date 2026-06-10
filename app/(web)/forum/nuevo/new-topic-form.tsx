@@ -24,8 +24,24 @@ export function NewTopicForm({ categories, userName }: NewTopicFormProps) {
     content: "",
     categoryId: categories[0]?.id || "",
   })
+  const [showPoll, setShowPoll] = useState(false)
+  const [pollQuestion, setPollQuestion] = useState("")
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""])
+  const [pollMultiple, setPollMultiple] = useState(false)
 
   const displayName = userName || "User"
+
+  const updatePollOption = (index: number, value: string) => {
+    setPollOptions((prev) => prev.map((opt, i) => (i === index ? value : opt)))
+  }
+
+  const addPollOption = () => {
+    setPollOptions((prev) => (prev.length < 6 ? [...prev, ""] : prev))
+  }
+
+  const removePollOption = (index: number) => {
+    setPollOptions((prev) => (prev.length > 2 ? prev.filter((_, i) => i !== index) : prev))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,12 +53,19 @@ export function NewTopicForm({ categories, userName }: NewTopicFormProps) {
     if (formData.content.length < 20) { setError("Content must be at least 20 characters"); return }
     if (!formData.categoryId) { setError("You must select a category"); return }
 
+    let poll: { question: string; options: string[]; multiple: boolean } | undefined
+    if (showPoll && pollQuestion.trim()) {
+      const validOptions = pollOptions.map((o) => o.trim()).filter((o) => o.length > 0)
+      if (validOptions.length < 2) { setError("A poll needs at least 2 options"); return }
+      poll = { question: pollQuestion.trim(), options: validOptions, multiple: pollMultiple }
+    }
+
     setIsSubmitting(true)
     try {
       const response = await fetch("/api/forum/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(poll ? { ...formData, poll } : formData),
       })
       if (!response.ok) { const data = await response.json(); throw new Error(data.error || "Error creating topic") }
       const post = await response.json()
@@ -174,6 +197,124 @@ export function NewTopicForm({ categories, userName }: NewTopicFormProps) {
             <p className="text-xs font-montserrat" style={{ color: "var(--text-muted)" }}>Minimum 20 characters</p>
             <p className="text-xs font-montserrat" style={{ color: formData.content.length >= 20 ? "var(--success-color)" : "var(--text-muted)" }}>{formData.content.length} characters</p>
           </div>
+        </div>
+
+        {/* Poll (optional) */}
+        <div style={{ border: "1px solid var(--border-color)" }}>
+          <button
+            type="button"
+            onClick={() => setShowPoll(!showPoll)}
+            disabled={isSubmitting}
+            className="w-full px-4 py-3 flex items-center justify-between font-montserrat text-[14px] font-medium transition-colors"
+            style={{ color: "var(--text-primary)", backgroundColor: showPoll ? "color-mix(in srgb, var(--accent-color) 10%, transparent)" : "transparent" }}
+          >
+            <span className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" strokeWidth="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Add a poll
+              <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span>
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="transition-transform"
+              style={{ transform: showPoll ? "rotate(180deg)" : "rotate(0deg)" }}
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          {showPoll && (
+            <div className="p-4 space-y-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+              <div>
+                <label className="block font-montserrat text-[14px] font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                  Poll question
+                </label>
+                <input
+                  type="text"
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  placeholder="Ask a question..."
+                  className="w-full px-4 py-3 font-montserrat text-[16px] focus:outline-none transition-colors"
+                  style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+                  disabled={isSubmitting}
+                  maxLength={200}
+                />
+              </div>
+
+              <div>
+                <label className="block font-montserrat text-[14px] font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                  Options
+                </label>
+                <div className="space-y-2">
+                  {pollOptions.map((option, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => updatePollOption(index, e.target.value)}
+                        placeholder={`Option ${index + 1}`}
+                        className="flex-1 px-4 py-2.5 font-montserrat text-[14px] focus:outline-none transition-colors"
+                        style={{ backgroundColor: "var(--global-bg)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+                        disabled={isSubmitting}
+                        maxLength={100}
+                      />
+                      {pollOptions.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removePollOption(index)}
+                          disabled={isSubmitting}
+                          className="p-2 transition-colors"
+                          style={{ color: "var(--text-muted)" }}
+                          aria-label={`Remove option ${index + 1}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {pollOptions.length < 6 && (
+                  <button
+                    type="button"
+                    onClick={addPollOption}
+                    disabled={isSubmitting}
+                    className="mt-2 flex items-center gap-2 font-montserrat text-[13px] font-medium transition-colors"
+                    style={{ color: "var(--accent-color)" }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add option
+                  </button>
+                )}
+              </div>
+
+              <label className="flex items-center gap-2 font-montserrat text-[14px] cursor-pointer" style={{ color: "var(--text-primary)" }}>
+                <input
+                  type="checkbox"
+                  checked={pollMultiple}
+                  onChange={(e) => setPollMultiple(e.target.checked)}
+                  disabled={isSubmitting}
+                  className="w-4 h-4"
+                  style={{ accentColor: "var(--accent-color)" }}
+                />
+                Allow multiple answers
+              </label>
+            </div>
+          )}
         </div>
       </div>
 

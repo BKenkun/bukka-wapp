@@ -14,6 +14,7 @@ import {
   IconGripVertical,
   IconRosetteDiscountCheck,
   IconClock,
+  IconTag,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,6 +56,7 @@ interface GalleryPhoto {
   caption?: string
   order: number
   isNew?: boolean
+  tagIds?: string[]
 }
 
 interface PerformerFormProps {
@@ -74,6 +76,7 @@ interface PerformerFormProps {
       imageUrl: string
       caption: string | null
       order: number
+      tags?: { tag: Tag }[]
     }[]
     tags?: { tag: Tag }[]
   }
@@ -95,9 +98,27 @@ export function PerformerForm({ performer }: PerformerFormProps) {
       imageUrl: p.imageUrl,
       caption: p.caption || undefined,
       order: p.order,
+      tagIds: p.tags?.map((t) => t.tag.id) || [],
     })) || []
   )
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null)
+  // Foto cuyo panel de tags está abierto
+  const [photoTagsIndex, setPhotoTagsIndex] = React.useState<number | null>(null)
+
+  const togglePhotoTag = (photoIndex: number, tagId: string) => {
+    setGalleryPhotos((prev) =>
+      prev.map((photo, i) => {
+        if (i !== photoIndex) return photo
+        const current = photo.tagIds || []
+        return {
+          ...photo,
+          tagIds: current.includes(tagId)
+            ? current.filter((id) => id !== tagId)
+            : [...current, tagId],
+        }
+      })
+    )
+  }
 
   // Tags state
   const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>(
@@ -373,6 +394,7 @@ export function PerformerForm({ performer }: PerformerFormProps) {
           imageUrl: photo.imageUrl,
           caption: photo.caption || null,
           order: index,
+          tagIds: photo.tagIds || [],
         })),
         tagIds: selectedTagIds,
       }
@@ -542,6 +564,53 @@ export function PerformerForm({ performer }: PerformerFormProps) {
                       <div className="absolute bottom-2 left-2 bg-black/60 rounded px-2 py-1">
                         <span className="text-xs text-white font-medium">{index + 1}</span>
                       </div>
+
+                      {/* Tags de la foto */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPhotoTagsIndex(photoTagsIndex === index ? null : index)
+                        }}
+                        className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 rounded px-2 py-1 flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Tags de la foto"
+                      >
+                        <IconTag className="size-3.5 text-white" />
+                        {(photo.tagIds?.length ?? 0) > 0 && (
+                          <span className="text-xs text-white font-medium">{photo.tagIds!.length}</span>
+                        )}
+                      </button>
+
+                      {photoTagsIndex === index && (
+                        <div
+                          className="absolute inset-x-1 bottom-9 z-10 bg-background border rounded-md p-2 shadow-lg max-h-32 overflow-y-auto"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {availableTags.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No hay tags creados</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {availableTags.map((tag) => {
+                                const active = photo.tagIds?.includes(tag.id)
+                                return (
+                                  <button
+                                    key={tag.id}
+                                    type="button"
+                                    onClick={() => togglePhotoTag(index, tag.id)}
+                                    className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+                                      active
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "bg-muted text-muted-foreground hover:border-primary"
+                                    }`}
+                                  >
+                                    {tag.name}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Remove button */}
                       <Button

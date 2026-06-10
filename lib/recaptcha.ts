@@ -1,7 +1,11 @@
 const SITEVERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 
-// Score mínimo aceptado (0.0 = bot, 1.0 = humano)
-const MIN_SCORE = 0.5
+// Score mínimo aceptado (0.0 = bot, 1.0 = humano).
+// Ajustable sin redeploy vía RECAPTCHA_MIN_SCORE (ej. "0.3").
+function getMinScore(): number {
+  const raw = Number(process.env.RECAPTCHA_MIN_SCORE)
+  return Number.isFinite(raw) && raw >= 0 && raw <= 1 ? raw : 0.5
+}
 
 export interface RecaptchaResult {
   success: boolean
@@ -46,7 +50,7 @@ export async function verifyRecaptcha(
       return { success: false, reason: (data["error-codes"] || []).join(",") || "invalid_token" }
     }
 
-    if (typeof data.score === "number" && data.score < MIN_SCORE) {
+    if (typeof data.score === "number" && data.score < getMinScore()) {
       return { success: false, score: data.score, reason: "low_score" }
     }
 

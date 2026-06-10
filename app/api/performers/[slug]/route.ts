@@ -157,6 +157,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
       // Update or create photos
       for (const photo of galleryPhotos) {
+        let photoId: string
         if (photo.id && existingIds.has(photo.id)) {
           // Update existing photo
           await prisma.performerPhoto.update({
@@ -167,9 +168,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
               order: photo.order,
             },
           })
+          photoId = photo.id
         } else {
           // Create new photo
-          await prisma.performerPhoto.create({
+          const created = await prisma.performerPhoto.create({
             data: {
               performerId: existingPerformer.id,
               imageUrl: photo.imageUrl,
@@ -177,6 +179,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
               order: photo.order,
             },
           })
+          photoId = created.id
+        }
+
+        // Sincronizar tags de la foto (solo si vienen en el payload)
+        if (photo.tagIds !== undefined) {
+          await prisma.performerPhotoTag.deleteMany({ where: { photoId } })
+          if (Array.isArray(photo.tagIds) && photo.tagIds.length > 0) {
+            await prisma.performerPhotoTag.createMany({
+              data: photo.tagIds.map((tagId: string) => ({ photoId, tagId })),
+              skipDuplicates: true,
+            })
+          }
         }
       }
     }

@@ -6,6 +6,7 @@ import { auth } from "@/auth"
 import { getUserPlan, canUserAccessForum } from "@/lib/subscription-guard"
 import { ForumReplies } from "./forum-replies"
 import { ForumAccessDenied } from "../forum-access-denied"
+import { PollWidget } from "@/components/forum/poll-widget"
 
 interface ForoTopicPageProps {
   params: Promise<{ id: string }>
@@ -61,6 +62,17 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
       include: {
         user: { select: { id: true, name: true, image: true, SubscriptionPlan: { select: { name: true } } } },
         ForumCategory: { select: { id: true, slug: true, name: true } },
+        poll: {
+          include: {
+            options: {
+              orderBy: { order: "asc" },
+              include: {
+                _count: { select: { votes: true } },
+                votes: { where: { userId: userId ?? "__none__" }, select: { id: true } },
+              },
+            },
+          },
+        },
         ForumReply: {
           orderBy: { createdAt: "asc" },
           select: {
@@ -303,6 +315,25 @@ export default async function ForoTopicPage({ params }: ForoTopicPageProps) {
               />
             </div>
           </div>
+
+          {/* Poll */}
+          {post.poll && (
+            <div className="mt-4 md:mt-6">
+              <PollWidget
+                pollId={post.poll.id}
+                question={post.poll.question}
+                multiple={post.poll.multiple}
+                endsAt={post.poll.endsAt ? post.poll.endsAt.toISOString() : null}
+                options={post.poll.options.map((option) => ({
+                  id: option.id,
+                  text: option.text,
+                  votes: option._count.votes,
+                  votedByMe: option.votes.length > 0,
+                }))}
+                isLoggedIn={!!userId}
+              />
+            </div>
+          )}
 
           {/* Replies Section */}
           <ForumReplies

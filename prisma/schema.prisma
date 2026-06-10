@@ -239,6 +239,7 @@ model ForumPost {
   ForumCategory ForumCategory @relation(fields: [categoryId], references: [id])
   ForumReply    ForumReply[]
   likes         ForumLike[]
+  poll          ForumPoll?
 
   @@index([authorId])
   @@index([categoryId])
@@ -261,6 +262,41 @@ model ForumReply {
 
   @@index([authorId])
   @@index([postId])
+}
+
+// Encuestas estilo WhatsApp en hilos del foro
+model ForumPoll {
+  id        String    @id @default(cuid())
+  postId    String    @unique
+  question  String
+  multiple  Boolean   @default(false)
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+  post      ForumPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options   ForumPollOption[]
+}
+
+model ForumPollOption {
+  id     String @id @default(cuid())
+  pollId String
+  text   String
+  order  Int    @default(0)
+  poll   ForumPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes  ForumPollVote[]
+
+  @@index([pollId])
+}
+
+model ForumPollVote {
+  id        String   @id @default(cuid())
+  optionId  String
+  userId    String
+  createdAt DateTime @default(now())
+  option    ForumPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@index([userId])
 }
 
 model ForumLike {
@@ -460,8 +496,18 @@ model PerformerPhoto {
   order       Int       @default(0)
   createdAt   DateTime  @default(now())
   performer   Performer @relation(fields: [performerId], references: [id], onDelete: Cascade)
+  tags        PerformerPhotoTag[]
 
   @@index([performerId])
+}
+
+model PerformerPhotoTag {
+  photoId String
+  tagId   String
+  photo   PerformerPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  tag     Tag            @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([photoId, tagId])
 }
 
 model PerformerNotify {
@@ -631,9 +677,10 @@ model Tag {
   id           String         @id @default(cuid())
   slug         String         @unique
   name         String
-  ProductTag   ProductTag[]
-  VideoTag     VideoTag[]
-  PerformerTag PerformerTag[]
+  ProductTag        ProductTag[]
+  VideoTag          VideoTag[]
+  PerformerTag      PerformerTag[]
+  PerformerPhotoTag PerformerPhotoTag[]
 }
 
 model PerformerTag {
@@ -701,6 +748,7 @@ model User {
   ForumPost                                    ForumPost[]
   ForumReply                                   ForumReply[]
   ForumLike                                    ForumLike[]
+  ForumPollVote                                ForumPollVote[]
   Order                                        Order[]
   Performer                                    Performer?
   Session                                      Session[]

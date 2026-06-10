@@ -25,8 +25,9 @@ export function MegamenuVideoCard({ video }: MegamenuVideoCardProps) {
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Thumbnail container - vertical aspect ratio */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
+      {/* Thumbnail 16:9: las miniaturas de video son horizontales y en
+          vertical se recortaban tanto que no se distinguía el video */}
+      <div className="relative aspect-video overflow-hidden bg-zinc-900">
         <img
           src={video.thumbnailUrl}
           alt={video.title}
@@ -48,9 +49,10 @@ export function MegamenuVideoCard({ video }: MegamenuVideoCardProps) {
         </div>
       </div>
 
-      {/* Video info */}
+      {/* Video info — --text-primary: --vc-title-color es blanco (pensado
+          para overlays oscuros) y se perdía sobre el fondo del megamenú */}
       <div className="mt-2">
-        <h4 className="text-sm font-medium line-clamp-2 transition-colors leading-tight" style={{ color: "var(--vc-title-color)" }}>
+        <h4 className="text-sm font-medium line-clamp-2 transition-colors leading-tight" style={{ color: "var(--text-primary)" }}>
           {video.title}
         </h4>
       </div>
