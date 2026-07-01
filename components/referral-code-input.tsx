@@ -182,7 +182,7 @@ export function ReferralCodeInput({
                     : "var(--text-primary)",
                 }}
               >
-                {applied.label || defaultLabel}
+                {defaultLabel}
               </p>
               {isDiscount ? (
                 <p

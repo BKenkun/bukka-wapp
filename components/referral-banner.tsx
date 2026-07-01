@@ -96,7 +96,7 @@ export function ReferralBanner() {
       <TicketPercent className="w-4 h-4 shrink-0" style={{ color: "var(--brand-color)" }} />
       <p className="text-center">
         <span className="font-semibold">
-          {info.label || `${info.ownerName}'s coupon`} ({info.code})
+          {`${info.ownerName}'s coupon`} ({info.code})
         </span>{" "}
         {info.discountPercent > 0 ? (
           <>
