@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+import { getRecaptchaToken } from "@/lib/recaptcha-client"
 
 interface NewsletterFormProps {
   title: string
@@ -45,10 +46,12 @@ export function NewsletterForm({
     setMessage("")
 
     try {
+      const recaptchaToken = await getRecaptchaToken("NEWSLETTER")
+
       const response = await fetch("/api/newsletter/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source }),
+        body: JSON.stringify({ email, source, recaptchaToken }),
       })
       const data = await response.json()
 

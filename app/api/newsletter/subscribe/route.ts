@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { upsertMailjetContact } from "@/lib/email/mailjet"
+import { verifyRecaptcha } from "@/lib/recaptcha"
 import { z } from "zod"
 
 const subscribeSchema = z.object({
   email: z.string().email("Invalid email"),
   source: z.string().max(50).optional(),
+  recaptchaToken: z.string().optional().nullable(),
 })
 
 export async function POST(request: Request) {
@@ -15,6 +17,16 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 })
+    }
+
+    // Anti-spam: verificar reCAPTCHA antes de dar de alta
+    const captcha = await verifyRecaptcha(result.data.recaptchaToken, "NEWSLETTER")
+    if (!captcha.success) {
+      console.warn(`[Newsletter] reCAPTCHA rejected (${captcha.reason}, score: ${captcha.score ?? "n/a"})`)
+      return NextResponse.json(
+        { error: "Verification failed. Please try again." },
+        { status: 400 }
+      )
     }
 
     const email = result.data.email.toLowerCase().trim()
